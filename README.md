@@ -11,7 +11,7 @@ Do you have a suggestion for the plugin? You can make a **pull request!**
 ```
 RayanfhoulaBR - For fixing Multimode Core's check end vote. <3
 Ribas - Owner of Oppressive Territory Hosting. <3
-Oppressive Territory Hosting - Community, testing and debuging the Multimode Core. <3
+Oppressive Territory Community - Community, testing and debuging the Multimode Core. <3
 ```
 
 #### Supported Games.
