@@ -1,0 +1,290 @@
+"Phrases"
+{         
+    "RTV Available In"
+    {
+        "pt"    "{green}[Rock The Vote] {default}O RTV estará disponível em {green}%d {default}segundos!"
+        "en"    "{green}[Rock The Vote] {default}RTV will be available in {green}%d {default}seconds!"
+    }
+
+    "RTV Available"
+    {
+        "pt"    "{green}[Rock The Vote] {default}O sistema RTV está agora disponível! Digite !rtv para votar."
+        "en"    "{green}[Rock The Vote] {default}RTV is now available! Type !rtv to vote."
+    }
+
+    "RTV Available Again"
+    {
+        "pt"    "{green}[Rock The Vote] {default}O sistema RTV está disponível novamente!"
+        "en"    "{green}[Rock The Vote] {default}RTV system is available again!"
+    }
+
+    "Error Changing Map"
+    {
+        "pt"    "{red}ERRO: {default}Falha na mudança de mapa!"
+        "en"    "{red}ERROR: {default}Map change failed!"
+    }
+
+    "Round Map Changing"
+    {
+        "pt"    "{green}[MultiMode] {default}Rodada sucedida, mudando o mapa para: {olive}%s"
+        "en"    "{green}[MultiMode] {default}Round successful, changing map to: {olive}%s"
+    }
+
+    "Admin Cancel Vote"
+    {
+        "pt"    "{red}[Admin] {default}%N {red}cancelou {default}a votação atual."
+        "en"    "{red}[Admin] {default}%N {red}cancelled {default}the current vote."
+    }
+
+    "Admin Cancel No Vote"
+    {
+        "pt"    "{red}[Admin] {default}Nenhuma votação em andamento para {red}cancelar."
+        "en"    "{red}[Admin] {default}No voting in progress to {red}cancel."
+    }
+
+    "Wants To Vote"
+    {
+        "pt"    "{green}%N quer trocar de mapa (%d/%d necessários)"
+        "en"    "{green}%N wants to change the map (%d/%d needed)"
+    }
+
+    "RTV System Disabled"
+    {
+        "pt"    "{green}[Rock The Vote] {default}O sistema de votação está desativado no momento!"
+        "en"    "{green}[Rock The Vote] {default}The voting system is currently disabled!"
+    }
+
+    "RTV Wait"
+    {
+        "pt"    "{green}[Rock The Vote] {default}Aguarde %d segundos para usar o RTV!"
+        "en"    "{green}[Rock The Vote] {default}Please wait %d seconds to use RTV!"
+    }
+
+    "RTV Wait Again"
+    {
+        "pt"    "{green}[Rock The Vote] {default}Aguarde %d segundos para votar novamente!"
+        "en"    "{green}[Rock The Vote] {default}Please wait %d seconds to vote again!"
+    }
+
+    "RTV Already Voted"
+    {
+        "pt"    "{green}[Rock The Vote] {default}Você já votou para trocar de mapa!"
+        "en"    "{green}[Rock The Vote] {default}You've already voted to change maps!"
+    }
+
+    "RTV Minimun Players"
+    {
+        "pt"    "{green}[Rock The Vote] {default}Mínimo de %d jogadores necessários!"
+        "en"    "{green}[Rock The Vote] {default}Minimum %d players required!"
+    }
+
+    "RTV Next Available"
+    {
+        "pt"    "{green}[Rock The Vote] {default}Próximo RTV disponível em {green}%d segundos!"
+        "en"    "{green}[Rock The Vote] {default}Next RTV available in {green}%d seconds!"
+    }
+
+    "Nominate Disabled"
+    {
+        "pt"    "{green}[Rock The Vote] {default}O sistema de nominate está desativado no momento!"
+        "en"    "{green}[Rock The Vote] {default}The nominate system is currently disabled!"
+    }
+
+    "Nominate Once Per Map"
+    {
+        "pt"    "{red}[Nominate] {default}Você só pode {red}nomear uma vez {default}por mapa. Espere até o próximo mapa."
+        "en"    "{red}[Nominate] {default}You can only {red}nominate once {default}per map. Wait until the next map."
+    }
+
+    "Nominate Gamemode Group Menu Title"
+    {
+        "pt"    "Nomear Modo de Jogo:\n \nLembrando que você esta apres a nomear um gamemode e um mapa para aparecer na proxima votação, \nEsteja ciente que você tem apenas 1 vez para nomear um gamemode e um mapa a cada mapa.\n \n"
+        "en"    "Nominate Game Mode:\n \nRemember that you are here to nominate a gamemode and a map to appear in the next vote, \nBe aware that you only have 1 time to nominate a gamemode and a map for each map.\n \n"
+    }
+
+    "Nominate Gamemode Group Menu Title Non Once"
+    {
+        "pt"    "Nomear Modo de Jogo:"
+        "en"    "Nominate Game Mode:"
+    }
+
+    "Nominate Gamemode Not Found"
+    {
+        "pt"    "{red}Modo de jogo não encontrado!"
+        "en"    "{red}Game mode not found!"
+    }
+
+    "Nominate Map Title"
+    {
+        "pt"    "Nomear Mapa para"
+        "en"    "Name Map for %s:"
+    }
+
+    "Nominated Client"
+    {
+        "pt"    "{green}[Nominate] {default}Você nomeou: {olive}%s - %s"
+        "en"    "{green}[Nominate] {default}You nominated: {olive}%s - %s"
+    }
+
+    "Nominated Server"
+    {
+        "pt"    "{green}[Nominate] {default}%s nomeou: {olive}%s - %s"
+        "en"    "{green}[Nominate] {default}%s nominated: {olive}%s - %s"
+    }
+
+    "Normal Vote Gamemode Group Title"
+    {
+        "pt"    "Vote no Modo de Jogo:"
+        "en"    "Vote on Game Mode:"
+    }
+
+    "Extend Map Normal Vote"
+    {
+        "pt"    "Estender Mapa"
+        "en"    "Extend Map"
+    }
+
+    "Show Gamemode Group Title"
+    {
+        "pt"    "Escolha um Modo de Jogo:"
+        "en"    "Choose a Game Mode:"
+    }
+
+    "Show Gamemode Admin Title"
+    {
+        "pt"    "Escolha o Gamemode para Votação:"
+        "en"    Choose Gamemode for Voting:"
+    }
+
+    "None Show Gamemode Group"
+    {
+        "pt"    "{red}Nenhum modo de jogo disponível."
+        "en"    "{red}No game modes available."
+    }
+
+    "None Show Map Group"
+    {
+        "pt"    "{red}Modo de jogo não encontrado!"
+        "en"    "{red}Game mode not found!"
+    }
+
+    "Show Map Group Title"
+    {
+        "pt"    "Escolha um Mapa para %s:"
+        "en"    "Choose a Map for %s:"
+    }
+
+    "Start Map Vote Title"
+    {
+        "pt"    "Vote no próximo mapa:"
+        "en"    "Vote for the Next Map:"
+    }
+
+    "Timing NextMap"
+    {
+        "pt"    "Próximo Mapa"
+        "en"    "Next Map"
+    }
+
+    "Timing NextRound"
+    {
+        "pt"    "Próxima rodada"
+        "en"    "Next Round"
+    }
+
+    "Timing Instant"
+    {
+        "pt"    "Instantâneo"
+        "en"    "Instant"
+    }
+
+    "Timing NextMap Notify"
+    {
+        "pt"    "{green}[Admin] {default}Próximo mapa será: {olive}%s"
+        "en"    "{green}[Admin] {default}Next map will be: {olive}%s"
+    }
+
+    "Timing NextRound Notify"
+    {
+        "pt"    "{green}[Admin] {default}Mapa mudará na próxima rodada para: {olive}%s"
+        "en"    "{green}[Admin] {default}Map will change next round to: {olive}%s"
+    }
+
+    "Timing Instant Notify"
+    {
+        "pt"    "{green}[Admin] {default}Mapa alterado instantaneamente para: {olive}%s"
+        "en"    "{green}[Admin] {default}Map instantly changed to: {olive}%s"
+    }
+
+    "Gamemode Vote Already"
+    {
+        "pt"    "{red}A votação já está ativa ou o plugin está desativado."
+        "en"    "{red}The vote is already active or the plugin is disabled."
+    }
+
+    "Map Extended"
+    {
+        "pt"    "Mapa estendido por %d minutos!"
+        "en"    "Map extended by %d minutes!"
+    }
+
+    "Admin Map Extended"
+    {
+        "pt"    "Mapa forçadamente estendido para +%.1f minutos!"
+        "en"    "Forced map extended to +%.1f minutes!"
+    }
+
+    "Non Maps Items"
+    {
+        "pt"    "{red}Nenhum mapa disponível para este modo!"
+        "en"    "{red}No maps available for this mode!"
+    }
+
+    "Map Voting Cooldown"
+    {
+        "pt"    "{green}[Votação] {default}A votação de mapas começará em %d segundos."
+        "en"    "{green}[Voting] {default}Map voting will begin in %d seconds."
+    }
+
+    "No Votes Recorded"
+    {
+        "pt"    "{red}Votação falhou! Nenhum voto registrado."
+        "en"    "{red}Voting failed! No votes recorded."
+    }
+
+    "Reload Gamemodes Successful"
+    {
+        "pt"    "{green}[MultiMode] {default}Configuração de gamemodes recarregada com sucesso!"
+        "en"    "{green}[MultiMode] {default}Gamemodes configuration reloaded successfully!"
+    }
+
+    "Vote Already Active"
+    {
+        "pt"    "{red}Votação ja em progresso..."
+        "en"    "{red}Voting already in progress..."
+    }
+
+    "Map Extended Time"
+    {
+        "pt"    "{green}%d minutos{default}"
+        "en"    "{green}%d minutes{default}"
+    }
+
+    "Map Extended Rounds"
+    {
+        "pt"    ", {green}%d rodadas{default}"
+        "en"    ", {green}%d rounds{default}"
+    }
+
+    "Map Extended Frags"
+    {
+        "pt"    ", {green}%d frags{default}"
+        "en"    ", {green}%d frags{default}"
+    }
+
+    "Cooldown Hud"
+    {
+        "pt"    "Outra votação será encaminhada em %d segundos..."
+        "en"    "Another vote will be taken in %d seconds..."
+    }
+}

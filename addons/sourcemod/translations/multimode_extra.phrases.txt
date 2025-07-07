@@ -1,0 +1,38 @@
+"Phrases"
+{
+    "Current Gamemode"
+    {
+        "pt"    "{lime}[MultiMode] {default}Gamemode atual: {olive}%s {default}| Mapa: {lightgreen}%s"
+        "en"    "{lime}[MultiMode] {default}Current Gamemode: {olive}%s {default}| Map: {lightgreen}%s"
+    }
+
+    "Next Gamemode Full"
+    {
+        "pt"    "{lime}[MultiMode] {default}Próximo gamemode: {olive}%s {default}| Mapa: {lightgreen}%s"
+        "en"    "{lime}[MultiMode] {default}Next gamemode: {olive}%s {default}| Map: {lightgreen}%s"
+    }
+
+    "Next Gamemode"
+    {
+        "pt"    "{lime}[MultiMode] {default}Próximo gamemode: {olive}%s"
+        "en"    "{lime}[MultiMode] {default}Next gamemode: {olive}%s"
+    }
+
+    "Random Map Enabled"
+    {
+        "pt"    "Seleção Aleatória, Esperando por Votação..."
+        "en"    "Random Selection, Waiting for Voting..."
+    }
+
+    "Unknown"
+    {
+        "pt"    "Indefinido"
+        "en"    "Unknown"
+    }
+
+    "Next Gamemode"
+    {
+        "pt"    "{lime}[MultiMode] {default}Próximo gamemode: {olive}%s"
+        "en"    "{lime}[MultiMode] {default}Next gamemode: {olive}%s"
+    }    
+}
