@@ -29,10 +29,4 @@
         "pt"    "Indefinido"
         "en"    "Unknown"
     }
-
-    "Next Gamemode"
-    {
-        "pt"    "{lime}[MultiMode] {default}Próximo gamemode: {olive}%s"
-        "en"    "{lime}[MultiMode] {default}Next gamemode: {olive}%s"
-    }    
 }
