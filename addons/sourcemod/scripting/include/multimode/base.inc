@@ -12,6 +12,10 @@ enum struct GameModeConfig {
     char name[64];
     char command[256];
     int maps_invote;
+    int adminonly;
+    int enabled;
+    int maxplayers;
+    int minplayers;
     ArrayList maps;
 }
 
