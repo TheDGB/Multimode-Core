@@ -106,9 +106,7 @@ char g_sSelectedGameMode[64] = "";
 int g_iRtvVotes = 0;
 int g_iVoteInitiator = -1;
 int g_iCooldownEndTime = 0;
-int g_iInitialTimeLimit;
 int g_iMapStartTime;
-int g_iTotalExtensions = 0;
 
 // Handle Section
 Handle g_hRtvCooldownTimer = INVALID_HANDLE;
@@ -512,10 +510,7 @@ public void OnMapStart()
         g_bRtvInitialDelay = false;
     }
 
-    ConVar timelimit = FindConVar("mp_timelimit");
-    g_iInitialTimeLimit = (timelimit != null) ? timelimit.IntValue : 0;
     g_iMapStartTime = GetTime();
-    g_iTotalExtensions = 0;
 
     if (g_Cvar_VoteSounds.BoolValue)
     {
@@ -989,31 +984,30 @@ public Action Timer_CheckEndVote(Handle timer)
 {	
     if(!g_Cvar_EndVoteEnabled.BoolValue || g_bVoteActive || g_bEndVoteTriggered || g_bRtvDisabled || g_bVoteCompleted)
     {
-        if(g_Cvar_EndVoteDebug) WriteToLogFile("[End Vote] Verification skipped: System disabled/voting active/triggered/RTV blocked");
+        if(g_Cvar_EndVoteDebug.BoolValue) 
+            WriteToLogFile("[End Vote] Verification skipped: System disabled/voting active/triggered/RTV blocked");
         return Plugin_Continue;
     }
 
     int currentTime = GetTime();
     int elapsed = currentTime - g_iMapStartTime;
-
-    // isso aqui pega o mp_timelimit atual
-    int liveLimit = g_hCvarTimeLimit.IntValue;
-    int totalTimeLimit = liveLimit * 60;
-
+    
+    float currentTimeLimit = g_hCvarTimeLimit.FloatValue;
+    int totalTimeLimit = RoundToFloor(currentTimeLimit * 60.0); 
+    
     int iTimeLeft = totalTimeLimit - elapsed;
 
     if(g_Cvar_EndVoteDebug.BoolValue)
     {
-        WriteToLogFile("[End Vote] Calculation: TimeLimit=%dmin + Extensions=%dmin = Total=%dmin | Elapsed=%dmin | Remainder=%dmin", 
-            g_iInitialTimeLimit, g_iTotalExtensions, (g_iInitialTimeLimit + g_iTotalExtensions), 
-            elapsed/60, iTimeLeft/60);
+        WriteToLogFile("[End Vote] Calculation: TimeLimit=%.1fmin | Elapsed=%dmin | Remainder=%dmin", currentTimeLimit, elapsed/60, iTimeLeft/60);
 
         if(iTimeLeft < 0)
             WriteToLogFile("[End Vote] Time remaining set to 0 (negative)");
 
-        WriteToLogFile("[End Vote] Checking: Remainder=%ds | Extended=%d", iTimeLeft, g_iTotalExtensions);
+        WriteToLogFile("[End Vote] Checking: Remainder=%ds", iTimeLeft);
         WriteToLogFile("[DEBUG] End Vote - State: Triggered=%d, Completed=%d, Active=%d", g_bEndVoteTriggered, g_bVoteCompleted, g_bVoteActive);
     }
+    
     int iTrigger = g_Cvar_EndVoteMin.IntValue * 60;
 
     if(iTimeLeft <= iTrigger)
@@ -1022,16 +1016,17 @@ public Action Timer_CheckEndVote(Handle timer)
             WriteToLogFile("[End Vote] Triggered! Starting vote... (Remaining: %ds <= Trigger: %ds)", iTimeLeft, iTrigger);
         
         g_bEndVoteTriggered = true;
-        g_hEndVoteTimer = INVALID_HANDLE;
+        delete g_hEndVoteTimer;
         PrintHintTextToAll("[Multimode Core] Voting established!");
         
         int endType = g_Cvar_EndVoteType.IntValue;
         if(endType < 1) endType = 1;
         else if(endType > 3) endType = 3;
         g_eCurrentVoteTiming = view_as<TimingMode>(endType - 1);
+        
         if(g_Cvar_EndVoteDebug.BoolValue)
-            WriteToLogFile("[End Vote] Vote type selected: %d (%s)", 
-                endType, (g_eCurrentVoteTiming == TIMING_NEXTMAP) ? "Next Map" : 
+            WriteToLogFile("[End Vote] Vote type selected: %d (%s)", endType, 
+                (g_eCurrentVoteTiming == TIMING_NEXTMAP) ? "Next Map" : 
                 (g_eCurrentVoteTiming == TIMING_NEXTROUND) ? "Next Round" : "Instant");
         
         StartGameModeVote(0, false);
@@ -1914,14 +1909,11 @@ public void OnTimelimitChanged(ConVar convar, const char[] oldValue, const char[
 {
     if(g_bInternalChange) return;
     
-    g_iInitialTimeLimit = StringToInt(newValue);
     g_iMapStartTime = GetTime();
-    g_iTotalExtensions = 0;
     
     if(g_Cvar_EndVoteDebug.BoolValue)
     {
         WriteToLogFile("[End Vote] mp_timelimit changed externally! New value: %smin", newValue);
-        WriteToLogFile("[End Vote] Resetting counters: MapStart=%d, Extensions=0", g_iMapStartTime);
     }
 }
 
@@ -2705,7 +2697,7 @@ bool GamemodeAvailableAdminVote(const char[] gamemode)
 
 void ExtendMapTime()
 {
-    WriteToLogFile("[MultiMode Core] Votação estabilizada (Extensão de mapa)");
+    WriteToLogFile("[MultiMode Core] Stabilized Voting (Map Extension)");
     
     int extendMinutes = g_Cvar_ExtendSteps.IntValue; 
     int roundStep = g_Cvar_ExtendRoundStep.IntValue;
@@ -2713,8 +2705,6 @@ void ExtendMapTime()
     
     bool bExtendedRounds = false, bExtendedFrags = false;
     PerformExtension(float(extendMinutes), roundStep, fragStep, bExtendedRounds, bExtendedFrags);
-    
-    g_iTotalExtensions += extendMinutes;
     
     char hudMsg[128];
     Format(hudMsg, sizeof(hudMsg), "%t", "Map Extended", extendMinutes);
@@ -2733,7 +2723,6 @@ void ExtendMapTime()
     
     g_bEndVoteTriggered = false;
     g_iMapStartTime = GetTime();
-    g_iTotalExtensions += extendMinutes;
     
     if (g_Cvar_EndVoteEnabled.BoolValue) 
     {
@@ -2797,8 +2786,6 @@ void ExtendMapTimeEx(int client, float minutes)
     
     bool bExtendedRounds = false, bExtendedFrags = false;
     PerformExtension(timeStep, roundStep, fragStep, bExtendedRounds, bExtendedFrags);
-    
-    g_iTotalExtensions += RoundToFloor(minutes);
     
     char hudMsg[128];
     Format(hudMsg, sizeof(hudMsg), "%t", "Admin Map Extended", minutes);
