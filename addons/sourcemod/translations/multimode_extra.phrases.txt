@@ -1,32 +1,23 @@
 "Phrases"
 {
-    "Current Gamemode"
-    {
-        "pt"    "{lime}[MultiMode] {default}Gamemode atual: {olive}%s {default}| Mapa: {lightgreen}%s"
-        "en"    "{lime}[MultiMode] {default}Current Gamemode: {olive}%s {default}| Map: {lightgreen}%s"
-    }
-
-    "Next Gamemode Full"
-    {
-        "pt"    "{lime}[MultiMode] {default}Próximo gamemode: {olive}%s {default}| Mapa: {lightgreen}%s"
-        "en"    "{lime}[MultiMode] {default}Next gamemode: {olive}%s {default}| Map: {lightgreen}%s"
-    }
-
     "Next Gamemode"
     {
-        "pt"    "{lime}[MultiMode] {default}Próximo gamemode: {olive}%s"
-        "en"    "{lime}[MultiMode] {default}Next gamemode: {olive}%s"
+        "pt"    "{olive}[MultiMode] {default}Próximo gamemode: {lightgreen}%s {default}| Mapa: {lightgreen}%s"
+        "en"    "{olive}[MultiMode] {default}Next gamemode: {lightgreen}%s {default}| Map: {lightgreen}%s"
     }
-
-    "Random Map Enabled"
+    "Current Gamemode"
     {
-        "pt"    "Seleção Aleatória, Esperando por Votação..."
-        "en"    "Random Selection, Waiting for Voting..."
+        "pt"    "{olive}[MultiMode] {default}Gamemode atual: {lightgreen}%s {default}| Mapa: {lightgreen}%s"
+        "en"    "{olive}[MultiMode] {default}Current gamemode: {lightgreen}%s {default}| Map: {lightgreen}%s"
     }
-
-    "Unknown"
+    "Random Cycle Next Gamemode"
     {
-        "pt"    "Indefinido"
-        "en"    "Unknown"
+        "pt"    "{olive}[MultiMode] {default}Próximo gamemode: {lightgreen}Seleção Aleatória, Esperando por Votação..."
+        "en"    "{olive}[MultiMode] {default}Next gamemode: {lightgreen}Random Selection, Waiting for Voting..."
+    }
+    "Unknown Next Gamemode"
+    {
+        "pt"    "{olive}[MultiMode] {default}Próximo gamemode: {red}Indefinido"
+        "en"    "{olive}[MultiMode] {default}Next gamemode: {red}Undefined"
     }
 }
