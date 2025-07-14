@@ -46,7 +46,7 @@ public Action Command_CurrentGameMode(int client, int args)
     char current_map[PLATFORM_MAX_PATH];
 
     MultiMode_GetCurrentGameMode(current_gamemode, sizeof(current_gamemode));
-    GetCurrentMap(current_map, sizeof(current_map));
+    MultiMode_GetCurrentMap(current_map, sizeof(current_map));
 
     CPrintToChat(client, "%t", "Current Gamemode", current_gamemode, current_map);
 

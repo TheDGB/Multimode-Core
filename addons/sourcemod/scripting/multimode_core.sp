@@ -708,9 +708,11 @@ bool IsWildcardEntry(const char[] mapname)
 
 public Action Timer_EnableRTV(Handle timer)
 {
-    g_bRtvInitialDelay = false;
-    g_hRtvTimers[0] = INVALID_HANDLE;
-    CPrintToChatAll("%t", "RTV Available");
+    if (!g_bRtvCooldown)
+    {
+        g_bRtvInitialDelay = false;
+        g_hRtvTimers[0] = INVALID_HANDLE;
+    }
     return Plugin_Stop;
 }
 
@@ -1555,6 +1557,11 @@ public Action Command_RTV(int client, int args)
         CReplyToCommand(client, "%t", "RTV Already Voted");
         return Plugin_Handled;
     }
+	
+    if(!g_bRtvCooldown)
+    {
+        CPrintToChatAll("%t", "RTV Available");
+    }
     
     int iPlayers = GetRealClientCount();
     float ratio = g_Cvar_RtvRatio.FloatValue;
@@ -1948,9 +1955,19 @@ public int NativeMMC_GetCurrentGameMode(Handle plugin, int numParams)
 public int NativeMMC_GetNextMap(Handle plugin, int numParams)
 {
     int maxlen = GetNativeCell(2);
-    SetNativeString(1, g_sNextMap, maxlen);
+    char displayName[PLATFORM_MAX_PATH];
+
+    if (StrEqual(g_sNextMap, ""))
+    {
+        SetNativeString(1, "", maxlen);
+        return 0;
+    }
+
+    GetMapDisplayNameEx(g_sNextGameMode, g_sNextMap, displayName, sizeof(displayName));
+    SetNativeString(1, displayName, maxlen);
     return 0;
 }
+
 
 public int NativeMMC_Nominate(Handle plugin, int numParams)
 {
@@ -1994,10 +2011,12 @@ public int NativeMMC_GetCurrentMap(Handle plugin, int numParams)
 {
     int maxlen = GetNativeCell(2);
     char map[PLATFORM_MAX_PATH];
+    char displayName[PLATFORM_MAX_PATH];
     
     GetCurrentMap(map, sizeof(map));
+    GetMapDisplayNameEx(g_sCurrentGameMode, map, displayName, sizeof(displayName));
     
-    SetNativeString(1, map, maxlen);
+    SetNativeString(1, displayName, maxlen);
     return 0;
 }
 
@@ -2398,6 +2417,13 @@ void StartGameModeVote(int client, bool adminVote = false)
         StartMapVote(client, "");
         return;
     }
+	
+    if (g_hRtvTimers[1] != INVALID_HANDLE)
+    {
+        KillTimer(g_hRtvTimers[1]);
+        g_hRtvTimers[1] = INVALID_HANDLE;
+    }
+    g_bRtvCooldown = false;
     
     ArrayList voteGameModes = new ArrayList(ByteCountToCells(64));
     
@@ -2956,6 +2982,13 @@ void StartMapVote(int client, const char[] sGameMode)
         CPrintToChat(client, "%t", "Vote Already Active");
         return;
     }
+	
+    if (g_hRtvTimers[1] != INVALID_HANDLE)
+    {
+        KillTimer(g_hRtvTimers[1]);
+        g_hRtvTimers[1] = INVALID_HANDLE;
+    }
+    g_bRtvCooldown = false;
 
     if (GetVoteMethod() == 3)
     {
