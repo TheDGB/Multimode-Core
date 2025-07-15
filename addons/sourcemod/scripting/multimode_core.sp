@@ -2427,14 +2427,25 @@ void StartGameModeVote(int client, bool adminVote = false)
     
     ArrayList voteGameModes = new ArrayList(ByteCountToCells(64));
     
-    for (int i = 0; i < g_NominatedGamemodes.Length; i++)
-    {
+    for (int i = 0; i < g_NominatedGamemodes.Length; i++) 
+	{
         char nominatedGM[64];
         g_NominatedGamemodes.GetString(i, nominatedGM, sizeof(nominatedGM));
-        if (FindGameModeIndex(nominatedGM) != -1 && voteGameModes.FindString(nominatedGM) == -1)
-        {
+    
+        int index = FindGameModeIndex(nominatedGM);
+        if (index == -1) continue;
+
+        GameModeConfig config;
+        gameModes.GetArray(index, config);
+
+        bool available = (adminVote) 
+            ? GamemodeAvailableAdminVote(config.name) 
+            : GamemodeAvailable(config.name);
+
+        if (available && voteGameModes.FindString(nominatedGM) == -1) 
+		{
             voteGameModes.PushString(nominatedGM);
-        }
+		}
     }
     
     voteGameModes.Sort(Sort_Random, Sort_String);
@@ -2886,6 +2897,14 @@ public void ExecuteVoteResult()
     {
         KillTimer(g_hEndVoteTimer);
         g_hEndVoteTimer = INVALID_HANDLE;
+    }
+
+    if (g_bEndVoteTriggered)
+    {
+        int endType = g_Cvar_EndVoteType.IntValue;
+        if(endType < 1) endType = 1;
+        else if(endType > 3) endType = 3;
+        g_eCurrentVoteTiming = view_as<TimingMode>(endType - 1);
     }
     
     switch(g_eCurrentVoteTiming)
