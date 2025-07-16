@@ -1020,16 +1020,14 @@ public Action Timer_CheckEndVote(Handle timer)
         g_bEndVoteTriggered = true;
         delete g_hEndVoteTimer;
         PrintHintTextToAll("[Multimode Core] Voting established!");
-        
+		
         int endType = g_Cvar_EndVoteType.IntValue;
         if(endType < 1) endType = 1;
         else if(endType > 3) endType = 3;
         g_eCurrentVoteTiming = view_as<TimingMode>(endType - 1);
-        
+			
         if(g_Cvar_EndVoteDebug.BoolValue)
-            WriteToLogFile("[End Vote] Vote type selected: %d (%s)", endType, 
-                (g_eCurrentVoteTiming == TIMING_NEXTMAP) ? "Next Map" : 
-                (g_eCurrentVoteTiming == TIMING_NEXTROUND) ? "Next Round" : "Instant");
+            WriteToLogFile("[End Vote] Vote type selected: %d (%s)", endType, (g_eCurrentVoteTiming == TIMING_NEXTMAP) ? "Next Map" : (g_eCurrentVoteTiming == TIMING_NEXTROUND) ? "Next Round" : "Instant");
         
         StartGameModeVote(0, false);
         return Plugin_Stop;
@@ -2897,14 +2895,6 @@ public void ExecuteVoteResult()
     {
         KillTimer(g_hEndVoteTimer);
         g_hEndVoteTimer = INVALID_HANDLE;
-    }
-
-    if (g_bEndVoteTriggered)
-    {
-        int endType = g_Cvar_EndVoteType.IntValue;
-        if(endType < 1) endType = 1;
-        else if(endType > 3) endType = 3;
-        g_eCurrentVoteTiming = view_as<TimingMode>(endType - 1);
     }
     
     switch(g_eCurrentVoteTiming)
