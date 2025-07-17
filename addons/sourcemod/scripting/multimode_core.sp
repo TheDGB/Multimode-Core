@@ -39,6 +39,12 @@ ConVar g_Cvar_EndVoteMin;
 ConVar g_Cvar_EndVoteDebug;
 ConVar g_Cvar_Enabled;
 ConVar g_Cvar_VoteTime;
+ConVar g_Cvar_VoteRandom;
+ConVar g_Cvar_VoteAdminRandom;
+ConVar g_Cvar_VoteGroupExclude;
+ConVar g_Cvar_VoteMapExclude;
+ConVar g_Cvar_VoteAdminGroupExclude;
+ConVar g_Cvar_VoteAdminMapExclude;
 ConVar g_Cvar_CommandsNoDelay;
 ConVar g_Cvar_CommandsDelay;
 ConVar g_Cvar_Discord;
@@ -64,6 +70,12 @@ ConVar g_Cvar_Method;
 ConVar g_Cvar_CooldownEnabled;
 ConVar g_Cvar_CooldownTime;
 ConVar g_Cvar_Logs;
+ConVar g_Cvar_NominateEnabled;
+ConVar g_Cvar_NominateOneChance;
+ConVar g_Cvar_NominateSelectedExclude;
+ConVar g_Cvar_NominateGroupExclude;
+ConVar g_Cvar_NominateMapExclude;
+ConVar g_Cvar_NominateSorted;
 
 // Bool
 bool g_bEndVoteTriggered = false;
@@ -83,9 +95,11 @@ bool g_bCurrentVoteAdmin;
 
 // Array Section
 ArrayList g_NominatedGamemodes;
+ArrayList g_PlayedGamemodes;
 
 // StringMap Section
 StringMap g_NominatedMaps;
+StringMap g_PlayedMaps;
 
 // TimingMode Section
 TimingMode g_eCurrentVoteTiming;
@@ -138,7 +152,6 @@ public void OnPluginStart()
     g_Cvar_Enabled = CreateConVar("multimode_enabled", "1", "Enable the multimode voting system");
         
     g_Cvar_RtvEnabled = CreateConVar("multimode_rtv_enabled", "1", "Ativa e desativa o sistema de Rock The Vote no servidor", _, true, 0.0, true, 1.0);
-    
     g_Cvar_RtvMinPlayers = CreateConVar("multimode_rtv_min", "1", "Minimum number of players required to start RTV", _, true, 1.0);
     g_Cvar_RtvRatio = CreateConVar("multimode_rtv_ratio", "0.8", "Ratio of players needed to start RTV", _, true, 0.05, true, 1.0);
     g_Cvar_RtvFirstDelay = CreateConVar("multimode_rtvfirstdelay", "60", "Initial delay after map loads to allow RTV");
@@ -146,10 +159,15 @@ public void OnPluginStart()
     g_Cvar_RtvType = CreateConVar("multimode_rtvtype", "3", "Voting Type for RTV: 1 - Next Map, 2 - Next Round, 3 - Instant", _, true, 1.0, true, 3.0);
     
     g_Cvar_CooldownEnabled = CreateConVar("multimode_cooldown", "1", "Enable or disable cooldown between votes", _, true, 0.0, true, 1.0);
-    
     g_Cvar_CooldownTime = CreateConVar("multimode_cooldown_time", "10", "Cooldown time in seconds between votes", _, true, 0.0);
     
     g_Cvar_VoteTime = CreateConVar("multimode_votetime", "20", "Vote duration in seconds");
+    g_Cvar_VoteRandom = CreateConVar("multimode_vote_random", "1", "When enabled, all voting items are randomly drawn. When disabled, the map cycle order is used as normal.", _, true, 0.0, true, 1.0);
+    g_Cvar_VoteAdminRandom = CreateConVar("multimode_voteadmin_random", "1", "When enabled, all admin vote items are randomly drawn. When disabled, the map cycle order is used as normal.", _, true, 0.0, true, 1.0);
+    g_Cvar_VoteGroupExclude = CreateConVar("multimode_vote_groupexclude", "0", "Number of recently played gamemodes to exclude from normal votes (0= Disabled)");
+    g_Cvar_VoteMapExclude = CreateConVar("multimode_vote_mapexclude", "2", "Number of recently played maps to exclude from normal votes (0= Disabled)");
+    g_Cvar_VoteAdminGroupExclude = CreateConVar("multimode_voteadmin_groupexclude", "0", "Number of recently played gamemodes to exclude from admin votes (0= Disabled)");
+    g_Cvar_VoteAdminMapExclude = CreateConVar("multimode_voteadmin_mapexclude", "2", "Number of recently played maps to exclude from admin votes (0= Disabled)");
     
     g_Cvar_CommandsNoDelay = CreateConVar("multimode_commandsnodelay", "1", "Execute commands immediately without delay when starting the map", _, true, 0.0, true, 1.0);
     g_Cvar_CommandsDelay = CreateConVar("multimode_commandsdelay", "0.1", "Delay to execute commands after map loading", 0, true, 0.0);
@@ -158,6 +176,13 @@ public void OnPluginStart()
     g_Cvar_EndVoteMin = CreateConVar("multimode_endvote_min", "6", "Minutes remaining to start automatic voting.");	
     g_Cvar_EndVoteType = CreateConVar("multimode_endvotetype", "1", "Voting Type for End Vote: 1 - Next Map, 2 - Next Round, 3 - Instant", _, true, 1.0, true, 3.0);
     g_Cvar_EndVoteDebug = CreateConVar("multimode_endvotedebug", "0", "Enables/disables detailed End Vote logs", 0, true, 0.0, true, 1.0);
+	
+    g_Cvar_NominateEnabled = CreateConVar("multimode_nominate", "1", "Enables or disables the nominate system", _, true, 0.0, true, 1.0);
+    g_Cvar_NominateOneChance = CreateConVar("multimode_nominate_onechance", "1", "Allows users to nominate only once per map", _, true, 0.0, true, 1.0);
+    g_Cvar_NominateSelectedExclude = CreateConVar("multimode_nominate_selectedexclude", "0", "Removes the nominated gamemode from the menu", _, true, 0.0, true, 1.0);
+    g_Cvar_NominateGroupExclude = CreateConVar("multimode_nominate_groupexclude", "1", "Number of recently played gamemodes to exclude from the menu (0= Disabled)");
+    g_Cvar_NominateMapExclude = CreateConVar("multimode_nominate_mapexclude", "1", "Number of recently played maps to exclude from the menu (0= Disabled)");
+    g_Cvar_NominateSorted = CreateConVar("multimode_nominate_sorted", "0", "Sorting mode for maps: 0= Alphabetical, 1= Random, 2= Map Cycle Order", _, true, 0.0, true, 2.0);
     
     g_Cvar_Discord = CreateConVar("multimode_discord", "1", "Enable sending a message to Discord when a vote is successful.", _, true, 0.0, true, 1.0);
     
@@ -166,15 +191,14 @@ public void OnPluginStart()
     g_Cvar_DiscordExtend = CreateConVar("multimode_discordextend", "1", "Enable discord webhook vote extensions.", _, true, 0.0, true, 1.0);
     
     g_Cvar_VoteSounds = CreateConVar("multimode_votesounds", "1", "Enables/disables voting and download sounds.", 0, true, 0.0, true, 1.0);
-    
     g_Cvar_VoteOpenSound = CreateConVar("multimode_voteopensound", "votemap/vtst.wav", "Sound played when starting a vote");
     g_Cvar_VoteCloseSound = CreateConVar("multimode_voteclosesound", "votemap/vtend.wav", "Sound played when a vote ends");
     
     g_Cvar_Extend = CreateConVar("multimode_extend", "1", "Enables/disables the extend option to extend the map");
-    
     g_Cvar_ExtendVote = CreateConVar("multimode_extendvote", "1", "Shows the option to extend in normal votes");
     g_Cvar_ExtendVoteAdmin = CreateConVar("multimode_extendvoteadmin", "1", "Show extend option in admin votes");
     g_Cvar_ExtendEveryTime = CreateConVar("multimode_extendeverytime", "0", "Allow extending the map multiple times in consecutive votes. 0 = only once per map.", _, true, 0.0, true, 1.0);
+	
     g_Cvar_ExtendSteps = CreateConVar("multimode_extendtimestep", "6", "Number of additional minutes when map is extended", _, true, 1.0);
     g_Cvar_ExtendRoundStep = CreateConVar("multimode_extendroundstep", "3", "Number of additional rounds when map is extended", _, true, 1.0);
     g_Cvar_ExtendFragStep = CreateConVar("multimode_extendfragstep", "10", "Number of additional frags when map is extended", _, true, 1.0);
@@ -185,6 +209,9 @@ public void OnPluginStart()
     g_Cvar_Method = CreateConVar("multimode_method", "1", "Voting method: 1=Groups then maps, 2=Only groups (random map), 3=Only maps (all groups)", _, true, 1.0, true, 3.0);
     
     g_Cvar_Logs = CreateConVar("multimode_logs", "1", "Enables and disables Multimode Core logs, when enabled, a new file will be created in sourcemod/logs/multimode_logs.txt and server messages in server console.");
+
+    g_PlayedGamemodes = new ArrayList(ByteCountToCells(64));
+    g_PlayedMaps = new StringMap();
     
     g_hCookieVoteType = RegClientCookie("multimode_votetype", "Selected voting type", CookieAccess_Private);
     
@@ -480,6 +507,35 @@ public void OnMapStart()
     g_bVoteActive = false;
 
     UpdateCurrentGameMode(CurrentMap);
+	
+    char currentMap[PLATFORM_MAX_PATH];
+    GetCurrentMap(currentMap, sizeof(currentMap));
+
+    if (strlen(g_sCurrentGameMode) > 0) {
+        if (g_PlayedGamemodes.FindString(g_sCurrentGameMode) == -1) {
+            g_PlayedGamemodes.PushString(g_sCurrentGameMode);
+        }
+    
+        int maxGroups = g_Cvar_NominateGroupExclude.IntValue;
+        if (maxGroups > 0 && g_PlayedGamemodes.Length > maxGroups) {
+            g_PlayedGamemodes.Erase(0);
+        }
+
+        ArrayList playedMaps;
+        if (!g_PlayedMaps.GetValue(g_sCurrentGameMode, playedMaps)) {
+            playedMaps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
+            g_PlayedMaps.SetValue(g_sCurrentGameMode, playedMaps);
+        }
+    
+        if (playedMaps.FindString(currentMap) == -1) {
+            playedMaps.PushString(currentMap);
+        }
+
+        int maxMaps = g_Cvar_NominateMapExclude.IntValue;
+        if (maxMaps > 0 && playedMaps.Length > maxMaps) {
+            playedMaps.Erase(0);
+        }
+    }
 
     for (int i = 1; i <= MaxClients; i++)
     {
@@ -1356,7 +1412,7 @@ public int TimingSelectionMenuHandler(Menu menu, MenuAction action, int param1, 
         }
         else
         {
-            StartNormalVote(param1);
+            StartGameModeVote(param1, true);
         }
     }
     else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack)
@@ -1625,7 +1681,8 @@ void StartRtvCooldown()
 
 public Action Command_Nominate(int client, int args)
 {
-    if(!g_Cvar_Enabled.BoolValue || g_bVoteActive || g_bCooldownActive || g_bRtvDisabled) {
+    if(!g_Cvar_Enabled.BoolValue || !g_Cvar_NominateEnabled.BoolValue || g_bVoteActive || g_bCooldownActive || g_bRtvDisabled) 
+	{
         CReplyToCommand(client, "%t", "Nominate Disabled");
         return Plugin_Handled;
     }
@@ -1633,7 +1690,7 @@ public Action Command_Nominate(int client, int args)
     if (!client || !IsClientInGame(client)) 
         return Plugin_Handled;
 
-    if (g_bHasNominated[client])
+    if (g_Cvar_NominateOneChance.BoolValue && g_bHasNominated[client])
     {
         CPrintToChat(client, "%t", "Nominate Once Per Map");
         return Plugin_Handled;
@@ -1647,24 +1704,62 @@ void ShowNominateGamemodeMenu(int client)
 {
     Menu menu = new Menu(NominateGamemodeMenuHandler);
     menu.SetTitle("%t", "Nominate Gamemode Group Menu Title");
-    
-    ArrayList gameModes = GetGameModesList();
+
+    ArrayList originalList = GetGameModesList();
+    ArrayList gameModes = new ArrayList(originalList.BlockSize);  // Clonar lista
+    for (int i = 0; i < originalList.Length; i++)
+    {
+        GameModeConfig config;
+        originalList.GetArray(i, config);
+        gameModes.PushArray(config);
+    }
+
+    int sortMode = g_Cvar_NominateSorted.IntValue;
+    if (sortMode == 0)
+    {
+        SortADTArray(gameModes, Sort_Ascending, Sort_String);
+    }
+    else if (sortMode == 1)
+    {
+        SortADTArray(gameModes, Sort_Random, Sort_String);
+    }
+
     for (int i = 0; i < gameModes.Length; i++)
     {
         GameModeConfig config;
         gameModes.GetArray(i, config);
-        
-        if (!GamemodeAvailable(config.name)) continue;
-        
+
+        if (g_Cvar_NominateSelectedExclude.BoolValue &&
+            g_NominatedGamemodes.FindString(config.name) != -1)
+        {
+            continue;
+        }
+
+        if (g_Cvar_NominateGroupExclude.IntValue > 0 &&
+            g_PlayedGamemodes.FindString(config.name) != -1)
+        {
+            continue;
+        }
+
+        if (!GamemodeAvailable(config.name))
+        {
+            continue;
+        }
+
         char display[128];
         if (g_NominatedGamemodes.FindString(config.name) != -1)
+        {
             Format(display, sizeof(display), "%s (Nomeado)", config.name);
+        }
         else
+        {
             strcopy(display, sizeof(display), config.name);
-        
+        }
+
         menu.AddItem(config.name, display);
     }
-    
+
+    delete gameModes;
     menu.Display(client, MENU_TIME_FOREVER);
 }
 
@@ -1697,33 +1792,61 @@ void ShowNominateMapMenu(int client, const char[] gamemode)
     ArrayList list = GetGameModesList();
     list.GetArray(index, config);
 
+    ArrayList availableMaps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
+
+    ArrayList excludeMaps = null;
+    if (g_Cvar_NominateMapExclude.IntValue > 0)
+    {
+        g_PlayedMaps.GetValue(gamemode, excludeMaps);
+    }
+
+    for (int i = 0; i < config.maps.Length; i++)
+    {
+        char map[PLATFORM_MAX_PATH];
+        config.maps.GetString(i, map, sizeof(map));
+
+        if (excludeMaps != null && excludeMaps.FindString(map) != -1)
+        {
+            continue;
+        }
+
+        availableMaps.PushString(map);
+    }
+
+    int sortMode = g_Cvar_NominateSorted.IntValue;
+    if (sortMode == 0)
+    {
+        SortADTArray(availableMaps, Sort_Ascending, Sort_String);
+    }
+    else if (sortMode == 1)
+    {
+        SortADTArray(availableMaps, Sort_Random, Sort_String);
+    }
+
     Menu menu = new Menu(NominateMapMenuHandler);
     menu.SetTitle("%t", "Nominate Map Title", config.name);
-    
-    ArrayList maps = view_as<ArrayList>(CloneHandle(config.maps));
-    maps.Sort(Sort_Random, Sort_String);
-    
-    char map[PLATFORM_MAX_PATH];
-    char display[256];
-    GetMapDisplayNameEx(gamemode, map, display, sizeof(display));
-    
-    for (int i = 0; i < maps.Length; i++)
+
+    ArrayList mapsNominated;
+    g_NominatedMaps.GetValue(gamemode, mapsNominated);
+
+    for (int i = 0; i < availableMaps.Length; i++)
     {
-        maps.GetString(i, map, sizeof(map));
-        
+        char map[PLATFORM_MAX_PATH];
+        availableMaps.GetString(i, map, sizeof(map));
+
         char displayName[256];
         GetMapDisplayNameEx(gamemode, map, displayName, sizeof(displayName));
-        
-        ArrayList mapsNominated;
-        if (g_NominatedMaps.GetValue(gamemode, mapsNominated) && mapsNominated.FindString(map) != -1)
-            Format(display, sizeof(display), "%s (Nomeado)", displayName);
-        else
-            strcopy(display, sizeof(display), displayName);
-            
-        menu.AddItem(map, display);
+
+        if (mapsNominated != null && mapsNominated.FindString(map) != -1)
+        {
+            Format(displayName, sizeof(displayName), "%s (Nomeado)", displayName);
+        }
+
+        menu.AddItem(map, displayName);
     }
-    delete maps;
-    
+
+    delete availableMaps;
+
     menu.ExitBackButton = true;
     menu.Display(client, MENU_TIME_FOREVER);
 }
@@ -1776,130 +1899,6 @@ void RegisterNomination(int client, const char[] gamemode, const char[] map)
             CPrintToChat(i, "%t", "Nominated Server", clientName, gamemode, map);
         }
     }
-}
-
-// ////////////////////////////////
-// //                            //
-// //    Normal Vote Section     //
-// //                            //
-// ////////////////////////////////
-
-// Normal Vote Section
-void StartNormalVote(int client)
-{
-    g_iVoteInitiator = client;
-    
-    ArrayList gameModes = GetGameModesList();
-    
-    ArrayList voteGameModes = new ArrayList(ByteCountToCells(64));
-    
-    if (GetVoteMethod() == 3)
-    {
-        StartMapVote(client, "");
-        return;
-    }
-    
-    for (int i = 0; i < g_NominatedGamemodes.Length; i++)
-    {
-        char nominatedGM[64];
-        g_NominatedGamemodes.GetString(i, nominatedGM, sizeof(nominatedGM));
-        if (FindGameModeIndex(nominatedGM) != -1 && voteGameModes.FindString(nominatedGM) == -1)
-        {
-            voteGameModes.PushString(nominatedGM);
-        }
-    }
-    
-    voteGameModes.Sort(Sort_Random, Sort_String);
-    
-    if (voteGameModes.Length > 6)
-    {
-        voteGameModes.Resize(6);
-    }
-    
-    if (voteGameModes.Length < 6)
-    {
-        ArrayList remaining = new ArrayList(ByteCountToCells(64));
-        for (int i = 0; i < gameModes.Length; i++)
-        {
-            GameModeConfig config;
-            gameModes.GetArray(i, config);
-        
-            bool available = GamemodeAvailableAdminVote(config.name);
-            if (!available) continue;
-        
-            if (g_NominatedGamemodes.FindString(config.name) == -1 && voteGameModes.FindString(config.name) == -1)
-            {
-                remaining.PushString(config.name);
-            }
-        }
-        remaining.Sort(Sort_Random, Sort_String);
-        
-        int needed = 6 - voteGameModes.Length;
-        for (int i = 0; i < needed && i < remaining.Length; i++)
-        {
-            char gm[64];
-            remaining.GetString(i, gm, sizeof(gm));
-            voteGameModes.PushString(gm);
-        }
-        delete remaining;
-    }
-    
-    Menu menu = new Menu(GameModeVoteHandler);
-    menu.SetTitle("%t", "Normal Vote Gamemode Group Title");
-    menu.VoteResultCallback = GameModeVoteResultHandler;
-
-    bool canExtend = (g_Cvar_ExtendEveryTime.BoolValue || !g_bMapExtended) && CanExtendMap() && g_Cvar_ExtendVote.BoolValue;
-    if (g_Cvar_Extend.BoolValue && g_Cvar_ExtendVoteAdmin.BoolValue && canExtend)
-    {
-        char extendText[128];
-        int extendMinutes = g_Cvar_ExtendSteps.IntValue;
-        Format(extendText, sizeof(extendText), "%t", "Extend Map Normal Vote", extendMinutes);
-        menu.AddItem("extend", extendText);
-    }
-
-    if (g_Cvar_VoteSounds.BoolValue)
-    {
-        char sound[PLATFORM_MAX_PATH];
-        g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
-        if (sound[0] != '\0') EmitSoundToAllAny(sound);
-    }
-    
-    for (int i = 0; i < voteGameModes.Length; i++)
-    {
-        char gm[64];
-        voteGameModes.GetString(i, gm, sizeof(gm));
-        
-        char display[128];
-        int index = FindGameModeIndex(gm);
-        bool isAdminMode = false;
-        
-        if (index != -1)
-        {
-            GameModeConfig config;
-            ArrayList list = GetGameModesList();
-            list.GetArray(index, config);
-            isAdminMode = (config.adminonly == 1);
-        }
-        
-        if (g_NominatedGamemodes.FindString(gm) != -1)
-        {
-            if (isAdminMode) Format(display, sizeof(display), "[ADMIN] %s (Nomeado)", gm);
-            else Format(display, sizeof(display), "%s (Nomeado)", gm);
-        }
-        else
-        {
-            if (isAdminMode) Format(display, sizeof(display), "[ADMIN] %s", gm);
-            else strcopy(display, sizeof(display), gm);
-        }
-        
-        menu.AddItem(gm, display);
-    }
-    
-    delete voteGameModes;
-    
-    menu.ExitButton = false;
-    menu.DisplayVoteToAll(g_Cvar_VoteTime.IntValue);
-    g_bVoteActive = true;
 }
 
 // ////////////////////
@@ -2425,10 +2424,19 @@ void StartGameModeVote(int client, bool adminVote = false)
     
     ArrayList voteGameModes = new ArrayList(ByteCountToCells(64));
     
+    int groupExclude = adminVote ? 
+        g_Cvar_VoteAdminGroupExclude.IntValue : 
+        g_Cvar_VoteGroupExclude.IntValue;
+
     for (int i = 0; i < g_NominatedGamemodes.Length; i++) 
-	{
+    {
         char nominatedGM[64];
         g_NominatedGamemodes.GetString(i, nominatedGM, sizeof(nominatedGM));
+    
+        if (groupExclude > 0 && g_PlayedGamemodes.FindString(nominatedGM) != -1) 
+        {
+            continue;
+        }
     
         int index = FindGameModeIndex(nominatedGM);
         if (index == -1) continue;
@@ -2445,8 +2453,13 @@ void StartGameModeVote(int client, bool adminVote = false)
             voteGameModes.PushString(nominatedGM);
 		}
     }
+	
+    bool bUseRandom = adminVote ? g_Cvar_VoteAdminRandom.BoolValue : g_Cvar_VoteRandom.BoolValue;
     
-    voteGameModes.Sort(Sort_Random, Sort_String);
+    if (bUseRandom) 
+	{
+        voteGameModes.Sort(Sort_Random, Sort_String);
+    }
     
     if (voteGameModes.Length > 6)
     {
@@ -2476,7 +2489,10 @@ void StartGameModeVote(int client, bool adminVote = false)
                 remainingGameModes.PushString(config.name);
             }
         }
-        remainingGameModes.Sort(Sort_Random, Sort_String);
+        if (bUseRandom && remainingGameModes.Length > 0) 
+		{
+            remainingGameModes.Sort(Sort_Random, Sort_String);
+        }
         
         int needed = 6 - voteGameModes.Length;
         for (int i = 0; i < needed && i < remainingGameModes.Length; i++)
@@ -3073,7 +3089,12 @@ void StartMapVote(int client, const char[] sGameMode)
         delete snapshot;
         delete uniqueMaps;
 
-        voteMaps.Sort(Sort_Random, Sort_String);
+        bool bUseRandom = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminRandom.BoolValue : g_Cvar_VoteRandom.BoolValue;
+
+        if (bUseRandom) 
+		{
+             voteMaps.Sort(Sort_Random, Sort_String);
+        }
         
         int maxItems = 6;
         bool canExtend = (g_Cvar_ExtendEveryTime.BoolValue || !g_bMapExtended) && CanExtendMap() && g_Cvar_ExtendVote.BoolValue;
@@ -3144,13 +3165,38 @@ void StartMapVote(int client, const char[] sGameMode)
         return;
     }
 
+    bool bUseRandom = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminRandom.BoolValue : g_Cvar_VoteRandom.BoolValue;
+
     ArrayList voteMaps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
     ArrayList mapsNominated;
 
+    int mapExclude = g_bCurrentVoteAdmin ? 
+        g_Cvar_VoteAdminMapExclude.IntValue : 
+        g_Cvar_VoteMapExclude.IntValue;
+
     if (g_NominatedMaps.GetValue(sGameMode, mapsNominated) && mapsNominated.Length > 0)
     {
+        for (int i = 0; i < mapsNominated.Length; i++)
+        {
+            char map[PLATFORM_MAX_PATH];
+            mapsNominated.GetString(i, map, sizeof(map));
+            
+            if (mapExclude > 0) 
+            {
+                ArrayList playedMaps;
+                if (g_PlayedMaps.GetValue(sGameMode, playedMaps) && 
+                    playedMaps.FindString(map) != -1)
+                {
+                    continue;
+                }
+            }
+	    }
+		
         ArrayList nominateList = view_as<ArrayList>(CloneHandle(mapsNominated));
-        nominateList.Sort(Sort_Random, Sort_String);
+        if (bUseRandom)
+        {
+            nominateList.Sort(Sort_Random, Sort_String);
+        }
 
         int maxNominated = (nominateList.Length > config.maps_invote) ? config.maps_invote : nominateList.Length;
         for (int i = 0; i < maxNominated; i++)
@@ -3179,7 +3225,10 @@ void StartMapVote(int client, const char[] sGameMode)
             }
         }
 
-        availableMaps.Sort(Sort_Random, Sort_String);
+        if (bUseRandom)
+        {
+            availableMaps.Sort(Sort_Random, Sort_String);
+        }
         int count = (availableMaps.Length < needed) ? availableMaps.Length : needed;
         for (int i = 0; i < count; i++)
         {
