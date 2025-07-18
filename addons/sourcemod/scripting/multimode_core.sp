@@ -103,6 +103,7 @@ StringMap g_PlayedMaps;
 
 // TimingMode Section
 TimingMode g_eCurrentVoteTiming;
+TimingMode g_eEndVoteTiming;
 
 // Char Section
 char g_sCurrentGameMode[64];
@@ -180,9 +181,9 @@ public void OnPluginStart()
     g_Cvar_NominateEnabled = CreateConVar("multimode_nominate", "1", "Enables or disables the nominate system", _, true, 0.0, true, 1.0);
     g_Cvar_NominateOneChance = CreateConVar("multimode_nominate_onechance", "1", "Allows users to nominate only once per map", _, true, 0.0, true, 1.0);
     g_Cvar_NominateSelectedExclude = CreateConVar("multimode_nominate_selectedexclude", "0", "Removes the nominated gamemode from the menu", _, true, 0.0, true, 1.0);
-    g_Cvar_NominateGroupExclude = CreateConVar("multimode_nominate_groupexclude", "1", "Number of recently played gamemodes to exclude from the menu (0= Disabled)");
-    g_Cvar_NominateMapExclude = CreateConVar("multimode_nominate_mapexclude", "1", "Number of recently played maps to exclude from the menu (0= Disabled)");
-    g_Cvar_NominateSorted = CreateConVar("multimode_nominate_sorted", "0", "Sorting mode for maps: 0= Alphabetical, 1= Random, 2= Map Cycle Order", _, true, 0.0, true, 2.0);
+    g_Cvar_NominateGroupExclude = CreateConVar("multimode_nominate_groupexclude", "0", "Number of recently played gamemodes to exclude from the menu (0= Disabled)");
+    g_Cvar_NominateMapExclude = CreateConVar("multimode_nominate_mapexclude", "2", "Number of recently played maps to exclude from the menu (0= Disabled)");
+    g_Cvar_NominateSorted = CreateConVar("multimode_nominate_sorted", "2", "Sorting mode for maps: 0= Alphabetical, 1= Random, 2= Map Cycle Order", _, true, 0.0, true, 2.0);
     
     g_Cvar_Discord = CreateConVar("multimode_discord", "1", "Enable sending a message to Discord when a vote is successful.", _, true, 0.0, true, 1.0);
     
@@ -1073,6 +1074,7 @@ public Action Timer_CheckEndVote(Handle timer)
             if(g_Cvar_EndVoteDebug.BoolValue)
                 WriteToLogFile("[End Vote] Vote type selected: %d (%s)", endType, (g_eCurrentVoteTiming == TIMING_NEXTMAP) ? "Next Map" : (g_eCurrentVoteTiming == TIMING_NEXTROUND) ? "Next Round" : "Instant");
             
+            g_eEndVoteTiming = view_as<TimingMode>(endType - 1); // Store end vote timing
             StartGameModeVote(0, false);
             return Plugin_Stop;
         }
@@ -2930,6 +2932,8 @@ void NotifyDiscordExtend()
 
 public void ExecuteVoteResult()
 {
+    g_eCurrentVoteTiming = g_eEndVoteTiming;
+	
     g_bEndVoteTriggered = false;
     g_bVoteActive = false;
     g_bVoteCompleted = true;
@@ -3041,6 +3045,8 @@ void StartMapVote(int client, const char[] sGameMode)
         g_hRtvTimers[1] = INVALID_HANDLE;
     }
     g_bRtvCooldown = false;
+	
+	g_eCurrentVoteTiming = g_eEndVoteTiming;
 
     if (GetVoteMethod() == 3)
     {
