@@ -1948,6 +1948,33 @@ public void OnTimelimitChanged(ConVar convar, const char[] oldValue, const char[
     {
         WriteToLogFile("[End Vote] mp_timelimit changed externally! New value: %smin", newValue);
     }
+    
+    if (g_hEndVoteTimer != null)
+    {
+        KillTimer(g_hEndVoteTimer);
+        g_hEndVoteTimer = null;
+    }
+
+    if (g_Cvar_EndVoteEnabled.BoolValue)
+    {
+        g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
+    }
+}
+
+public void OnMapTimeLeftChanged()
+{
+    WriteToLogFile("[End Vote] Map time left changed. Resetting End Vote timer...");
+	
+    if (g_hEndVoteTimer != null)
+    {
+        KillTimer(g_hEndVoteTimer);
+        g_hEndVoteTimer = null;
+    }
+
+    if (g_Cvar_EndVoteEnabled.BoolValue)
+    {
+        g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
+    }
 }
 
 // //////////////////////////
@@ -2802,7 +2829,6 @@ void ExtendMapTime()
     CPrintToChatAll(buffer);
     
     g_bEndVoteTriggered = false;
-    g_iMapStartTime = GetTime();
     
     if (g_Cvar_EndVoteEnabled.BoolValue) 
     {
