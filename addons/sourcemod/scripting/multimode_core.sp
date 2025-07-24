@@ -191,7 +191,7 @@ public void OnPluginStart()
     g_Cvar_DiscordVoteResult = CreateConVar("multimode_discordvoteresults", "1", "Enable discord webhook vote results.", _, true, 0.0, true, 1.0);
     g_Cvar_DiscordExtend = CreateConVar("multimode_discordextend", "1", "Enable discord webhook vote extensions.", _, true, 0.0, true, 1.0);
     
-    g_Cvar_VoteSounds = CreateConVar("multimode_votesounds", "1", "Enables/disables voting and download sounds.", 0, true, 0.0, true, 1.0);
+    g_Cvar_VoteSounds = CreateConVar("multimode_votesounds", "1", "Enables/disables voting and automatic download sounds.", 0, true, 0.0, true, 1.0);
     g_Cvar_VoteOpenSound = CreateConVar("multimode_voteopensound", "votemap/vtst.wav", "Sound played when starting a vote");
     g_Cvar_VoteCloseSound = CreateConVar("multimode_voteclosesound", "votemap/vtend.wav", "Sound played when a vote ends");
     
@@ -205,7 +205,7 @@ public void OnPluginStart()
     g_Cvar_ExtendFragStep = CreateConVar("multimode_extendfragstep", "10", "Number of additional frags when map is extended", _, true, 1.0);
     
     g_Cvar_RandomCycleEnabled = CreateConVar("multimode_randomcycle_enabled", "1", "Enable/disable or Random Cycle", _, true, 0.0, true, 1.0);
-    g_Cvar_RandomCycleType = CreateConVar("multimode_randomcycle_type", "1", "Random Cycle Type: 1-Selects at the beginning of the map, 2-Selects when there is no next map at the end of the map (Game Over).", _, true, 1.0, true, 2.0);
+    g_Cvar_RandomCycleType = CreateConVar("multimode_randomcycle_type", "1", "Random Cycle Type: 1-Selects at the beginning of the map, 2-Selects when there is no next map at the end of the map.", _, true, 1.0, true, 2.0);
     
     g_Cvar_Method = CreateConVar("multimode_method", "1", "Voting method: 1=Groups then maps, 2=Only groups (random map), 3=Only maps (all groups)", _, true, 1.0, true, 3.0);
     
