@@ -200,20 +200,20 @@
 
     "Timing NextMap Notify"
     {
-        "pt"    "{green}[Admin] {default}Próximo mapa será: {olive}%s"
-        "en"    "{green}[Admin] {default}Next map will be: {olive}%s"
+        "pt"    "{green}[MultiMode] {default}Próximo mapa será: {olive}%s"
+        "en"    "{green}[MultiMode] {default}Next map will be: {olive}%s"
     }
 
     "Timing NextRound Notify"
     {
-        "pt"    "{green}[Admin] {default}Mapa mudará na próxima rodada para: {olive}%s"
-        "en"    "{green}[Admin] {default}Map will change next round to: {olive}%s"
+        "pt"    "{green}[MultiMode] {default}Mapa mudará na próxima rodada para: {olive}%s"
+        "en"    "{green}[MultiMode] {default}Map will change next round to: {olive}%s"
     }
 
     "Timing Instant Notify"
     {
-        "pt"    "{green}[Admin] {default}Mapa alterado instantaneamente para: {olive}%s"
-        "en"    "{green}[Admin] {default}Map instantly changed to: {olive}%s"
+        "pt"    "{green}[MultiMode] {default}Mapa alterado instantaneamente para: {olive}%s"
+        "en"    "{green}[MultiMode] {default}Map instantly changed to: {olive}%s"
     }
 
     "Gamemode Vote Already"
