@@ -17,6 +17,7 @@ Oppressive Territory Community - Community, testing and debuging the Multimode C
 #### Supported Games.
 - Team Fortress 2
 - Counter-Strike Source
+- Half-Life 2 Deathmatch
 - Left 4 Dead 2 (Not Tested)
 - Left 4 Dead 1 (Not Tested)
 
