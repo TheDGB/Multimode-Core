@@ -477,7 +477,7 @@ public void OnMapStart()
 
     if (!groupFound)
     {
-        WriteToLogFile("No groups found for map %s", CurrentMap);
+        // Cleaning...
     }
 
     if (!commandExecuted)
@@ -544,14 +544,15 @@ public void OnMapStart()
         g_bHasNominated[i] = false;
     }
     
-    g_hEndVoteTimer = INVALID_HANDLE;
+    if (g_hEndVoteTimer != INVALID_HANDLE)
+    {
+        KillTimer(g_hEndVoteTimer);
+        g_hEndVoteTimer = INVALID_HANDLE;
+    }
 
     if (g_Cvar_EndVoteEnabled.BoolValue) 
     {
-        if (g_hEndVoteTimer == null || g_hEndVoteTimer == INVALID_HANDLE) 
-        {
-            g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
-        }
+        g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
     }
 
     float fDelay = g_Cvar_RtvFirstDelay.FloatValue;
@@ -1061,9 +1062,14 @@ public Action Timer_CheckEndVote(Handle timer)
         {
             if(g_Cvar_EndVoteDebug.BoolValue) 
                 WriteToLogFile("[End Vote] Triggered! Starting vote... (Remaining: %ds <= Trigger: %ds)", timeleft, iTrigger);
-            
+        
             g_bEndVoteTriggered = true;
-            delete g_hEndVoteTimer;
+        
+            if (g_hEndVoteTimer != INVALID_HANDLE)
+            {
+                KillTimer(g_hEndVoteTimer);
+                g_hEndVoteTimer = INVALID_HANDLE;
+            }
             PrintHintTextToAll("[Multimode Core] Voting established!");
             
             int endType = g_Cvar_EndVoteType.IntValue;
@@ -1949,10 +1955,10 @@ public void OnTimelimitChanged(ConVar convar, const char[] oldValue, const char[
         WriteToLogFile("[End Vote] mp_timelimit changed externally! New value: %smin", newValue);
     }
     
-    if (g_hEndVoteTimer != null)
+    if (g_hEndVoteTimer != INVALID_HANDLE)
     {
         KillTimer(g_hEndVoteTimer);
-        g_hEndVoteTimer = null;
+        g_hEndVoteTimer = INVALID_HANDLE;
     }
 
     if (g_Cvar_EndVoteEnabled.BoolValue)
@@ -2964,7 +2970,7 @@ public void ExecuteVoteResult()
     g_bVoteActive = false;
     g_bVoteCompleted = true;
     
-    if (g_hEndVoteTimer != null && g_hEndVoteTimer != INVALID_HANDLE) 
+    if (g_hEndVoteTimer != INVALID_HANDLE) 
     {
         KillTimer(g_hEndVoteTimer);
         g_hEndVoteTimer = INVALID_HANDLE;
