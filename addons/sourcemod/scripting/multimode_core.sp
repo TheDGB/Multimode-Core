@@ -171,7 +171,7 @@ public void OnPluginStart()
     g_Cvar_VoteAdminMapExclude = CreateConVar("multimode_voteadmin_mapexclude", "2", "Number of recently played maps to exclude from admin votes (0= Disabled)");
     
     g_Cvar_CommandsNoDelay = CreateConVar("multimode_commandsnodelay", "1", "Execute commands immediately without delay when starting the map", _, true, 0.0, true, 1.0);
-    g_Cvar_CommandsDelay = CreateConVar("multimode_commandsdelay", "0.1", "Delay to execute commands after map loading", 0, true, 0.0);
+    g_Cvar_CommandsDelay = CreateConVar("multimode_commandsdelay", "1.0", "Delay to execute commands after map loading", 0, true, 0.0);
     
     g_Cvar_EndVoteEnabled = CreateConVar("multimode_endvote_enabled", "1", "Enables automatic end vote when the remaining map time reaches the configured limit.");
     g_Cvar_EndVoteMin = CreateConVar("multimode_endvote_min", "6", "Minutes remaining to start automatic voting.");	
@@ -410,9 +410,16 @@ public void OnMapStart()
                 if (strlen(config.command) > 0)
                 {
                     WriteToLogFile("[MultiMode Core] Executing group command: %s", config.command);
-                    DataPack dp = new DataPack();
-                    dp.WriteString(config.command);
-                    CreateTimer(g_Cvar_CommandsDelay.FloatValue, Timer_DelayedCommand, dp);
+                    if (g_Cvar_CommandsNoDelay.BoolValue)
+                    {
+                        ServerCommand("%s", config.command);
+                    }
+                    else
+                    {
+                        DataPack dp = new DataPack();
+                        dp.WriteString(config.command);
+                        CreateTimer(g_Cvar_CommandsDelay.FloatValue, Timer_DelayedCommand, dp);
+                    }
                     commandExecuted = true;
                 }
 
@@ -425,9 +432,16 @@ public void OnMapStart()
                         if (strlen(mapCommand) > 0)
                         {
                             WriteToLogFile("[MultiMode Core] Executing map command: %s", mapCommand);
-                            DataPack dpCmd = new DataPack();
-                            dpCmd.WriteString(mapCommand);
-                            CreateTimer(g_Cvar_CommandsDelay.FloatValue, Timer_DelayedCommand, dpCmd);
+                            if (g_Cvar_CommandsNoDelay.BoolValue)
+                            {
+                                ServerCommand("%s", mapCommand);
+                            }
+                            else
+                            {
+                                DataPack dpCmd = new DataPack();
+                                dpCmd.WriteString(mapCommand);
+                                CreateTimer(g_Cvar_CommandsDelay.FloatValue, Timer_DelayedCommand, dpCmd);
+                            }
                             commandExecuted = true;
                         }
                         g_kvGameModes.GoBack();
