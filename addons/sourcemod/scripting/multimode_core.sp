@@ -506,6 +506,7 @@ public void OnMapStart()
     g_bRtvCooldown = false;
     g_bMapExtended = false;
     g_bVoteCompleted = false;
+	g_bEndVoteTriggered = false;
     g_bRtvInitialDelay = true;
     delete g_hRtvCooldownTimer;
     delete g_hRtvFirstDelayTimer;
