@@ -177,7 +177,7 @@ public void OnPluginStart()
     
     g_Cvar_EndVoteEnabled = CreateConVar("multimode_endvote_enabled", "1", "Enables automatic end vote when the remaining map time reaches the configured limit.");
     g_Cvar_EndVoteMin = CreateConVar("multimode_endvote_min", "6", "Specifies minutes remaining to start automatic voting. (mp_timelimit 0 = Disabled)");	
-	g_Cvar_EndVoteRounds = CreateConVar("multimode_endvote_rounds", "4", "Specifies when to start voting based on the remaining rounds. (mp_maxrounds 0 = Disabled)", _, true, 0.0);
+	g_Cvar_EndVoteRounds = CreateConVar("multimode_endvote_rounds", "4", "Specifies when to start voting based on the remaining rounds. (mp_maxrounds, mp_winlimit 0 = Disabled)", _, true, 0.0);
     g_Cvar_EndVoteFrags = CreateConVar("multimode_endvote_frags", "20", "Specifies when to start voting based on remaining frags. (mp_fraglimit 0 = Disabled)", _, true, 0.0);
     g_Cvar_EndVoteType = CreateConVar("multimode_endvotetype", "1", "Voting Type for End Vote: 1 - Next Map, 2 - Next Round, 3 - Instant", _, true, 1.0, true, 3.0);
     g_Cvar_EndVoteDebug = CreateConVar("multimode_endvotedebug", "0", "Enables/disables detailed End Vote logs", 0, true, 0.0, true, 1.0);
