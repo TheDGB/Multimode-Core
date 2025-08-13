@@ -36,6 +36,8 @@ ConVar g_Cvar_RtvFirstDelay;
 ConVar g_Cvar_RtvDelay;
 ConVar g_Cvar_EndVoteEnabled;
 ConVar g_Cvar_EndVoteMin;
+ConVar g_Cvar_EndVoteRounds;
+ConVar g_Cvar_EndVoteFrags;
 ConVar g_Cvar_EndVoteDebug;
 ConVar g_Cvar_Enabled;
 ConVar g_Cvar_VoteTime;
@@ -174,7 +176,9 @@ public void OnPluginStart()
     g_Cvar_CommandsDelay = CreateConVar("multimode_commandsdelay", "1.0", "Delay to execute commands after map loading", 0, true, 0.0);
     
     g_Cvar_EndVoteEnabled = CreateConVar("multimode_endvote_enabled", "1", "Enables automatic end vote when the remaining map time reaches the configured limit.");
-    g_Cvar_EndVoteMin = CreateConVar("multimode_endvote_min", "6", "Minutes remaining to start automatic voting.");	
+    g_Cvar_EndVoteMin = CreateConVar("multimode_endvote_min", "6", "Minutes remaining to start automatic voting. (mp_timelimit 0 = Disabled)");	
+	g_Cvar_EndVoteRounds = CreateConVar("multimode_endvote_rounds", "4", "Specifies when to start voting based on the remaining rounds. (mp_maxrounds 0 = Disabled)", _, true, 0.0);
+    g_Cvar_EndVoteFrags = CreateConVar("multimode_endvote_frags", "20", "Specifies when to start voting based on remaining frags. (mp_fraglimit 0 = Disabled)", _, true, 0.0);
     g_Cvar_EndVoteType = CreateConVar("multimode_endvotetype", "1", "Voting Type for End Vote: 1 - Next Map, 2 - Next Round, 3 - Instant", _, true, 1.0, true, 3.0);
     g_Cvar_EndVoteDebug = CreateConVar("multimode_endvotedebug", "0", "Enables/disables detailed End Vote logs", 0, true, 0.0, true, 1.0);
 	
@@ -1064,82 +1068,107 @@ public Action Timer_CheckEndVote(Handle timer)
         return Plugin_Continue;
     }
 	
-	// New Check End Vote...
-
     int timeleft;
     bool bTimeLeftValid = GetMapTimeLeft(timeleft);
-
-    int iTrigger = g_Cvar_EndVoteMin.IntValue * 60;
+    int iTriggerTime = g_Cvar_EndVoteMin.IntValue * 60;
     
-    if (bTimeLeftValid && timeleft > 0)
+    if (bTimeLeftValid && timeleft > 0 && timeleft <= iTriggerTime)
     {
-        if (timeleft <= iTrigger)
+        PerformEndVote();
+        return Plugin_Stop;
+    }
+	
+    if (g_Cvar_EndVoteRounds.IntValue > 0)
+    {
+        ConVar maxRounds = FindConVar("mp_maxrounds");
+        ConVar winLimit = FindConVar("mp_winlimit");
+        
+        int roundsRemaining = -1;
+        
+        if (maxRounds != null && maxRounds.IntValue > 0)
         {
-            if(g_Cvar_EndVoteDebug.BoolValue) 
-                WriteToLogFile("[End Vote] Triggered! Starting vote... (Remaining: %ds <= Trigger: %ds)", timeleft, iTrigger);
+            int roundsPlayed = GetTeamScore(2) + GetTeamScore(3);
+            roundsRemaining = maxRounds.IntValue - roundsPlayed;
+        }
+        else if (winLimit != null && winLimit.IntValue > 0)
+        {
+            int roundsPlayed = GetTeamScore(2) + GetTeamScore(3);
+            roundsRemaining = winLimit.IntValue - roundsPlayed;
+        }
         
-            g_bEndVoteTriggered = true;
-        
-            if (g_hEndVoteTimer != INVALID_HANDLE)
+        if (roundsRemaining > 0 && roundsRemaining <= g_Cvar_EndVoteRounds.IntValue)
+        {
+            PerformEndVote();
+            return Plugin_Stop;
+        }
+    }
+	
+    if (g_Cvar_EndVoteFrags.IntValue > 0)
+    {
+        ConVar fragLimit = FindConVar("mp_fraglimit");
+        if (fragLimit != null && fragLimit.IntValue > 0)
+        {
+            int maxFrags = 0;
+            for (int i = 1; i <= MaxClients; i++)
             {
-                KillTimer(g_hEndVoteTimer);
-                g_hEndVoteTimer = INVALID_HANDLE;
+                if (IsClientInGame(i) && !IsFakeClient(i))
+                {
+                    int frags = GetClientFrags(i);
+                    if (frags > maxFrags) maxFrags = frags;
+                }
             }
-            PrintHintTextToAll("[Multimode Core] Voting established!");
+            int fragsRemaining = fragLimit.IntValue - maxFrags;
             
-            int endType = g_Cvar_EndVoteType.IntValue;
-            if(endType < 1) endType = 1;
-            else if(endType > 3) endType = 3;
-            g_eCurrentVoteTiming = view_as<TimingMode>(endType - 1);
-                
-            if(g_Cvar_EndVoteDebug.BoolValue)
-                WriteToLogFile("[End Vote] Vote type selected: %d (%s)", endType, (g_eCurrentVoteTiming == TIMING_NEXTMAP) ? "Next Map" : (g_eCurrentVoteTiming == TIMING_NEXTROUND) ? "Next Round" : "Instant");
-            
-            g_eEndVoteTiming = view_as<TimingMode>(endType - 1); // Store end vote timing
-            StartGameModeVote(0, false);
-            return Plugin_Stop;
-        }
-    }
-	
-	// Old Check End Vote as Backup...
-	
-    else
-    {
-        int currentTime = GetTime();
-        int elapsed = currentTime - g_iMapStartTime;
-        float currentTimeLimit = g_hCvarTimeLimit.FloatValue;
-        int totalTimeLimit = RoundToFloor(currentTimeLimit * 60.0); 
-        int iTimeLeft = totalTimeLimit - elapsed;
-
-        if(iTimeLeft < 0) 
-            iTimeLeft = 0;
-
-        if(g_Cvar_EndVoteDebug.BoolValue)
-            WriteToLogFile("[End Vote] Fallback calculation: TimeLimit=%.1fmin | Elapsed=%dmin | Remainder=%dmin", currentTimeLimit, elapsed/60, iTimeLeft/60);
-
-        if(iTimeLeft <= iTrigger)
-        {
-            if(g_Cvar_EndVoteDebug.BoolValue) 
-                WriteToLogFile("[End Vote] Fallback triggered! Starting vote... (Remaining: %ds <= Trigger: %ds)", iTimeLeft, iTrigger);
-            
-            g_bEndVoteTriggered = true;
-            delete g_hEndVoteTimer;
-            PrintHintTextToAll("[Multimode Core] Voting established!");
-            
-            int endType = g_Cvar_EndVoteType.IntValue;
-            if(endType < 1) endType = 1;
-            else if(endType > 3) endType = 3;
-            g_eCurrentVoteTiming = view_as<TimingMode>(endType - 1);
-                
-            if(g_Cvar_EndVoteDebug.BoolValue)
-                WriteToLogFile("[End Vote] Vote type selected: %d (%s)", endType, (g_eCurrentVoteTiming == TIMING_NEXTMAP) ? "Next Map" : (g_eCurrentVoteTiming == TIMING_NEXTROUND) ? "Next Round" : "Instant");
-            
-            StartGameModeVote(0, false);
-            return Plugin_Stop;
+            if (fragsRemaining > 0 && fragsRemaining <= g_Cvar_EndVoteFrags.IntValue)
+            {
+                PerformEndVote();
+                return Plugin_Stop;
+            }
         }
     }
     
+    int currentTime = GetTime();
+    int elapsed = currentTime - g_iMapStartTime;
+    float currentTimeLimit = g_hCvarTimeLimit.FloatValue;
+    int totalTimeLimit = RoundToFloor(currentTimeLimit * 60.0); 
+    int iTimeLeft = totalTimeLimit - elapsed;
+
+    if(iTimeLeft < 0) iTimeLeft = 0;
+
+    if(iTimeLeft <= iTriggerTime)
+    {
+        PerformEndVote();
+        return Plugin_Stop;
+    }
+	
     return Plugin_Continue;
+}
+
+void PerformEndVote()
+{
+    if(g_Cvar_EndVoteDebug.BoolValue) 
+        WriteToLogFile("[End Vote] Triggered! Starting vote...");
+    
+    g_bEndVoteTriggered = true;
+    
+    if (g_hEndVoteTimer != INVALID_HANDLE)
+    {
+        KillTimer(g_hEndVoteTimer);
+        g_hEndVoteTimer = INVALID_HANDLE;
+    }
+    
+    int endType = g_Cvar_EndVoteType.IntValue;
+    if(endType < 1) endType = 1;
+    else if(endType > 3) endType = 3;
+    g_eCurrentVoteTiming = view_as<TimingMode>(endType - 1);
+        
+    if(g_Cvar_EndVoteDebug.BoolValue)
+        WriteToLogFile("[End Vote] Vote type selected: %d (%s)", endType, 
+            (g_eCurrentVoteTiming == TIMING_NEXTMAP) ? "Next Map" : 
+            (g_eCurrentVoteTiming == TIMING_NEXTROUND) ? "Next Round" : "Instant");
+    
+    g_eEndVoteTiming = view_as<TimingMode>(endType - 1);
+    StartGameModeVote(0, false);
 }
 
 public Action Timer_UpdateCooldownHUD(Handle timer)
