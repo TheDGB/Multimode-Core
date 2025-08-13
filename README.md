@@ -9,8 +9,11 @@ Do you have a suggestion for the plugin? You can make a **pull request!**
 
 ### Special thanks:
 [RayanfhoulaBR](https://steamcommunity.com/id/RayanFhoulaBR/) - For fixing Multimode Core's check end vote. <3
+
 [Sanju VinhoeFumaça!](https://steamcommunity.com/id/SanjiVinsmokeBRAZIL/) - For testing and giving ideias to the project. <3
+
 [Ribas](https://steamcommunity.com/id/ribasgabe/) - Owner of Oppressive Territory Hosting. <3
+
 [Oppressive Territory Community](https://optr.me) - Community, testing and debuging the Multimode Core. <3
 
 #### Supported Games.
