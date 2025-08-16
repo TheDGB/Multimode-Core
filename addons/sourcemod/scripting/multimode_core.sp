@@ -1066,22 +1066,52 @@ public Action Timer_CheckEndVote(Handle timer)
             WriteToLogFile("[End Vote] Verification skipped: System disabled/voting active/triggered/RTV blocked");
         return Plugin_Continue;
     }
-	
-    int timeleft;
-    bool bTimeLeftValid = GetMapTimeLeft(timeleft);
-    int iTriggerTime = g_Cvar_EndVoteMin.IntValue * 60;
+
+    bool bMinEnabled = (g_Cvar_EndVoteMin.IntValue > 0);
+    bool bRoundsEnabled = (g_Cvar_EndVoteRounds.IntValue > 0);
+    bool bFragsEnabled = (g_Cvar_EndVoteFrags.IntValue > 0);
     
-    if (bTimeLeftValid && timeleft > 0 && timeleft <= iTriggerTime)
+    if (!bMinEnabled && !bRoundsEnabled && !bFragsEnabled)
     {
-        PerformEndVote();
-        return Plugin_Stop;
+        if(g_Cvar_EndVoteDebug.BoolValue) 
+            WriteToLogFile("[End Vote] Verification skipped: System disabled/voting active/triggered/RTV blocked");
+        return Plugin_Continue;
     }
-	
-    if (g_Cvar_EndVoteRounds.IntValue > 0)
+
+    if (bMinEnabled)
+    {
+        int timeleft;
+        bool bTimeLeftValid = GetMapTimeLeft(timeleft);
+        int iTriggerTime = g_Cvar_EndVoteMin.IntValue * 60;
+        
+        if (bTimeLeftValid && timeleft > 0 && timeleft <= iTriggerTime)
+        {
+            PerformEndVote();
+            return Plugin_Stop;
+        }
+        
+        int currentTime = GetTime();
+        int elapsed = currentTime - g_iMapStartTime;
+        float currentTimeLimit = g_hCvarTimeLimit.FloatValue;
+        
+        if (currentTimeLimit > 0.0)
+        {
+            int totalTimeLimit = RoundToFloor(currentTimeLimit * 60.0);
+            int iTimeLeft = totalTimeLimit - elapsed;
+            if (iTimeLeft < 0) iTimeLeft = 0;
+
+            if (iTimeLeft <= iTriggerTime)
+            {
+                PerformEndVote();
+                return Plugin_Stop;
+            }
+        }
+    }
+    
+    if (bRoundsEnabled)
     {
         ConVar maxRounds = FindConVar("mp_maxrounds");
         ConVar winLimit = FindConVar("mp_winlimit");
-        
         int roundsRemaining = -1;
         
         if (maxRounds != null && maxRounds.IntValue > 0)
@@ -1091,8 +1121,7 @@ public Action Timer_CheckEndVote(Handle timer)
         }
         else if (winLimit != null && winLimit.IntValue > 0)
         {
-            int roundsPlayed = GetTeamScore(2) + GetTeamScore(3);
-            roundsRemaining = winLimit.IntValue - roundsPlayed;
+            roundsRemaining = winLimit.IntValue - GetTeamScore(winLimit.IntValue == GetTeamScore(2) ? 2 : 3);
         }
         
         if (roundsRemaining > 0 && roundsRemaining <= g_Cvar_EndVoteRounds.IntValue)
@@ -1101,8 +1130,8 @@ public Action Timer_CheckEndVote(Handle timer)
             return Plugin_Stop;
         }
     }
-	
-    if (g_Cvar_EndVoteFrags.IntValue > 0)
+    
+    if (bFragsEnabled)
     {
         ConVar fragLimit = FindConVar("mp_fraglimit");
         if (fragLimit != null && fragLimit.IntValue > 0)
@@ -1126,20 +1155,6 @@ public Action Timer_CheckEndVote(Handle timer)
         }
     }
     
-    int currentTime = GetTime();
-    int elapsed = currentTime - g_iMapStartTime;
-    float currentTimeLimit = g_hCvarTimeLimit.FloatValue;
-    int totalTimeLimit = RoundToFloor(currentTimeLimit * 60.0); 
-    int iTimeLeft = totalTimeLimit - elapsed;
-
-    if(iTimeLeft < 0) iTimeLeft = 0;
-
-    if(iTimeLeft <= iTriggerTime)
-    {
-        PerformEndVote();
-        return Plugin_Stop;
-    }
-	
     return Plugin_Continue;
 }
 
@@ -2893,7 +2908,7 @@ void PerformExtension(float timeStep, int roundStep, int fragStep, bool &bExtend
     g_bInternalChange = true;
     
     ConVar timelimit = FindConVar("mp_timelimit");
-    if (timelimit != null) {
+    if (timelimit != null && timelimit.FloatValue > 0.0) {
         timelimit.FloatValue += timeStep;
     }
     
@@ -2920,7 +2935,12 @@ void PerformExtension(float timeStep, int roundStep, int fragStep, bool &bExtend
 
 bool CanExtendMap()
 {
-    return FindConVar("mp_timelimit").IntValue > 0 || FindConVar("mp_maxrounds").IntValue > 0 || FindConVar("mp_winlimit").IntValue > 0 || FindConVar("mp_fraglimit").IntValue > 0;
+    ConVar timelimit = FindConVar("mp_timelimit");
+    ConVar maxrounds = FindConVar("mp_maxrounds");
+    ConVar winlimit = FindConVar("mp_winlimit");
+    ConVar fraglimit = FindConVar("mp_fraglimit");
+    
+    return (timelimit != null && timelimit.FloatValue > 0.0) || (maxrounds != null && maxrounds.IntValue > 0) || (winlimit != null && winlimit.IntValue > 0) || (fraglimit != null && fraglimit.IntValue > 0);
 }
 
 // //////////////////////////////////////////////
