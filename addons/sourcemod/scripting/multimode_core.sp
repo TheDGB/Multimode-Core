@@ -46,8 +46,6 @@ ConVar g_Cvar_VoteGroupExclude;
 ConVar g_Cvar_VoteMapExclude;
 ConVar g_Cvar_VoteAdminGroupExclude;
 ConVar g_Cvar_VoteAdminMapExclude;
-ConVar g_Cvar_CommandsNoDelay;
-ConVar g_Cvar_CommandsDelay;
 ConVar g_Cvar_Discord;
 ConVar g_Cvar_DiscordWebhook;
 ConVar g_Cvar_DiscordVoteResult;
@@ -170,9 +168,6 @@ public void OnPluginStart()
     g_Cvar_VoteMapExclude = CreateConVar("multimode_vote_mapexclude", "2", "Number of recently played maps to exclude from normal votes (0= Disabled)");
     g_Cvar_VoteAdminGroupExclude = CreateConVar("multimode_voteadmin_groupexclude", "0", "Number of recently played gamemodes to exclude from admin votes (0= Disabled)");
     g_Cvar_VoteAdminMapExclude = CreateConVar("multimode_voteadmin_mapexclude", "2", "Number of recently played maps to exclude from admin votes (0= Disabled)");
-    
-    g_Cvar_CommandsNoDelay = CreateConVar("multimode_commandsnodelay", "1", "Execute commands immediately without delay when starting the map", _, true, 0.0, true, 1.0);
-    g_Cvar_CommandsDelay = CreateConVar("multimode_commandsdelay", "1.0", "Delay to execute commands after map loading", 0, true, 0.0);
     
     g_Cvar_EndVoteEnabled = CreateConVar("multimode_endvote_enabled", "1", "Enables automatic end vote when the remaining map time reaches the configured limit.");
     g_Cvar_EndVoteMin = CreateConVar("multimode_endvote_min", "6", "Specifies minutes remaining to start automatic voting. (mp_timelimit, multimode_endvote_min 0 = Disabled)");	
@@ -339,7 +334,6 @@ public void OnMapStart()
     char CurrentMap[64];
     GetCurrentMap(CurrentMap, sizeof(CurrentMap));
     bool groupFound = false;
-    bool commandExecuted = false;
     
     WriteToLogFile("[MultiMode Core] --------------- CURRENT MAP: %s ---------------", CurrentMap);
 
@@ -351,24 +345,13 @@ public void OnMapStart()
             GameModeConfig config;
             ArrayList list = GetGameModesList();
             list.GetArray(index, config);
-            
+        
             WriteToLogFile("[MultiMode Core] Using preselected gamemode: %s", config.name);
-            
+        
             if (strlen(config.command) > 0)
             {
                 WriteToLogFile("[MultiMode Core] Executing group command: %s", config.command);
-        
-                if (g_Cvar_CommandsNoDelay.BoolValue)
-                {
-                    ServerCommand("%s", config.command);
-                }
-                else
-                {
-                    DataPack dp = new DataPack();
-                    dp.WriteString(config.command);
-                    CreateTimer(g_Cvar_CommandsDelay.FloatValue, Timer_DelayedCommand, dp);
-                }
-                commandExecuted = true;
+                ServerCommand("%s", config.command);
             }
 
             KeyValues kv = GetMapKv(config.name, CurrentMap);
@@ -379,20 +362,38 @@ public void OnMapStart()
                 if (strlen(mapCommand) > 0)
                 {
                     WriteToLogFile("[MultiMode Core] Executing map command: %s", mapCommand);
-        
-                    if (g_Cvar_CommandsNoDelay.BoolValue)
-                    {
-                        ServerCommand("%s", mapCommand);
-                    }
-                    else
-                    {
-                        DataPack dpCmd = new DataPack();
-                        dpCmd.WriteString(mapCommand);
-                        CreateTimer(g_Cvar_CommandsDelay.FloatValue, Timer_DelayedCommand, dpCmd);
-                    }
-                    commandExecuted = true;
+                    ServerCommand("%s", mapCommand);
                 }
                 delete kv;
+            }
+            else
+            {
+                if (g_kvGameModes.JumpToKey(config.name) && g_kvGameModes.JumpToKey("maps"))
+                {
+                    if (g_kvGameModes.GotoFirstSubKey(false))
+                    {
+                        do
+                        {
+                            char mapKey[PLATFORM_MAX_PATH];
+                            g_kvGameModes.GetSectionName(mapKey, sizeof(mapKey));
+
+                            if (IsWildcardEntry(mapKey) && StrContains(CurrentMap, mapKey) == 0)
+                            {
+                                char wildcardCommand[256];
+                                g_kvGameModes.GetString("command", wildcardCommand, sizeof(wildcardCommand), "");
+                                if (strlen(wildcardCommand) > 0)
+                                {
+                                    WriteToLogFile("[MultiMode Core] Executing wildcard command (%s): %s", mapKey, wildcardCommand);
+                                    ServerCommand("%s", wildcardCommand);
+                                }
+                                break;
+                            }
+                        } while (g_kvGameModes.GotoNextKey(false));
+                        g_kvGameModes.GoBack();
+                    }
+                    g_kvGameModes.GoBack();
+                }
+                g_kvGameModes.Rewind();
             }
         }
         g_sNextGameMode[0] = '\0';
@@ -413,17 +414,7 @@ public void OnMapStart()
                 if (strlen(config.command) > 0)
                 {
                     WriteToLogFile("[MultiMode Core] Executing group command: %s", config.command);
-                    if (g_Cvar_CommandsNoDelay.BoolValue)
-                    {
-                        ServerCommand("%s", config.command);
-                    }
-                    else
-                    {
-                        DataPack dp = new DataPack();
-                        dp.WriteString(config.command);
-                        CreateTimer(g_Cvar_CommandsDelay.FloatValue, Timer_DelayedCommand, dp);
-                    }
-                    commandExecuted = true;
+                    ServerCommand("%s", config.command);
                 }
 
                 if (g_kvGameModes.JumpToKey(config.name) && g_kvGameModes.JumpToKey("maps"))
@@ -435,17 +426,7 @@ public void OnMapStart()
                         if (strlen(mapCommand) > 0)
                         {
                             WriteToLogFile("[MultiMode Core] Executing map command: %s", mapCommand);
-                            if (g_Cvar_CommandsNoDelay.BoolValue)
-                            {
-                                ServerCommand("%s", mapCommand);
-                            }
-                            else
-                            {
-                                DataPack dpCmd = new DataPack();
-                                dpCmd.WriteString(mapCommand);
-                                CreateTimer(g_Cvar_CommandsDelay.FloatValue, Timer_DelayedCommand, dpCmd);
-                            }
-                            commandExecuted = true;
+                            ServerCommand("%s", mapCommand);
                         }
                         g_kvGameModes.GoBack();
                     }
@@ -465,18 +446,7 @@ public void OnMapStart()
                                     if (strlen(wildcardCommand) > 0)
                                     {
                                         WriteToLogFile("[MultiMode Core] Executing wildcard command (%s): %s", mapKey, wildcardCommand);
-        
-                                        if (g_Cvar_CommandsNoDelay.BoolValue)
-                                        {
-                                            ServerCommand("%s", wildcardCommand);
-                                        }
-                                        else
-                                        {
-                                            DataPack dpWild = new DataPack();
-                                            dpWild.WriteString(wildcardCommand);
-                                            CreateTimer(g_Cvar_CommandsDelay.FloatValue, Timer_DelayedCommand, dpWild);
-                                        }
-                                        commandExecuted = true;
+                                        ServerCommand("%s", wildcardCommand);
                                     }
                                     break;
                                 }
@@ -495,13 +465,6 @@ public void OnMapStart()
     if (!groupFound)
     {
         // Cleaning...
-    }
-
-    if (!commandExecuted)
-    {
-        WriteToLogFile("[MultiMode Core] No command found initially. Scheduling retry...");
-        
-        CreateTimer(5.0, Timer_RetryCommands, _, TIMER_FLAG_NO_MAPCHANGE);
     }
     
     g_bRtvDisabled = false;
@@ -875,26 +838,6 @@ public Action Timer_ChangeMap(Handle timer)
     return Plugin_Stop;
 }
 
-public Action Timer_DelayedCommand(Handle timer, DataPack dp)
-{
-    dp.Reset();
-    char command[256];
-    dp.ReadString(command, sizeof(command));
-    delete dp;
-
-    if (strlen(command) > 0)
-    {
-        WriteToLogFile("[MultiMode Core] Running gamemode command: %s", command);
-        ServerCommand("%s", command);
-    }
-    else
-    {
-        WriteToLogFile("Comando vazio recebido para execução");
-    }
-    
-    return Plugin_Stop;
-}
-
 // //////////////////////
 // //                  //
 // //   Random Cycle   //
@@ -961,87 +904,6 @@ void SelectRandomNextMap(bool bSetNextMap = false)
         strcopy(g_sNextGameMode, sizeof(g_sNextGameMode), config.name);
     }
     delete validGameModes;
-}
-
-public Action Timer_RetryCommands(Handle timer)
-{
-    char CurrentMap[64];
-    GetCurrentMap(CurrentMap, sizeof(CurrentMap));
-    bool commandExecuted = false;
-
-    ArrayList gameModes = GetGameModesList();
-    for (int i = 0; i < gameModes.Length; i++)
-    {
-        GameModeConfig config;
-        gameModes.GetArray(i, config);
-
-        if (config.maps.FindString(CurrentMap) != -1)
-        {
-            if (strlen(config.command) > 0)
-            {
-                DataPack dp = new DataPack();
-                dp.WriteString(config.command);
-                CreateTimer(0.1, Timer_DelayedCommand, dp);
-                commandExecuted = true;
-                WriteToLogFile("[MultiMode Core] Group command found on retry: %s", config.command);
-            }
-
-            if (g_kvGameModes.JumpToKey(config.name) && g_kvGameModes.JumpToKey("maps"))
-            {
-                if (g_kvGameModes.JumpToKey(CurrentMap))
-                {
-                    char mapCommand[256];
-                    g_kvGameModes.GetString("command", mapCommand, sizeof(mapCommand), "");
-                    if (strlen(mapCommand) > 0)
-                    {
-                        DataPack dpCmd = new DataPack();
-                        dpCmd.WriteString(mapCommand);
-                        CreateTimer(0.1, Timer_DelayedCommand, dpCmd);
-                        commandExecuted = true;
-                        WriteToLogFile("[MultiMode Core] Map command encountered on retry: %s", mapCommand);
-                    }
-                    g_kvGameModes.GoBack();
-                }
-                else
-                {
-                    if (g_kvGameModes.GotoFirstSubKey(false))
-                    {
-                        do
-                        {
-                            char mapKey[PLATFORM_MAX_PATH];
-                            g_kvGameModes.GetSectionName(mapKey, sizeof(mapKey));
-                            
-                            if (IsWildcardEntry(mapKey) && StrContains(CurrentMap, mapKey) == 0)
-                            {
-                                char wildcardCommand[256];
-                                g_kvGameModes.GetString("command", wildcardCommand, sizeof(wildcardCommand), "");
-                                if (strlen(wildcardCommand) > 0)
-                                {
-                                    DataPack dpWild = new DataPack();
-                                    dpWild.WriteString(wildcardCommand);
-                                    CreateTimer(0.1, Timer_DelayedCommand, dpWild);
-                                    commandExecuted = true;
-                                    WriteToLogFile("[MultiMode Core] Wildcard command encountered on retry: %s", wildcardCommand);
-                                }
-                                break;
-                            }
-                        } while (g_kvGameModes.GotoNextKey(false));
-                        g_kvGameModes.GoBack();
-                    }
-                }
-                g_kvGameModes.GoBack();
-            }
-            g_kvGameModes.Rewind();
-            break;
-        }
-    }
-
-    if (!commandExecuted)
-    {
-        WriteToLogFile("Commands not found after retry for map: %s", CurrentMap);
-    }
-
-    return Plugin_Stop;
 }
 
 public Action Timer_StartEndVote(Handle timer)
