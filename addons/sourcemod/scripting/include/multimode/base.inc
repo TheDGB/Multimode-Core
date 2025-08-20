@@ -11,6 +11,8 @@
 enum struct GameModeConfig {
     char name[64];
     char command[256];
+    char pre_command[256];
+    char vote_command[256];
     int maps_invote;
     int adminonly;
     int enabled;
