@@ -354,47 +354,20 @@ public void OnMapStart()
                 WriteToLogFile("[MultiMode Core] Executing group command: %s", config.command);
                 ServerCommand("%s", config.command);
             }
-
-            KeyValues kv = GetMapKv(config.name, CurrentMap);
-            if (kv != null)
-            {
-                char mapCommand[256];
-                kv.GetString("command", mapCommand, sizeof(mapCommand), "");
-                if (strlen(mapCommand) > 0)
-                {
-                    WriteToLogFile("[MultiMode Core] Executing map command: %s", mapCommand);
-                    ServerCommand("%s", mapCommand);
-                }
-                delete kv;
-            }
             else
             {
-                if (g_kvGameModes.JumpToKey(config.name) && g_kvGameModes.JumpToKey("maps"))
+                KeyValues kv = GetMapKv(config.name, CurrentMap);
+                if (kv != null)
                 {
-                    if (g_kvGameModes.GotoFirstSubKey(false))
+                    char mapCommand[256];
+                    kv.GetString("command", mapCommand, sizeof(mapCommand), "");
+                    if (strlen(mapCommand) > 0)
                     {
-                        do
-                        {
-                            char mapKey[PLATFORM_MAX_PATH];
-                            g_kvGameModes.GetSectionName(mapKey, sizeof(mapKey));
-
-                            if (IsWildcardEntry(mapKey) && StrContains(CurrentMap, mapKey) == 0)
-                            {
-                                char wildcardCommand[256];
-                                g_kvGameModes.GetString("command", wildcardCommand, sizeof(wildcardCommand), "");
-                                if (strlen(wildcardCommand) > 0)
-                                {
-                                    WriteToLogFile("[MultiMode Core] Executing wildcard command (%s): %s", mapKey, wildcardCommand);
-                                    ServerCommand("%s", wildcardCommand);
-                                }
-                                break;
-                            }
-                        } while (g_kvGameModes.GotoNextKey(false));
-                        g_kvGameModes.GoBack();
+                        WriteToLogFile("[MultiMode Core] Executing map command: %s", mapCommand);
+                        ServerCommand("%s", mapCommand);
                     }
-                    g_kvGameModes.GoBack();
+                    delete kv;
                 }
-                g_kvGameModes.Rewind();
             }
         }
         g_sNextGameMode[0] = '\0';
@@ -3444,28 +3417,48 @@ KeyValues GetMapKv(const char[] gamemode, const char[] mapname)
             kv.Import(g_kvGameModes);
             g_kvGameModes.GoBack();
         }
-        else if (StrContains(mapname, "workshop/") == 0)
+        else
         {
-            char mapParts[2][128];
-            if (ExplodeString(mapname, "/", mapParts, 2, 128) == 2)
+            bool foundWildcard = false;
+            if (g_kvGameModes.GotoFirstSubKey(false))
             {
-                char uid[32];
-                strcopy(uid, sizeof(uid), mapParts[1]);
-                
-                if (g_kvGameModes.GotoFirstSubKey(false))
+                do
                 {
-                    do
+                    char mapKey[PLATFORM_MAX_PATH];
+                    g_kvGameModes.GetSectionName(mapKey, sizeof(mapKey));
+                    
+                    if (IsWildcardEntry(mapKey) && StrContains(mapname, mapKey) == 0)
                     {
-                        char section[128];
-                        g_kvGameModes.GetSectionName(section, sizeof(section));
-                        
-                        if (StrContains(section, uid) != -1)
+                        kv.Import(g_kvGameModes);
+                        foundWildcard = true;
+                        break;
+                    }
+                } while (g_kvGameModes.GotoNextKey(false));
+                g_kvGameModes.GoBack();
+            }
+            if (!foundWildcard && StrContains(mapname, "workshop/") == 0)
+            {
+                char mapParts[2][128];
+                if (ExplodeString(mapname, "/", mapParts, 2, 128) == 2)
+                {
+                    char uid[32];
+                    strcopy(uid, sizeof(uid), mapParts[1]);
+                    
+                    if (g_kvGameModes.GotoFirstSubKey(false))
+                    {
+                        do
                         {
-                            kv.Import(g_kvGameModes);
-                            break;
-                        }
-                    } while (g_kvGameModes.GotoNextKey(false));
-                    g_kvGameModes.GoBack();
+                            char section[128];
+                            g_kvGameModes.GetSectionName(section, sizeof(section));
+                            
+                            if (StrContains(section, uid) != -1)
+                            {
+                                kv.Import(g_kvGameModes);
+                                break;
+                            }
+                        } while (g_kvGameModes.GotoNextKey(false));
+                        g_kvGameModes.GoBack();
+                    }
                 }
             }
         }
