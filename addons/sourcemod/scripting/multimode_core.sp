@@ -71,7 +71,8 @@ ConVar g_Cvar_CooldownTime;
 ConVar g_Cvar_Logs;
 ConVar g_Cvar_NominateEnabled;
 ConVar g_Cvar_NominateOneChance;
-ConVar g_Cvar_NominateSelectedExclude;
+ConVar g_Cvar_NominateSelectedGroupExclude;
+ConVar g_Cvar_NominateSelectedMapExclude;
 ConVar g_Cvar_NominateGroupExclude;
 ConVar g_Cvar_NominateMapExclude;
 ConVar g_Cvar_NominateSorted;
@@ -179,7 +180,8 @@ public void OnPluginStart()
 	
     g_Cvar_NominateEnabled = CreateConVar("multimode_nominate", "1", "Enables or disables the nominate system", _, true, 0.0, true, 1.0);
     g_Cvar_NominateOneChance = CreateConVar("multimode_nominate_onechance", "1", "Allows users to nominate only once per map", _, true, 0.0, true, 1.0);
-    g_Cvar_NominateSelectedExclude = CreateConVar("multimode_nominate_selectedexclude", "0", "Removes the nominated gamemode from the menu", _, true, 0.0, true, 1.0);
+    g_Cvar_NominateSelectedGroupExclude = CreateConVar("multimode_nominate_selectedgroupexclude", "0", "Removes the nominated gamemode from the nominate menu", _, true, 0.0, true, 1.0);
+	g_Cvar_NominateSelectedMapExclude = CreateConVar("multimode_nominate_selectedmapexclude", "1", "Removes the nominated map from the nominate menu", _, true, 0.0, true, 1.0);
     g_Cvar_NominateGroupExclude = CreateConVar("multimode_nominate_groupexclude", "0", "Number of recently played gamemodes to exclude from the menu (0= Disabled)");
     g_Cvar_NominateMapExclude = CreateConVar("multimode_nominate_mapexclude", "2", "Number of recently played maps to exclude from the menu (0= Disabled)");
     g_Cvar_NominateSorted = CreateConVar("multimode_nominate_sorted", "2", "Sorting mode for maps: 0= Alphabetical, 1= Random, 2= Map Cycle Order", _, true, 0.0, true, 2.0);
@@ -1765,7 +1767,7 @@ void ShowNominateGamemodeMenu(int client)
         GameModeConfig config;
         gameModes.GetArray(i, config);
 
-        if (g_Cvar_NominateSelectedExclude.BoolValue &&
+        if (g_Cvar_NominateSelectedGroupExclude.BoolValue &&
             g_NominatedGamemodes.FindString(config.name) != -1)
         {
             continue;
@@ -1869,6 +1871,13 @@ void ShowNominateMapMenu(int client, const char[] gamemode)
     {
         char map[PLATFORM_MAX_PATH];
         availableMaps.GetString(i, map, sizeof(map));
+
+        if (g_Cvar_NominateSelectedMapExclude.BoolValue && 
+            mapsNominated != null && 
+            mapsNominated.FindString(map) != -1)
+        {
+            continue;
+        }
 
         char displayName[256];
         GetMapDisplayNameEx(gamemode, map, displayName, sizeof(displayName));
@@ -2540,15 +2549,19 @@ void StartGameModeVote(int client, bool adminVote = false)
         {
             GameModeConfig config;
             gameModes.GetArray(i, config);
-            
+
             bool available;
             if (adminVote) {
-            available = (config.enabled == 1);
+                available = (config.enabled == 1);
             } else {
                 available = GamemodeAvailable(config.name);
             }
-        
-        if (!available) continue;
+
+            if (!available) continue;
+
+            if (groupExclude > 0 && g_PlayedGamemodes.FindString(config.name) != -1)
+                continue;
+
             if (g_NominatedGamemodes.FindString(config.name) == -1 && voteGameModes.FindString(config.name) == -1)
             {
                 remainingGameModes.PushString(config.name);
@@ -3297,6 +3310,12 @@ void StartMapVote(int client, const char[] sGameMode)
             config.maps.GetString(i, map, sizeof(map));
             if (IsMapValid(map) && voteMaps.FindString(map) == -1)
             {
+                if (mapExclude > 0)
+                {
+                    ArrayList playedMaps;
+                    if (g_PlayedMaps.GetValue(sGameMode, playedMaps) && playedMaps.FindString(map) != -1)
+                        continue;
+                }
                 availableMaps.PushString(map);
             }
         }
