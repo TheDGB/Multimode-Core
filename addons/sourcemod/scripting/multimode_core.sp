@@ -1171,18 +1171,20 @@ public Action OnPlayerChat(int client, const char[] command, int argc)
 
     if (StrEqual(text, "rtv", false) || StrEqual(text, "rockthevote", false))
     {
-        FakeClientCommand(client, "sm_rtv");
+        Command_RTV(client, 0);
         return Plugin_Continue;
     }
 	
     else if (StrEqual(text, "nominate", false))
     {
-        FakeClientCommand(client, "sm_nominate");
+        Command_Nominate(client, 0);
         return Plugin_Continue;
     }
 
     return Plugin_Continue;
 }
+
+// Commands
 
 void CancelCurrentVote()
 {
@@ -1195,8 +1197,6 @@ void CancelCurrentVote()
         g_bVoteActive = false;
     }
 }
-
-// Commands
 
 void ExecutePreCommands()
 {
