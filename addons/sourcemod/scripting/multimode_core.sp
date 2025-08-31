@@ -257,7 +257,12 @@ public void OnPluginStart()
     HookEventEx("round_win",          Event_RoundEnd);
     HookEventEx("game_end",           Event_RoundEnd);
     HookEventEx("game_round_restart", Event_RoundEnd);
-
+	
+	// Listeners
+	
+    AddCommandListener(OnPlayerChat, "say");
+    AddCommandListener(OnPlayerChat, "say2"); // For Non Valve Games
+    AddCommandListener(OnPlayerChat, "say_team");
     
     HookEvent("server_spawn", Event_ServerSpawn, EventHookMode_PostNoCopy);
     
@@ -1154,6 +1159,29 @@ public void Event_GameOver(Event event, const char[] name, bool dontBroadcast)
 	ExecutePreCommands();
 	
     g_bGameEndTriggered = true;
+}
+
+public Action OnPlayerChat(int client, const char[] command, int argc)
+{
+    if (argc == 0)
+        return Plugin_Continue;
+
+    char text[13];
+    GetCmdArg(1, text, sizeof(text));
+
+    if (StrEqual(text, "rtv", false) || StrEqual(text, "rockthevote", false))
+    {
+        FakeClientCommand(client, "sm_rtv");
+        return Plugin_Continue;
+    }
+	
+    else if (StrEqual(text, "nominate", false))
+    {
+        FakeClientCommand(client, "sm_nominate");
+        return Plugin_Continue;
+    }
+
+    return Plugin_Continue;
 }
 
 void CancelCurrentVote()
