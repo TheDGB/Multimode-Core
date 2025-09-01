@@ -14,8 +14,8 @@
 
     "RTV Available Again"
     {
-        "pt"    "{green}[Rock The Vote] {default}O sistema RTV está disponível novamente!"
-        "en"    "{green}[Rock The Vote] {default}RTV system is available again!"
+        "pt"    "{green}[Rock The Vote] {default}O sistema RTV está disponível novamente! Digite !rtv para votar novamente."
+        "en"    "{green}[Rock The Vote] {default}RTV system is available again! Type !rtv to vote again."
     }
 
     "Error Changing Map"

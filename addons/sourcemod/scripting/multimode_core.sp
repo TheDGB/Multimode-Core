@@ -737,6 +737,7 @@ public Action Timer_EnableRTV(Handle timer)
     {
         g_bRtvInitialDelay = false;
         g_hRtvTimers[0] = INVALID_HANDLE;
+        CPrintToChatAll("%t", "RTV Available");
     }
     return Plugin_Stop;
 }
@@ -745,9 +746,9 @@ public Action Timer_ResetCooldown(Handle timer)
 {
     g_bRtvCooldown = false;
     g_hRtvTimers[1] = INVALID_HANDLE;
-    CPrintToChatAll("%t", "RTV Available Again");
     
     if(!g_bRtvDisabled) {
+        CPrintToChatAll("%t", "RTV Available Again");
     }
     
     return Plugin_Stop;
@@ -1721,11 +1722,6 @@ public Action Command_RTV(int client, int args)
     {
         CPrintToChat(client, "%t", "RTV Already Voted");
         return Plugin_Handled;
-    }
-	
-    if(!g_bRtvCooldown)
-    {
-        CPrintToChatAll("%t", "RTV Available");
     }
     
     int iPlayers = GetRealClientCount();
