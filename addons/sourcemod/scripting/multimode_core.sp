@@ -1424,7 +1424,6 @@ public void AdminMenu_CancelVote(TopMenu topmenu, TopMenuAction action, TopMenuO
                 }
             }
             
-            CPrintToChatAll("{red}[Admin] {default}%N {red}cancelled {default}the current vote.", client);
             CPrintToChatAll("%t", "Admin Cancel Vote", client);
         }
         else
