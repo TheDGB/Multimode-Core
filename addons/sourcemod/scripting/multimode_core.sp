@@ -1693,33 +1693,33 @@ public Action Command_RTV(int client, int args)
 {
     if(!g_Cvar_RtvEnabled.BoolValue) 
     {
-        CReplyToCommand(client, "%t", "RTV System Disabled");
+        CPrintToChat(client, "%t", "RTV System Disabled");
         return Plugin_Handled;
     }
 
     if(!g_Cvar_Enabled.BoolValue || g_bVoteActive || g_bCooldownActive || g_bRtvDisabled) 
     {
-        CReplyToCommand(client, "%t", "RTV System Disabled");
+        CPrintToChat(client, "%t", "RTV System Disabled");
         return Plugin_Handled;
     }
     
     if(g_bRtvInitialDelay) 
     {
         float fRemaining = GetRemainingTime(0);
-        CReplyToCommand(client, "%t", "RTV Wait", RoundFloat(fRemaining));
+        CPrintToChat(client, "%t", "RTV Wait", RoundFloat(fRemaining));
         return Plugin_Handled;
     }
     
     if(g_bRtvCooldown) 
     {
         float fRemaining = GetRemainingTime(1);
-        CReplyToCommand(client, "%t", "RTV Wait Again", RoundFloat(fRemaining));
+        CPrintToChat(client, "%t", "RTV Wait Again", RoundFloat(fRemaining));
         return Plugin_Handled;
     }
     
     if(g_bRtvVoted[client]) 
     {
-        CReplyToCommand(client, "%t", "RTV Already Voted");
+        CPrintToChat(client, "%t", "RTV Already Voted");
         return Plugin_Handled;
     }
 	
@@ -1739,7 +1739,7 @@ public Action Command_RTV(int client, int args)
     
     if(iPlayers < iRequired) 
     {
-        CReplyToCommand(client, "%t", "RTV Minimun Players", iRequired);
+        CPrintToChat(client, "%t", "RTV Minimun Players", iRequired);
         return Plugin_Handled;
     }
     
