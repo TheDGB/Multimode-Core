@@ -148,7 +148,9 @@ public void OnPluginStart()
     // Reg Admin Commands
     RegAdminCmd("multimode_reload", Command_ReloadGamemodes, ADMFLAG_CONFIG, "Reloads gamemodes configuration");
     RegAdminCmd("sm_forcemode", Command_ForceMode, ADMFLAG_CHANGEMAP, "Force game mode and map");
-    RegAdminCmd("sm_testvote", Command_VoteMenu, ADMFLAG_VOTE, "Start Mode/Map Testing Voting");
+    RegAdminCmd("sm_testvote", Command_VoteMenu, ADMFLAG_VOTE, "Start Voting Mode/Map Testing Voting");
+    RegAdminCmd("sm_votecancel", Command_CancelVote, ADMFLAG_VOTE, "Cancel the current MultiMode vote");
+    RegAdminCmd("sm_mmcancelvote", Command_CancelVote, ADMFLAG_VOTE, "Cancel the current MultiMode vote");
     
     // Convars
     g_Cvar_Enabled = CreateConVar("multimode_enabled", "1", "Enable the multimode voting system");
@@ -2226,6 +2228,50 @@ public Action Command_VoteMenu(int client, int args)
     }
     
     StartGameModeVote(client, false);
+    return Plugin_Handled;
+}
+
+public Action Command_CancelVote(int client, int args)
+{
+    bool bWasActive = false;
+    
+    if (g_bVoteActive)
+    {
+        CancelVote();
+        g_bVoteActive = false;
+        bWasActive = true;
+    }
+    
+    if (g_bCooldownActive)
+    {
+        g_bCooldownActive = false;
+        KillTimer(g_hCooldownTimer);
+        g_hCooldownTimer = INVALID_HANDLE;
+        bWasActive = true;
+    }
+    
+    if (bWasActive)
+    {
+        g_bEndVoteTriggered = false;
+        g_bVoteCompleted = false;
+        
+        if (g_Cvar_VoteSounds.BoolValue)
+        {
+            char sound[PLATFORM_MAX_PATH];
+            g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+            if (sound[0] != '\0')
+            {
+                EmitSoundToAllAny(sound);
+            }
+        }
+        
+        CPrintToChatAll("%t", "Admin Cancel Vote", client);
+    }
+    else
+    {
+        CPrintToChat(client, "%t", "Admin Cancel No Vote");
+    }
+    
     return Plugin_Handled;
 }
 
