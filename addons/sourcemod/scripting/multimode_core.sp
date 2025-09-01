@@ -148,7 +148,7 @@ public void OnPluginStart()
     // Reg Admin Commands
     RegAdminCmd("multimode_reload", Command_ReloadGamemodes, ADMFLAG_CONFIG, "Reloads gamemodes configuration");
     RegAdminCmd("sm_forcemode", Command_ForceMode, ADMFLAG_CHANGEMAP, "Force game mode and map");
-    RegAdminCmd("sm_startmode", Command_VoteMenu, ADMFLAG_VOTE, "Start Mode/Map Voting");
+    RegAdminCmd("sm_testvote", Command_VoteMenu, ADMFLAG_VOTE, "Start Mode/Map Testing Voting");
     
     // Convars
     g_Cvar_Enabled = CreateConVar("multimode_enabled", "1", "Enable the multimode voting system");
@@ -2225,7 +2225,7 @@ public Action Command_VoteMenu(int client, int args)
         return Plugin_Handled;
     }
     
-    StartGameModeVote(client, true);
+    StartGameModeVote(client, false);
     return Plugin_Handled;
 }
 
