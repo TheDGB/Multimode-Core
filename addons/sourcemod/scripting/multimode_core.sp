@@ -840,7 +840,13 @@ public Action Timer_ChangeMap(Handle timer)
     
     char game[20];
     GetGameFolderName(game, sizeof(game));
-    if (!StrEqual(game, "gesource", false) && !StrEqual(game, "zps", false))
+    ConVar mp_tournament = FindConVar("mp_tournament");
+
+    if (mp_tournament != null && mp_tournament.BoolValue)
+    {
+        ForceChangeLevel(g_sNextMap, "Map changed from next round.");
+    }
+    else if (!StrEqual(game, "gesource", false) && !StrEqual(game, "zps", false))
     {
         int iGameEnd = FindEntityByClassname(-1, "game_end");
         if (iGameEnd == -1 && (iGameEnd = CreateEntityByName("game_end")) == -1)
@@ -858,7 +864,6 @@ public Action Timer_ChangeMap(Handle timer)
     }
         
     CPrintToChatAll("%t", "Round Map Changing", g_sNextMap);
-    PrintHintTextToAll("%t", "Round Map Changing", g_sNextMap);
     WriteToLogFile("[MultiMode Core] Map instantly set after round to: %s", g_sNextMap);
     
     CheckRandomCycle();
