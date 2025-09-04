@@ -1319,7 +1319,7 @@ public void AdminMenu_ExtendMap(TopMenu topmenu, TopMenuAction action, TopMenuOb
 {
     if (action == TopMenuAction_DisplayOption)
     {
-        Format(buffer, maxlength, "Extend current map");
+        Format(buffer, maxlength, "%T", "Extend Current Map", client);
     }
     else if (action == TopMenuAction_SelectOption)
     {
@@ -1430,7 +1430,7 @@ public void AdminMenu_ForceMode(TopMenu topmenu, TopMenuAction action, TopMenuOb
 {
     if (action == TopMenuAction_DisplayOption)
     {
-        Format(buffer, maxlength, "Force Gamemode");
+        Format(buffer, maxlength, "%T", "Force Gamemode", client);
     }
     else if (action == TopMenuAction_SelectOption)
     {
@@ -1442,7 +1442,7 @@ public void AdminMenu_StartVote(TopMenu topmenu, TopMenuAction action, TopMenuOb
 {
     if (action == TopMenuAction_DisplayOption)
     {
-        Format(buffer, maxlength, "Start Vote");
+        Format(buffer, maxlength, "%T", "Start Vote", client);
     }
     else if (action == TopMenuAction_SelectOption)
     {
@@ -1453,12 +1453,23 @@ public void AdminMenu_StartVote(TopMenu topmenu, TopMenuAction action, TopMenuOb
 void ShowVoteTypeMenu(int client)
 {
     Menu menu = new Menu(VoteTypeMenuHandler);
-    menu.SetTitle("Escolha o tipo de votação:");
-    menu.AddItem("separated", "Start separate voting");
-    menu.AddItem("normal", "Start voting normally");
-    menu.AddItem("normaladmin", "Start voting normally as Admin");
+    char buffer[128];
+	
+    Format(buffer, sizeof(buffer), "%T", "Vote Type Menu Title", client);
+    menu.SetTitle(buffer);
+	
+    Format(buffer, sizeof(buffer), "%T", "Vote Type Normal", client);
+    menu.AddItem("normal", buffer);
+
+    Format(buffer, sizeof(buffer), "%T", "Vote Type Admin", client);
+    menu.AddItem("normaladmin", buffer);
+
+    Format(buffer, sizeof(buffer), "%T", "Vote Type Separated", client);
+    menu.AddItem("separated", buffer);
+
     menu.Display(client, MENU_TIME_FOREVER);
 }
+
 
 public int VoteTypeMenuHandler(Menu menu, MenuAction action, int client, int param2)
 {
@@ -1469,13 +1480,15 @@ public int VoteTypeMenuHandler(Menu menu, MenuAction action, int client, int par
 
         if (StrEqual(type, "normal"))
         {
-            StartGameModeVote(client, false);
+            SetClientCookie(client, g_hCookieVoteType, "normal");
+            ShowTimingSelectionMenu(client);
         }
         else if (StrEqual(type, "normaladmin"))
         {
-            StartGameModeVote(client, true);
+            SetClientCookie(client, g_hCookieVoteType, "normaladmin");
+            ShowTimingSelectionMenu(client);
         }
-        else
+        else if (StrEqual(type, "separated"))
         {
             SetClientCookie(client, g_hCookieVoteType, type);
             ShowTimingSelectionMenu(client);
@@ -1502,7 +1515,11 @@ public int TimingSelectionMenuHandler(Menu menu, MenuAction action, int param1, 
         {
             StartSeparatedVote(param1);
         }
-        else
+        else if (StrEqual(voteType, "normal"))
+        {
+            StartGameModeVote(param1, false);
+        }
+        else if (StrEqual(voteType, "normaladmin"))
         {
             StartGameModeVote(param1, true);
         }
@@ -2533,23 +2550,32 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing)
             char game[20];
             GetGameFolderName(game, sizeof(game));
             SetNextMap(g_sNextMap);
-            
-            if (!StrEqual(game, "gesource", false) && !StrEqual(game, "zps", false))
-            {
-                int iGameEnd = FindEntityByClassname(-1, "game_end");
-                if (iGameEnd == -1 && (iGameEnd = CreateEntityByName("game_end")) == -1)
-                {
-                    ForceChangeLevel(g_sNextMap, "Map modified by admin");
-                } 
-                else 
-                {     
-                    AcceptEntityInput(iGameEnd, "EndGame");
-                }
-            }
-            else
+            ConVar mp_tournament = FindConVar("mp_tournament");
+	
+            if (mp_tournament != null && mp_tournament.BoolValue)
             {
                 ForceChangeLevel(g_sNextMap, "Map modified by admin");
             }
+            else
+            {
+                if (!StrEqual(game, "gesource", false) && !StrEqual(game, "zps", false))
+                {
+                    int iGameEnd = FindEntityByClassname(-1, "game_end");
+                    if (iGameEnd == -1 && (iGameEnd = CreateEntityByName("game_end")) == -1)
+                    {
+                        ForceChangeLevel(g_sNextMap, "Map modified by admin");
+                    } 
+                    else 
+                    {     
+                        AcceptEntityInput(iGameEnd, "EndGame");
+                    }
+                }
+                else
+                {
+                    ForceChangeLevel(g_sNextMap, "Map modified by admin");
+                }
+            }
+
             CPrintToChatAll("%t", "Timing Instant Notify", g_sNextMap);
             WriteToLogFile("[MultiMode Core] Map instantly set to (admin): %s", g_sNextMap);
         }
@@ -2587,6 +2613,8 @@ void StartGameModeVote(int client, bool adminVote = false)
         g_hRtvTimers[1] = INVALID_HANDLE;
     }
     g_bRtvCooldown = false;
+	
+	g_eCurrentVoteTiming = g_eVoteTiming;
     
     ArrayList voteGameModes = new ArrayList(ByteCountToCells(64));
     
@@ -2784,6 +2812,8 @@ public void GameModeVoteResultHandler(Menu menu, int num_votes, int num_clients,
 
     char gamemode[64];
     menu.GetItem(item_info[winner][VOTEINFO_ITEM_INDEX], gamemode, sizeof(gamemode));
+	
+	g_eCurrentVoteTiming = g_eVoteTiming;
 
     if (StrEqual(gamemode, "extend"))
     {
@@ -3115,25 +3145,35 @@ public void ExecuteVoteResult()
             strcopy(g_sNextMap, sizeof(g_sNextMap), g_sVoteMap);
             strcopy(g_sNextGameMode, sizeof(g_sNextGameMode), g_sVoteGameMode);
             SetNextMap(g_sNextMap);
-            
+
             char game[20];
             GetGameFolderName(game, sizeof(game));
-            if (!StrEqual(game, "gesource", false) && !StrEqual(game, "zps", false))
-            {
-                int iGameEnd = FindEntityByClassname(-1, "game_end");
-                if (iGameEnd == -1 && (iGameEnd = CreateEntityByName("game_end")) == -1)
-                {
-                    ForceChangeLevel(g_sNextMap, "Map changed by vote");
-                } 
-                else 
-                {     
-                    AcceptEntityInput(iGameEnd, "EndGame");
-                }
-            }
-            else
+            ConVar mp_tournament = FindConVar("mp_tournament");
+
+            if (mp_tournament != null && mp_tournament.BoolValue)
             {
                 ForceChangeLevel(g_sNextMap, "Map changed by vote");
             }
+            else
+            {
+                if (!StrEqual(game, "gesource", false) && !StrEqual(game, "zps", false))
+                {
+                    int iGameEnd = FindEntityByClassname(-1, "game_end");
+                    if (iGameEnd == -1 && (iGameEnd = CreateEntityByName("game_end")) == -1)
+                    {
+                        ForceChangeLevel(g_sNextMap, "Map changed by vote");
+                    } 
+                    else 
+                    {     
+                        AcceptEntityInput(iGameEnd, "EndGame");
+                    }
+                }
+                else
+                {
+                    ForceChangeLevel(g_sNextMap, "Map changed by vote");
+                }
+            }
+
             CPrintToChatAll("%t", "Timing Instant Notify", g_sNextMap);
             WriteToLogFile("[MultiMode Core] Map instantly set to (vote): %s", g_sNextMap);
         }

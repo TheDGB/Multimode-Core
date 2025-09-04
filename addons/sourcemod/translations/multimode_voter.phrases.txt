@@ -156,6 +156,12 @@
         "en"    "Choose Gamemode for Voting:"
     }
 
+    "Force Gamemode"
+    {
+        "pt"    "Forçar Gamemode:"
+        "en"    "Force Gamemode:"
+    }
+
     "None Show Gamemode Group"
     {
         "pt"    "{red}Nenhum modo de jogo disponível."
@@ -286,5 +292,47 @@
     {
         "pt"    "Outra votação será encaminhada em %d segundos..."
         "en"    "Another vote will be taken in %d seconds..."
+    }
+
+    "Vote Type Menu Title"
+    {
+        "en"        "Choose the type of vote:"
+        "pt"        "Escolha o tipo de votação:"
+    }
+
+    "Vote Type Separated"
+    {
+        "en"        "Start Separate Vote"
+        "pt"        "Iniciar votação separada"
+    }
+
+    "Vote Type Normal"
+    {
+        "en"        "Start Vote"
+        "pt"        "Iniciar votação"
+    }
+
+    "Vote Type Admin"
+    {
+        "en"        "Start Vote as Admin"
+        "pt"        "Iniciar votação como Administrador"
+    }
+
+    "Force Gamemode"
+    {
+        "en"        "Force Gamemode"
+        "pt"        "Forçar Gamemode"
+    }
+
+    "Start Vote"
+    {
+        "en"        "Start Vote"
+        "pt"        "Iniciar Votações"
+    }
+
+    "Extend Current Map"
+    {
+        "en"        "Extend Current Map"
+        "pt"        "Extender Mapa Atual"
     }
 }
