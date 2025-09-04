@@ -159,7 +159,7 @@ public void OnPluginStart()
     // Convars
     g_Cvar_Enabled = CreateConVar("multimode_enabled", "1", "Enable the multimode voting system");
         
-    g_Cvar_RtvEnabled = CreateConVar("multimode_rtv_enabled", "1", "Ativa e desativa o sistema de Rock The Vote no servidor", _, true, 0.0, true, 1.0);
+    g_Cvar_RtvEnabled = CreateConVar("multimode_rtv_enabled", "1", "Enables and disables the Rock The Vote system on the server", _, true, 0.0, true, 1.0);
     g_Cvar_RtvMinPlayers = CreateConVar("multimode_rtv_min", "1", "Minimum number of players required to start RTV", _, true, 1.0);
     g_Cvar_RtvRatio = CreateConVar("multimode_rtv_ratio", "0.8", "Ratio of players needed to start RTV", _, true, 0.05, true, 1.0);
     g_Cvar_RtvFirstDelay = CreateConVar("multimode_rtvfirstdelay", "60", "Initial delay after map loads to allow RTV");
