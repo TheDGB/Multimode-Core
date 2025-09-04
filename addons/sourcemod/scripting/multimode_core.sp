@@ -1067,24 +1067,16 @@ void CountdownMessages(const char[] type, int value)
                             continue;
                         }
 
-                        if (StrEqual(type, "TimeLeft"))
-                        {
-                            char formattedValue[32];
-                            FormatTimeValue(value, formattedValue, sizeof(formattedValue));
-                            ReplaceString(message, sizeof(message), "{TIME}", formattedValue);
-                        }
-                        else if (StrEqual(type, "Frags"))
-                        {
-                            char frags[32];
-                            Format(frags, sizeof(frags), "%d", value);
-                            ReplaceString(message, sizeof(message), "{FRAGS}", frags);
-                        }
-                        else if (StrEqual(type, "Rounds"))
-                        {
-                            char rounds[32];
-                            Format(rounds, sizeof(rounds), "%d", value);
-                            ReplaceString(message, sizeof(message), "{ROUNDS}", rounds);
-                        }
+                        char formattedValue[32];
+
+                        FormatTimeValue(value, formattedValue, sizeof(formattedValue));
+                        ReplaceString(message, sizeof(message), "{TIME}", formattedValue);
+
+                        Format(formattedValue, sizeof(formattedValue), "%d", value);
+                        ReplaceString(message, sizeof(message), "{FRAGS}", formattedValue);
+
+                        Format(formattedValue, sizeof(formattedValue), "%d", value);
+                        ReplaceString(message, sizeof(message), "{ROUNDS}", formattedValue);
 
                         if (StrEqual(messageType, "hint"))
                         {
@@ -1105,6 +1097,7 @@ void CountdownMessages(const char[] type, int value)
         g_LastCountdownValues.SetValue(lastValueKey, value);
     }
 }
+
 
 void FormatTimeValue(int timeValue, char[] buffer, int bufferSize)
 {
