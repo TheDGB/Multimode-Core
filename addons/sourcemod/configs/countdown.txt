@@ -1,0 +1,69 @@
+"Countdown"
+{
+    "TimeLeft"
+    {
+        "600"
+        {
+            "hint"    "[Multimode Core] {TIME} minutes until voting begins, get ready!"
+            "chat"    "{green}[Multimode Core] {default}{TIME} minutes until voting begins, {olive}get ready!"
+        }
+    
+        "300"
+        {
+            "hint"    "[Multimode Core] {TIME} minutes until voting begins!"
+            "chat"    "{green}[Multimode Core] {default}{TIME} minutes until voting {olive}begins!"
+        }
+    
+        "60"
+        {
+            "hint"  "[Multimode Core] {TIME} minute until voting begins!"
+            "chat"  "{green}[Multimode Core] {default}{TIME} minute until voting {olive}begins!"
+        }
+    
+        "10;1"
+        {
+            "hint"    "[Multimode Core] {TIME} seconds until voting begins!"
+        }
+
+        "0"
+        {
+            "chat"    "{green}[Multimode Core] {default}Voting Established!"
+        }
+    }
+	
+    "Frags"
+    {
+        "30"
+        {
+            "hint"    "[Multimode Core] {FRAGS} Frags until voting begins!"
+        }
+    
+        "10;1"
+        {
+            "hint"    "[Multimode Core] {FRAGS} Frags until voting begins!"
+        }
+
+        "0"
+        {
+            "chat"    "{green}[Multimode Core] {default}Voting Established!"
+        }
+    }
+
+    "Rounds"
+    {
+        "3"
+        {
+            "hint"    "[Multimode Core] {ROUNDS} More rounds until voting begins, get ready!"
+        }
+    
+        "2;1"
+        {
+            "hint"    "[Multimode Core] {ROUNDS} More rounds until voting begins!"
+        }
+
+        "0"
+        {
+            "chat"    "{green}[Multimode Core] {default}Voting Established!"
+        }
+    }
+}

@@ -28,54 +28,56 @@ enum TimingMode
 };
 
 // Convar Section
-ConVar g_Cvar_RtvEnabled;
-ConVar g_Cvar_RtvRatio;
-ConVar g_Cvar_RtvMinPlayers;
-ConVar g_Cvar_RtvFirstDelay;
-ConVar g_Cvar_RtvDelay;
-ConVar g_Cvar_EndVoteEnabled;
-ConVar g_Cvar_EndVoteMin;
-ConVar g_Cvar_EndVoteRounds;
-ConVar g_Cvar_EndVoteFrags;
-ConVar g_Cvar_EndVoteDebug;
-ConVar g_Cvar_Enabled;
-ConVar g_Cvar_VoteTime;
-ConVar g_Cvar_VoteRandom;
-ConVar g_Cvar_VoteAdminRandom;
-ConVar g_Cvar_VoteGroupExclude;
-ConVar g_Cvar_VoteMapExclude;
-ConVar g_Cvar_VoteAdminGroupExclude;
-ConVar g_Cvar_VoteAdminMapExclude;
-ConVar g_Cvar_Discord;
-ConVar g_Cvar_DiscordWebhook;
-ConVar g_Cvar_DiscordVoteResult;
-ConVar g_Cvar_DiscordExtend;
-ConVar g_Cvar_VoteOpenSound;
-ConVar g_Cvar_VoteCloseSound;
-ConVar g_Cvar_VoteSounds;
-ConVar g_Cvar_RtvType;
-ConVar g_Cvar_EndVoteType;
-ConVar g_Cvar_Extend;
-ConVar g_Cvar_ExtendVote;
-ConVar g_Cvar_ExtendVoteAdmin;
-ConVar g_Cvar_ExtendSteps;
-ConVar g_Cvar_ExtendRoundStep;
-ConVar g_Cvar_ExtendFragStep;
-ConVar g_Cvar_ExtendEveryTime;
-ConVar g_hCvarTimeLimit;
-ConVar g_Cvar_RandomCycleEnabled;
-ConVar g_Cvar_RandomCycleType;
-ConVar g_Cvar_Method;
 ConVar g_Cvar_CooldownEnabled;
 ConVar g_Cvar_CooldownTime;
+ConVar g_Cvar_CountdownEnabled;
+ConVar g_Cvar_CountdownFilename;
+ConVar g_Cvar_Discord;
+ConVar g_Cvar_DiscordExtend;
+ConVar g_Cvar_DiscordVoteResult;
+ConVar g_Cvar_DiscordWebhook;
+ConVar g_Cvar_Enabled;
+ConVar g_Cvar_EndVoteDebug;
+ConVar g_Cvar_EndVoteEnabled;
+ConVar g_Cvar_EndVoteFrags;
+ConVar g_Cvar_EndVoteMin;
+ConVar g_Cvar_EndVoteRounds;
+ConVar g_Cvar_EndVoteType;
+ConVar g_Cvar_Extend;
+ConVar g_Cvar_ExtendEveryTime;
+ConVar g_Cvar_ExtendFragStep;
+ConVar g_Cvar_ExtendRoundStep;
+ConVar g_Cvar_ExtendSteps;
+ConVar g_Cvar_ExtendVote;
+ConVar g_Cvar_ExtendVoteAdmin;
 ConVar g_Cvar_Logs;
+ConVar g_Cvar_Method;
 ConVar g_Cvar_NominateEnabled;
+ConVar g_Cvar_NominateGroupExclude;
+ConVar g_Cvar_NominateMapExclude;
 ConVar g_Cvar_NominateOneChance;
 ConVar g_Cvar_NominateSelectedGroupExclude;
 ConVar g_Cvar_NominateSelectedMapExclude;
-ConVar g_Cvar_NominateGroupExclude;
-ConVar g_Cvar_NominateMapExclude;
 ConVar g_Cvar_NominateSorted;
+ConVar g_Cvar_RandomCycleEnabled;
+ConVar g_Cvar_RandomCycleType;
+ConVar g_Cvar_RtvDelay;
+ConVar g_Cvar_RtvEnabled;
+ConVar g_Cvar_RtvFirstDelay;
+ConVar g_Cvar_RtvMinPlayers;
+ConVar g_Cvar_RtvRatio;
+ConVar g_Cvar_RtvType;
+ConVar g_Cvar_VoteAdminGroupExclude;
+ConVar g_Cvar_VoteAdminMapExclude;
+ConVar g_Cvar_VoteAdminRandom;
+ConVar g_Cvar_VoteCloseSound;
+ConVar g_Cvar_VoteGroupExclude;
+ConVar g_Cvar_VoteMapExclude;
+ConVar g_Cvar_VoteOpenSound;
+ConVar g_Cvar_VoteRandom;
+ConVar g_Cvar_VoteSounds;
+ConVar g_Cvar_VoteTime;
+ConVar g_hCvarTimeLimit;
 
 // Bool
 bool g_bEndVoteTriggered = false;
@@ -100,6 +102,8 @@ ArrayList g_PlayedGamemodes;
 // StringMap Section
 StringMap g_NominatedMaps;
 StringMap g_PlayedMaps;
+StringMap g_Countdowns;
+StringMap g_LastCountdownValues;
 
 // TimingMode Section
 TimingMode g_eCurrentVoteTiming;
@@ -164,6 +168,9 @@ public void OnPluginStart()
     
     g_Cvar_CooldownEnabled = CreateConVar("multimode_cooldown", "1", "Enable or disable cooldown between votes", _, true, 0.0, true, 1.0);
     g_Cvar_CooldownTime = CreateConVar("multimode_cooldown_time", "10", "Cooldown time in seconds between votes", _, true, 0.0);
+	
+    g_Cvar_CountdownEnabled = CreateConVar("multimode_countdown", "1", "Enable/disable the end vote countdown messages", _, true, 0.0, true, 1.0);
+    g_Cvar_CountdownFilename = CreateConVar("multimode_countdown_filename", "countdown.txt", "Name of the countdown configuration file");
     
     g_Cvar_VoteTime = CreateConVar("multimode_vote_time", "20", "Vote duration in seconds");
     g_Cvar_VoteRandom = CreateConVar("multimode_vote_random", "1", "When enabled, all voting items are randomly drawn. When disabled, the map cycle order is used as normal.", _, true, 0.0, true, 1.0);
@@ -222,6 +229,9 @@ public void OnPluginStart()
     AutoExecConfig(true, "multimode_core");
     
     LoadGameModesConfig();
+    g_Countdowns = new StringMap();
+    g_LastCountdownValues = new StringMap();
+    LoadCountdownConfig();
     
     ConVar nextmap = FindConVar("sm_nextmap");
     if (nextmap != null)
@@ -248,6 +258,8 @@ public void OnPluginStart()
     HookConVarChange(g_hCvarTimeLimit, OnTimelimitChanged);
     HookConVarChange(g_Cvar_VoteOpenSound, OnSoundConVarChanged);
     HookConVarChange(g_Cvar_VoteCloseSound, OnSoundConVarChanged);
+	HookConVarChange(g_Cvar_CountdownEnabled, OnCountdownCvarChanged);
+    HookConVarChange(g_Cvar_CountdownFilename, OnCountdownCvarChanged);
     
     HookEvent("round_end",            Event_RoundEnd);
     HookEventEx("game_end", Event_GameOver);
@@ -470,6 +482,8 @@ public void OnMapStart()
     g_sNextGameMode[0] = '\0';
     g_sNextMap[0] = '\0';
     g_bVoteActive = false;
+	
+	g_LastCountdownValues.Clear();
 
     UpdateCurrentGameMode(CurrentMap);
 	
@@ -873,6 +887,214 @@ public Action Timer_ChangeMap(Handle timer)
 
 // //////////////////////
 // //                  //
+// //    Countdown     //
+// //                  //
+// //////////////////////
+
+// Countdown
+
+void LoadCountdownConfig()
+{
+    char path[PLATFORM_MAX_PATH];
+    BuildPath(Path_SM, path, sizeof(path), "configs/countdown.txt");
+
+    if (!FileExists(path))
+    {
+        WriteToLogFile("Countdown config file not found: %s", path);
+        return;
+    }
+
+    KeyValues kv = new KeyValues("Countdown");
+    if (!kv.ImportFromFile(path))
+    {
+        WriteToLogFile("Failed to import countdown config from file: %s", path);
+        delete kv;
+        return;
+    }
+
+    StringMapSnapshot snapshot = g_Countdowns.Snapshot();
+    for (int i = 0; i < snapshot.Length; i++)
+    {
+        char key[64];
+        snapshot.GetKey(i, key, sizeof(key));
+        StringMap typeMap;
+        g_Countdowns.GetValue(key, typeMap);
+        delete typeMap;
+    }
+    delete snapshot;
+    g_Countdowns.Clear();
+
+    if (kv.GotoFirstSubKey())
+    {
+        do
+        {
+            char type[64];
+            kv.GetSectionName(type, sizeof(type));
+            
+            StringMap typeMap = new StringMap();
+            g_Countdowns.SetValue(type, typeMap);
+
+            if (kv.GotoFirstSubKey(false))
+            {
+                do
+                {
+                    char valueKey[32];
+                    kv.GetSectionName(valueKey, sizeof(valueKey));
+
+                    ArrayList messageList = new ArrayList(ByteCountToCells(256));
+                    
+                    if (kv.GotoFirstSubKey(false))
+                    {
+                        do
+                        {
+                            char messageType[16];
+                            kv.GetSectionName(messageType, sizeof(messageType));
+
+                            char message[256];
+                            kv.GetString(NULL_STRING, message, sizeof(message));
+
+                            char buffer[512];
+                            FormatEx(buffer, sizeof(buffer), "%s;%s", messageType, message);
+                            messageList.PushString(buffer);
+                        } while (kv.GotoNextKey(false));
+                        kv.GoBack();
+                    }
+
+                    if (StrContains(valueKey, ";") != -1)
+                    {
+                        char range[2][12];
+                        int count = ExplodeString(valueKey, ";", range, 2, 12);
+                        if (count == 2)
+                        {
+                            int start = StringToInt(range[0]);
+                            int end = StringToInt(range[1]);
+                            if (start < end)
+                            {
+                                int temp = start;
+                                start = end;
+                                end = temp;
+                            }
+                            for (int value = start; value >= end; value--)
+                            {
+                                char singleKey[12];
+                                IntToString(value, singleKey, sizeof(singleKey));
+                                ArrayList clonedList = view_as<ArrayList>(CloneHandle(messageList));
+                                typeMap.SetValue(singleKey, clonedList);
+                            }
+                            delete messageList;
+                        }
+                        else
+                        {
+                            LogError("Invalid range in countdown config: %s", valueKey);
+                            delete messageList;
+                        }
+                    }
+                    else
+                    {
+                        int value = StringToInt(valueKey);
+                        if (value >= 0)
+                        {
+                            typeMap.SetValue(valueKey, messageList);
+                        }
+                        else
+                        {
+                            delete messageList;
+                        }
+                    }
+                } while (kv.GotoNextKey(false));
+                kv.GoBack();
+            }
+        } while (kv.GotoNextKey());
+    }
+
+    delete kv;
+	
+    WriteToLogFile("[Multimode Core] Countdown configuration loaded successfully!");
+}
+
+void CountdownMessages(const char[] type, int value)
+{
+    int lastValue;
+    char lastValueKey[64];
+    Format(lastValueKey, sizeof(lastValueKey), "%s_last", type);
+    
+    if (!g_LastCountdownValues.GetValue(lastValueKey, lastValue) || value != lastValue)
+    {
+        StringMap typeMap;
+        if (g_Countdowns.GetValue(type, typeMap))
+        {
+            char valueKey[32];
+            IntToString(value, valueKey, sizeof(valueKey));
+            
+            ArrayList messages;
+            if (typeMap.GetValue(valueKey, messages))
+            {
+                for (int i = 0; i < messages.Length; i++)
+                {
+                    char buffer[512];
+                    messages.GetString(i, buffer, sizeof(buffer));
+
+                    char parts[2][256];
+                    if (ExplodeString(buffer, ";", parts, 2, 256) == 2)
+                    {
+                        char messageType[16];
+                        strcopy(messageType, sizeof(messageType), parts[0]);
+                        char message[256];
+                        strcopy(message, sizeof(message), parts[1]);
+
+                        if (StrEqual(type, "TimeLeft"))
+                        {
+                            char formattedValue[32];
+                            FormatTimeValue(value, formattedValue, sizeof(formattedValue));
+                            ReplaceString(message, sizeof(message), "{TIME}", formattedValue);
+                        }
+                        else if (StrEqual(type, "Frags"))
+                        {
+                            char frags[32];
+                            Format(frags, sizeof(frags), "%d", value);
+                            ReplaceString(message, sizeof(message), "{FRAGS}", frags);
+                        }
+                        else if (StrEqual(type, "Rounds"))
+                        {
+                            char rounds[32];
+                            Format(rounds, sizeof(rounds), "%d", value);
+                            ReplaceString(message, sizeof(message), "{ROUNDS}", rounds);
+                        }
+                        if (StrEqual(messageType, "hint"))
+                        {
+                            PrintHintTextToAll(message);
+                        }
+                        else if (StrEqual(messageType, "center"))
+                        {
+                            PrintCenterTextAll(message);
+                        }
+                        else if (StrEqual(messageType, "chat"))
+                        {
+                            CPrintToChatAll(message);
+                        }
+                    }
+                }
+            }
+        }
+        g_LastCountdownValues.SetValue(lastValueKey, value);
+    }
+}
+
+void FormatTimeValue(int timeValue, char[] buffer, int bufferSize)
+{
+    if (timeValue >= 60)
+    {
+        int minutes = timeValue / 60;
+        Format(buffer, bufferSize, "%d", minutes);
+    }
+    else
+    {
+        Format(buffer, bufferSize, "%d", timeValue);
+    }
+}
+
+// //////////////////////
+// //                  //
 // //   Random Cycle   //
 // //                  //
 // //////////////////////
@@ -981,12 +1203,17 @@ public Action Timer_CheckEndVote(Handle timer)
         
         if (bTimeLeftValid && timeleft > 0)
         {
+            int timeUntilEndVote = timeleft - iTrigger;
+            if (timeUntilEndVote >= 0)
+            {
+                CountdownMessages("TimeLeft", timeUntilEndVote);
+            }
+
             if (timeleft <= iTrigger)
             {
                 if(g_Cvar_EndVoteDebug.BoolValue) 
                     WriteToLogFile("[End Vote] Triggered! Starting vote... (Remaining: %ds <= Trigger: %ds)", timeleft, iTrigger);
-
-                PrintHintTextToAll("[Multimode Core] Voting established!");
+					
                 PerformEndVote();
                 return Plugin_Stop;
             }
@@ -1005,12 +1232,17 @@ public Action Timer_CheckEndVote(Handle timer)
             if(g_Cvar_EndVoteDebug.BoolValue)
                 WriteToLogFile("[End Vote] Fallback calculation: TimeLimit=%.1fmin | Elapsed=%dmin | Remainder=%dmin", currentTimeLimit, elapsed/60, iTimeLeft/60);
 
+            int timeUntilEndVote = iTimeLeft - iTrigger;
+            if (timeUntilEndVote >= 0)
+            {
+                CountdownMessages("TimeLeft", timeUntilEndVote);
+            }
+
             if(iTimeLeft <= iTrigger)
             {
                 if(g_Cvar_EndVoteDebug.BoolValue) 
                     WriteToLogFile("[End Vote] Fallback triggered! Starting vote... (Remaining: %ds <= Trigger: %ds)", iTimeLeft, iTrigger);
 
-                PrintHintTextToAll("[Multimode Core] Voting established!");
                 PerformEndVote();
                 return Plugin_Stop;
             }
@@ -1033,10 +1265,20 @@ public Action Timer_CheckEndVote(Handle timer)
             roundsRemaining = winLimit.IntValue - GetTeamScore(winLimit.IntValue == GetTeamScore(2) ? 2 : 3);
         }
         
-        if (roundsRemaining > 0 && roundsRemaining <= g_Cvar_EndVoteRounds.IntValue)
+        if (roundsRemaining > 0)
         {
-            PerformEndVote();
-            return Plugin_Stop;
+            int untilVote = roundsRemaining - g_Cvar_EndVoteRounds.IntValue;
+        
+            if (untilVote >= 0)
+            {
+                CountdownMessages("Rounds", untilVote);
+            }
+
+            if (untilVote == 0)
+            {
+                PerformEndVote();
+                return Plugin_Stop;
+            }
         }
     }
     
@@ -1056,10 +1298,20 @@ public Action Timer_CheckEndVote(Handle timer)
             }
             int fragsRemaining = fragLimit.IntValue - maxFrags;
             
-            if (fragsRemaining > 0 && fragsRemaining <= g_Cvar_EndVoteFrags.IntValue)
+            if (fragsRemaining > 0)
             {
-                PerformEndVote();
-                return Plugin_Stop;
+                int untilVoteFrags = fragsRemaining - g_Cvar_EndVoteFrags.IntValue;
+
+                if (untilVoteFrags >= 0)
+                {
+                    CountdownMessages("Frags", untilVoteFrags);
+                }
+
+                if (untilVoteFrags == 0)
+                {
+                    PerformEndVote();
+                    return Plugin_Stop;
+                }
             }
         }
     }
@@ -1213,6 +1465,94 @@ public Action OnPlayerChat(int client, const char[] command, int argc)
     }
 
     return Plugin_Continue;
+}
+
+public void OnCountdownCvarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
+{
+    if (g_Cvar_CountdownEnabled.BoolValue)
+    {
+        LoadCountdownConfig();
+    }
+}
+
+public void OnSoundConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
+{
+    if (g_Cvar_VoteSounds.BoolValue)
+    {
+        char downloadPath[PLATFORM_MAX_PATH];
+        
+        if (convar == g_Cvar_VoteOpenSound)
+        {
+            if (newValue[0] != '\0')
+            {
+                PrecacheSoundAny(newValue);
+                FormatEx(downloadPath, sizeof(downloadPath), "sound/%s", newValue);
+                if (FileExists(downloadPath, true))
+                {
+                    AddFileToDownloadsTable(downloadPath);
+                }
+                else
+                {
+                    WriteToLogFile("Opening sound file not found: %s", downloadPath);
+                }
+            }
+        }
+        else if (convar == g_Cvar_VoteCloseSound)
+        {
+            if (newValue[0] != '\0')
+            {
+                PrecacheSoundAny(newValue);
+                FormatEx(downloadPath, sizeof(downloadPath), "sound/%s", newValue);
+                if (FileExists(downloadPath, true))
+                {
+                    AddFileToDownloadsTable(downloadPath);
+                }
+                else
+                {
+                    WriteToLogFile("Closing sound file not found: %s", downloadPath);
+                }
+            }
+        }
+    }
+}
+
+public void OnTimelimitChanged(ConVar convar, const char[] oldValue, const char[] newValue)
+{
+    if(g_bInternalChange) return;
+    
+    g_iMapStartTime = GetTime();
+    
+    if(g_Cvar_EndVoteDebug.BoolValue)
+    {
+        WriteToLogFile("[End Vote] mp_timelimit changed externally! New value: %smin", newValue);
+    }
+    
+    if (g_hEndVoteTimer != INVALID_HANDLE)
+    {
+        KillTimer(g_hEndVoteTimer);
+        g_hEndVoteTimer = INVALID_HANDLE;
+    }
+
+    if (g_Cvar_EndVoteEnabled.BoolValue)
+    {
+        g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
+    }
+}
+
+public void OnMapTimeLeftChanged()
+{
+    WriteToLogFile("[End Vote] Map time left changed. Resetting End Vote timer...");
+	
+    if (g_hEndVoteTimer != null)
+    {
+        KillTimer(g_hEndVoteTimer);
+        g_hEndVoteTimer = null;
+    }
+
+    if (g_Cvar_EndVoteEnabled.BoolValue)
+    {
+        g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
+    }
 }
 
 // Commands
@@ -2016,53 +2356,6 @@ void RegisterNomination(int client, const char[] gamemode, const char[] map)
     }
 }
 
-// ////////////////////
-// //                //
-// //    End Vote    //
-// //                //
-// ////////////////////
-
-// End Vote
-
-public void OnTimelimitChanged(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-    if(g_bInternalChange) return;
-    
-    g_iMapStartTime = GetTime();
-    
-    if(g_Cvar_EndVoteDebug.BoolValue)
-    {
-        WriteToLogFile("[End Vote] mp_timelimit changed externally! New value: %smin", newValue);
-    }
-    
-    if (g_hEndVoteTimer != INVALID_HANDLE)
-    {
-        KillTimer(g_hEndVoteTimer);
-        g_hEndVoteTimer = INVALID_HANDLE;
-    }
-
-    if (g_Cvar_EndVoteEnabled.BoolValue)
-    {
-        g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
-    }
-}
-
-public void OnMapTimeLeftChanged()
-{
-    WriteToLogFile("[End Vote] Map time left changed. Resetting End Vote timer...");
-	
-    if (g_hEndVoteTimer != null)
-    {
-        KillTimer(g_hEndVoteTimer);
-        g_hEndVoteTimer = null;
-    }
-
-    if (g_Cvar_EndVoteEnabled.BoolValue)
-    {
-        g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
-    }
-}
-
 // //////////////////////////
 // //                      //
 // //       Natives        //
@@ -2447,47 +2740,6 @@ public int TimingMenuHandler(Menu menu, MenuAction action, int param1, int param
         delete menu;
     }
     return 0;
-}
-
-public void OnSoundConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
-{
-    if (g_Cvar_VoteSounds.BoolValue)
-    {
-        char downloadPath[PLATFORM_MAX_PATH];
-        
-        if (convar == g_Cvar_VoteOpenSound)
-        {
-            if (newValue[0] != '\0')
-            {
-                PrecacheSoundAny(newValue);
-                FormatEx(downloadPath, sizeof(downloadPath), "sound/%s", newValue);
-                if (FileExists(downloadPath, true))
-                {
-                    AddFileToDownloadsTable(downloadPath);
-                }
-                else
-                {
-                    WriteToLogFile("Opening sound file not found: %s", downloadPath);
-                }
-            }
-        }
-        else if (convar == g_Cvar_VoteCloseSound)
-        {
-            if (newValue[0] != '\0')
-            {
-                PrecacheSoundAny(newValue);
-                FormatEx(downloadPath, sizeof(downloadPath), "sound/%s", newValue);
-                if (FileExists(downloadPath, true))
-                {
-                    AddFileToDownloadsTable(downloadPath);
-                }
-                else
-                {
-                    WriteToLogFile("Closing sound file not found: %s", downloadPath);
-                }
-            }
-        }
-    }
 }
 
 void ExecuteModeChange(const char[] gamemode, const char[] map, int timing)
@@ -3723,6 +3975,12 @@ public void OnGamemodeConfigLoaded()
 public Action Command_ReloadGamemodes(int client, int args)
 {
     LoadGameModesConfig();
+	
+    if (g_Cvar_CountdownEnabled.BoolValue)
+    {
+        LoadCountdownConfig();
+    }
+	
     CReplyToCommand(client, "%t", "Reload Gamemodes Successful");
     return Plugin_Handled;
 }
@@ -3731,4 +3989,38 @@ public void OnPluginEnd()
 {
     CloseHandle(g_hCookieVoteType);
     CloseHandle(g_hHudSync);
+	
+    if (g_Countdowns != null)
+    {
+        StringMapSnapshot snapshot = g_Countdowns.Snapshot();
+        for (int i = 0; i < snapshot.Length; i++)
+        {
+            char key[64];
+            snapshot.GetKey(i, key, sizeof(key));
+            StringMap typeMap;
+            if (g_Countdowns.GetValue(key, typeMap))
+            {
+                StringMapSnapshot typeSnapshot = typeMap.Snapshot();
+                for (int j = 0; j < typeSnapshot.Length; j++)
+                {
+                    char valueKey[32];
+                    typeSnapshot.GetKey(j, valueKey, sizeof(valueKey));
+                    ArrayList messages;
+                    if (typeMap.GetValue(valueKey, messages))
+                    {
+                        delete messages;
+                    }
+                }
+                delete typeSnapshot;
+                delete typeMap;
+            }
+        }
+        delete snapshot;
+        delete g_Countdowns;
+    }
+    
+    if (g_LastCountdownValues != null)
+    {
+        delete g_LastCountdownValues;
+    }
 }
