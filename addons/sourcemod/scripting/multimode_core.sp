@@ -1732,7 +1732,7 @@ public void AdminMenu_CancelVote(TopMenu topmenu, TopMenuAction action, TopMenuO
 {
     if (action == TopMenuAction_DisplayOption)
     {
-        Format(buffer, maxlength, "Cancel Current Vote");
+		Format(buffer, maxlength, "%T", "Cancel Current Vote", client);
     }
     else if (action == TopMenuAction_SelectOption)
     {

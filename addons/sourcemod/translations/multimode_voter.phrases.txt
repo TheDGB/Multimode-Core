@@ -335,4 +335,10 @@
         "en"        "Extend Current Map"
         "pt"        "Extender Mapa Atual"
     }
+
+    "Cancel Current Vote"
+    {
+        "en"        "Cancel Current Vote"
+        "pt"        "Cancelar Votação Atual"
+    }
 }
