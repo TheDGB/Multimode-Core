@@ -23,11 +23,13 @@
         "10;1"
         {
             "hint"    "[Multimode Core] {TIME} seconds until voting begins!"
+            "sound"   "buttons/blip1.wav"
         }
 
         "0"
         {
             "chat"    "{green}[Multimode Core] {default}Voting Established!"
+            "sound"   "buttons/blip1.wav"
         }
     }
 	
@@ -46,6 +48,7 @@
         "0"
         {
             "chat"    "{green}[Multimode Core] {default}Voting Established!"
+            "sound"   "buttons/blip1.wav"
         }
     }
 
@@ -59,11 +62,13 @@
         "2;1"
         {
             "hint"    "[Multimode Core] {ROUNDS} More rounds until voting begins!"
+            "sound"   "buttons/blip1.wav"
         }
 
         "0"
         {
             "chat"    "{green}[Multimode Core] {default}Voting Established!"
+            "sound"   "buttons/blip1.wav"
         }
     }
 }

@@ -103,6 +103,7 @@ ArrayList g_PlayedGamemodes;
 StringMap g_NominatedMaps;
 StringMap g_PlayedMaps;
 StringMap g_Countdowns;
+StringMap g_CountdownSounds;
 StringMap g_LastCountdownValues;
 
 // TimingMode Section
@@ -924,6 +925,9 @@ void LoadCountdownConfig()
     delete snapshot;
     g_Countdowns.Clear();
 
+    delete g_CountdownSounds;
+    g_CountdownSounds = new StringMap();
+
     if (kv.GotoFirstSubKey())
     {
         do
@@ -952,6 +956,22 @@ void LoadCountdownConfig()
 
                             char message[256];
                             kv.GetString(NULL_STRING, message, sizeof(message));
+
+                            if (StrEqual(messageType, "sound"))
+                            {
+                                if (!g_CountdownSounds.ContainsKey(message))
+                                {
+                                    g_CountdownSounds.SetValue(message, true);
+                                    
+                                    PrecacheSoundAny(message);
+                                    char downloadPath[PLATFORM_MAX_PATH];
+                                    FormatEx(downloadPath, sizeof(downloadPath), "sound/%s", message);
+                                    if (FileExists(downloadPath, true))
+                                        AddFileToDownloadsTable(downloadPath);
+                                    else
+                                        WriteToLogFile("Countdown sound file not found: %s", downloadPath);
+                                }
+                            }
 
                             char buffer[512];
                             FormatEx(buffer, sizeof(buffer), "%s;%s", messageType, message);
@@ -1008,7 +1028,6 @@ void LoadCountdownConfig()
     }
 
     delete kv;
-	
     WriteToLogFile("[Multimode Core] Countdown configuration loaded successfully!");
 }
 
@@ -1042,6 +1061,12 @@ void CountdownMessages(const char[] type, int value)
                         char message[256];
                         strcopy(message, sizeof(message), parts[1]);
 
+                        if (StrEqual(messageType, "sound"))
+                        {
+                            EmitSoundToAllAny(message);
+                            continue;
+                        }
+
                         if (StrEqual(type, "TimeLeft"))
                         {
                             char formattedValue[32];
@@ -1060,6 +1085,7 @@ void CountdownMessages(const char[] type, int value)
                             Format(rounds, sizeof(rounds), "%d", value);
                             ReplaceString(message, sizeof(message), "{ROUNDS}", rounds);
                         }
+
                         if (StrEqual(messageType, "hint"))
                         {
                             PrintHintTextToAll(message);
