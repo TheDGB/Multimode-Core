@@ -15,7 +15,6 @@
 #include <halflife>
 #include <files>
 #include <multimode/base>
-#include <multimode/votemanager>
 
 #define COMMAND_KEY          "command"
 #define PLUGIN_VERSION "2.1.0"

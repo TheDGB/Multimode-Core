@@ -29,7 +29,6 @@ methodmap GameMode {
         config.maps_invote = limit;
         config.maps = new ArrayList(ByteCountToCells(256));
         
-        // Armazena em uma lista global
         ArrayList list = GetGameModesList();
         return view_as<GameMode>(list.PushArray(config));
     }
@@ -75,14 +74,12 @@ stock void ParseGameModes()
             GameModeConfig config;
             g_kvGameModes.GetSectionName(config.name, sizeof(config.name));
             
-            // Ler serverconfig
             if (g_kvGameModes.JumpToKey("serverconfig"))
             {
                 g_kvGameModes.GetString("command", config.command, sizeof(config.command), "");
                 g_kvGameModes.GoBack();
             }
             
-            // Ler maps
             config.maps = new ArrayList(ByteCountToCells(256));
             if (g_kvGameModes.JumpToKey("maps"))
             {
@@ -106,4 +103,17 @@ stock void ParseGameModes()
     
     Call_StartFunction(null, GetFunctionByName(null, "OnGamemodeConfigLoaded"));
     Call_Finish();
+}
+
+stock void ExecuteModeCommands(const char[] gamemode)
+{
+    char sCommand[255];
+    if (g_kvGameModes.JumpToKey(gamemode))
+    {
+        if (g_kvGameModes.GetString("command", sCommand, sizeof(sCommand)))
+        {
+            ServerCommand(sCommand);
+        }
+        g_kvGameModes.Rewind();
+    }
 }
