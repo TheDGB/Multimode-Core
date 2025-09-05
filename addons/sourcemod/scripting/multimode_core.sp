@@ -1194,7 +1194,12 @@ public Action Timer_StartEndVote(Handle timer)
 // Check End Vote fixed by RayanfhoulaBR
 
 public Action Timer_CheckEndVote(Handle timer)
-{	
+{
+    if (GetRealClientCount() == 0)
+    {
+        return Plugin_Continue;
+    }
+	
     if(!g_Cvar_EndVoteEnabled.BoolValue || g_bVoteActive || g_bEndVoteTriggered || g_bRtvDisabled || g_bVoteCompleted)
     {
         if(g_Cvar_EndVoteDebug.BoolValue) 

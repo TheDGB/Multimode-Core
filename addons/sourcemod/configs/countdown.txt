@@ -38,16 +38,19 @@
         "30"
         {
             "hint"    "[Multimode Core] {FRAGS} Frags until voting begins!"
+            "chat"    "[Multimode Core] {FRAGS} Frags until voting begins!"
         }
 
         "20"
         {
             "hint"    "[Multimode Core] {FRAGS} Frags until voting begins!"
+            "chat"    "[Multimode Core] {FRAGS} Frags until voting begins!"
         }
 
         "10"
         {
             "hint"    "[Multimode Core] {FRAGS} Frags until voting begins!"
+            "chat"    "[Multimode Core] {FRAGS} Frags until voting begins!"
         }
     
         "5;1"
