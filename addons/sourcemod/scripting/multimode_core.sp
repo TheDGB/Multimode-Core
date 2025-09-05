@@ -1076,7 +1076,19 @@ void CountdownMessages(const char[] type, int value)
 
                         if (StrEqual(messageType, "sound"))
                         {
-                            EmitSoundToAllAny(message);
+                            char soundPath[PLATFORM_MAX_PATH];
+                            strcopy(soundPath, sizeof(soundPath), message);
+
+                            char formattedValue[32];
+    
+                            FormatTimeValue(value, formattedValue, sizeof(formattedValue));
+                            ReplaceString(soundPath, sizeof(soundPath), "{TIME}", formattedValue);
+    
+                            Format(formattedValue, sizeof(formattedValue), "%d", value);
+                            ReplaceString(soundPath, sizeof(soundPath), "{ROUNDS}", formattedValue);
+                            ReplaceString(soundPath, sizeof(soundPath), "{FRAGS}", formattedValue);
+
+                            EmitSoundToAllAny(soundPath);
                             continue;
                         }
 
