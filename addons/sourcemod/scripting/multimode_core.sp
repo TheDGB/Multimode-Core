@@ -42,6 +42,7 @@ ConVar g_Cvar_EndVoteFrags;
 ConVar g_Cvar_EndVoteMin;
 ConVar g_Cvar_EndVoteRounds;
 ConVar g_Cvar_EndVoteType;
+ConVar g_Cvar_EndVoteOnRoundEnd;
 ConVar g_Cvar_Extend;
 ConVar g_Cvar_ExtendEveryTime;
 ConVar g_Cvar_ExtendFragStep;
@@ -92,6 +93,7 @@ bool g_bMapExtended = false;
 bool g_bInternalChange = false;
 bool g_bGameEndTriggered = false;
 bool g_bVoteCompleted = false;
+bool g_bEndVotePending = false;
 bool g_bCurrentVoteAdmin;
 
 // Array Section
@@ -185,6 +187,7 @@ public void OnPluginStart()
 	g_Cvar_EndVoteRounds = CreateConVar("multimode_endvote_rounds", "3", "Specifies when to start voting based on the remaining rounds. (mp_maxrounds, mp_winlimit, multimode_endvote_rounds 0 = Disabled)", _, true, 0.0);
     g_Cvar_EndVoteFrags = CreateConVar("multimode_endvote_frags", "30", "Specifies when to start voting based on remaining frags. (mp_fraglimit, multimode_endvote_frags 0 = Disabled)", _, true, 0.0);
     g_Cvar_EndVoteType = CreateConVar("multimode_endvotetype", "1", "Voting Type for End Vote: 1 - Next Map, 2 - Next Round, 3 - Instant", _, true, 1.0, true, 3.0);
+	g_Cvar_EndVoteOnRoundEnd = CreateConVar("multimode_endvote_onroundend", "0", "Wait for the end of the round to start voting for the end vote.", _, true, 0.0, true, 1.0);
     g_Cvar_EndVoteDebug = CreateConVar("multimode_endvotedebug", "0", "Enables/disables detailed End Vote logs", 0, true, 0.0, true, 1.0);
 	
     g_Cvar_NominateEnabled = CreateConVar("multimode_nominate", "1", "Enables or disables the nominate system", _, true, 0.0, true, 1.0);
@@ -1376,11 +1379,17 @@ void PerformEndVote()
         g_hEndVoteTimer = INVALID_HANDLE;
     }
     
+    if (g_Cvar_EndVoteOnRoundEnd.BoolValue)
+    {
+        g_bEndVotePending = true;
+        return;
+    }
+    
     int endType = g_Cvar_EndVoteType.IntValue;
     if(endType < 1) endType = 1;
     else if(endType > 3) endType = 3;
     g_eCurrentVoteTiming = view_as<TimingMode>(endType - 1);
-	g_eVoteTiming = g_eEndVoteTiming;
+    g_eVoteTiming = g_eEndVoteTiming;
         
     if(g_Cvar_EndVoteDebug.BoolValue)
         WriteToLogFile("[End Vote] Vote type selected: %d (%s)", endType, 
@@ -1389,8 +1398,8 @@ void PerformEndVote()
     
     g_eEndVoteTiming = view_as<TimingMode>(endType - 1);
     StartGameModeVote(0, false);
-	
-	g_eVoteTiming = g_eCurrentVoteTiming;
+    
+    g_eVoteTiming = g_eCurrentVoteTiming;
 }
 
 public Action Timer_UpdateCooldownHUD(Handle timer)
@@ -1455,6 +1464,22 @@ public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
     {
         change_map_round = false;
         CreateTimer(3.0, Timer_ChangeMap);
+    }
+    
+    if (g_bEndVotePending)
+    {
+        g_bEndVotePending = false;
+        
+        int endType = g_Cvar_EndVoteType.IntValue;
+        if(endType < 1) endType = 1;
+        else if(endType > 3) endType = 3;
+        g_eCurrentVoteTiming = view_as<TimingMode>(endType - 1);
+        g_eVoteTiming = g_eEndVoteTiming;
+        
+        g_eEndVoteTiming = view_as<TimingMode>(endType - 1);
+        StartGameModeVote(0, false);
+        
+        g_eVoteTiming = g_eCurrentVoteTiming;
     }
 }
 
