@@ -606,6 +606,12 @@ public void OnClientDisconnect(int client)
             g_iRtvVotes--;
         }
     }
+	
+    if (GetRealClientCount() == 0 && g_hEndVoteTimer != INVALID_HANDLE)
+    {
+        KillTimer(g_hEndVoteTimer);
+        g_hEndVoteTimer = INVALID_HANDLE;
+    }
 
     int iPlayers = GetRealClientCount();
     float ratio = g_Cvar_RtvRatio.FloatValue;
@@ -613,6 +619,14 @@ public void OnClientDisconnect(int client)
     int iRequired = RoundToCeil(float(iPlayers) * ratio);
     if (iRequired < minRequired) {
         iRequired = minRequired;
+    }
+}
+
+public void OnClientPutInServer(int client)
+{
+    if (GetRealClientCount() == 1 && g_Cvar_EndVoteEnabled.BoolValue && g_hEndVoteTimer == INVALID_HANDLE)
+    {
+        g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
     }
 }
 
@@ -1195,11 +1209,6 @@ public Action Timer_StartEndVote(Handle timer)
 
 public Action Timer_CheckEndVote(Handle timer)
 {
-    if (GetRealClientCount() == 0)
-    {
-        return Plugin_Continue;
-    }
-	
     if(!g_Cvar_EndVoteEnabled.BoolValue || g_bVoteActive || g_bEndVoteTriggered || g_bRtvDisabled || g_bVoteCompleted)
     {
         if(g_Cvar_EndVoteDebug.BoolValue) 
