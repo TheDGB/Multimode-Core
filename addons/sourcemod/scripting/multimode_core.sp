@@ -978,6 +978,13 @@ void LoadCountdownConfig()
                                 if (!g_CountdownSounds.ContainsKey(message))
                                 {
                                     g_CountdownSounds.SetValue(message, true);
+									
+                                    if (StrContains(message, "{TIME}") != -1 || 
+                                        StrContains(message, "{ROUNDS}") != -1 || 
+                                        StrContains(message, "{FRAGS}") != -1)
+                                    {
+                                        continue;
+                                    }
                                     
                                     PrecacheSoundAny(message);
                                     char downloadPath[PLATFORM_MAX_PATH];
@@ -1090,6 +1097,22 @@ void CountdownMessages(const char[] type, int value)
                             Format(formattedValue, sizeof(formattedValue), "%d", value);
                             ReplaceString(soundPath, sizeof(soundPath), "{ROUNDS}", formattedValue);
                             ReplaceString(soundPath, sizeof(soundPath), "{FRAGS}", formattedValue);
+							
+                            if (!g_CountdownSounds.ContainsKey(soundPath))
+                            {
+                                PrecacheSoundAny(soundPath);
+                                char downloadPath[PLATFORM_MAX_PATH];
+                                FormatEx(downloadPath, sizeof(downloadPath), "sound/%s", soundPath);
+                                if (FileExists(downloadPath, true))
+                                {
+                                    AddFileToDownloadsTable(downloadPath);
+                                }
+                                else
+                                {
+                                    WriteToLogFile("Countdown sound file not found: %s", downloadPath);
+                                }
+                                g_CountdownSounds.SetValue(soundPath, true);
+                            }
 
                             EmitSoundToAllAny(soundPath);
                             continue;
