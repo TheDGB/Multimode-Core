@@ -965,6 +965,7 @@ void LoadCountdownConfig()
                     
                     if (kv.GotoFirstSubKey(false))
                     {
+                        bool downloadSound = true;
                         do
                         {
                             char messageType[16];
@@ -973,12 +974,18 @@ void LoadCountdownConfig()
                             char message[256];
                             kv.GetString(NULL_STRING, message, sizeof(message));
 
+                            if (StrEqual(messageType, "sound_download"))
+                            {
+                                downloadSound = (StringToInt(message) != 0);
+                                continue;
+                            }
+
                             if (StrEqual(messageType, "sound"))
                             {
-                                if (!g_CountdownSounds.ContainsKey(message))
+                                if (downloadSound && !g_CountdownSounds.ContainsKey(message))
                                 {
                                     g_CountdownSounds.SetValue(message, true);
-                                    
+                
                                     PrecacheSoundAny(message);
                                     char downloadPath[PLATFORM_MAX_PATH];
                                     FormatEx(downloadPath, sizeof(downloadPath), "sound/%s", message);
