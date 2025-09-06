@@ -1613,6 +1613,11 @@ public void OnTimelimitChanged(ConVar convar, const char[] oldValue, const char[
     if(g_bInternalChange) return;
     
     g_iMapStartTime = GetTime();
+	
+    if (g_Cvar_EndVoteMin.IntValue == 0)
+    {
+        return;
+    }
     
     if(g_Cvar_EndVoteDebug.BoolValue)
     {
@@ -1633,6 +1638,11 @@ public void OnTimelimitChanged(ConVar convar, const char[] oldValue, const char[
 
 public void OnMapTimeLeftChanged()
 {
+    if (g_Cvar_EndVoteMin.IntValue == 0)
+    {
+        return;
+    }
+
     WriteToLogFile("[End Vote] Map time left changed. Resetting End Vote timer...");
 	
     if (g_hEndVoteTimer != null)
@@ -1646,6 +1656,7 @@ public void OnMapTimeLeftChanged()
         g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
     }
 }
+
 
 // Commands
 
