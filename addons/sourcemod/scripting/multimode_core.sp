@@ -2969,9 +2969,10 @@ void StartGameModeVote(int client, bool adminVote = false)
 	
     if (g_hRtvTimers[1] != INVALID_HANDLE)
     {
-        KillTimer(g_hRtvTimers[1]);
+        CloseHandle(g_hRtvTimers[1]);
         g_hRtvTimers[1] = INVALID_HANDLE;
     }
+	
     g_bRtvCooldown = false;
 	
 	g_eCurrentVoteTiming = g_eVoteTiming;
