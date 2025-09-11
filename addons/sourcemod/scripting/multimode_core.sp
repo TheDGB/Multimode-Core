@@ -1247,6 +1247,22 @@ public Action Timer_StartEndVote(Handle timer)
 
 public Action Timer_CheckEndVote(Handle timer)
 {
+    int playerCount = 0;
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (IsClientInGame(i) && !IsFakeClient(i))
+        {
+            playerCount++;
+        }
+    }
+
+    if (playerCount < 1)
+    {
+        if (g_Cvar_EndVoteDebug.BoolValue)
+            WriteToLogFile("[End Vote] No players on the server, end vote check ignored.");
+        return Plugin_Continue;
+    }
+
     if(!g_Cvar_EndVoteEnabled.BoolValue || g_bVoteActive || g_bEndVoteTriggered || g_bRtvDisabled || g_bVoteCompleted)
     {
         if(g_Cvar_EndVoteDebug.BoolValue) 
@@ -4054,6 +4070,19 @@ public int MapVoteHandler(Menu menu, MenuAction action, int param1, int param2)
         }
         else
         {
+            if (StrEqual(map, "extend"))
+            {
+                ExtendMapTime();
+                g_bVoteActive = false;
+                g_bVoteCompleted = false;
+                StartRtvCooldown();
+                if (g_Cvar_DiscordExtend.BoolValue)
+                {
+                    NotifyDiscordExtend();
+                }
+                return 0;
+            }
+            
             strcopy(g_sVoteMap, sizeof(g_sVoteMap), map);
             TrimString(g_sVoteMap);
         
