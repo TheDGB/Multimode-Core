@@ -15,6 +15,7 @@
 #include <halflife>
 #include <files>
 #include <multimode/base>
+#include <nativevotes>
 
 #define COMMAND_KEY          "command"
 #define PLUGIN_VERSION "2.1.0"
@@ -59,6 +60,7 @@ ConVar g_Cvar_NominateOneChance;
 ConVar g_Cvar_NominateSelectedGroupExclude;
 ConVar g_Cvar_NominateSelectedMapExclude;
 ConVar g_Cvar_NominateSorted;
+ConVar g_Cvar_NativeVotes;
 ConVar g_Cvar_RandomCycleEnabled;
 ConVar g_Cvar_RandomCycleType;
 ConVar g_Cvar_RtvDelay;
@@ -173,6 +175,8 @@ public void OnPluginStart()
 	
     g_Cvar_CountdownEnabled = CreateConVar("multimode_countdown", "1", "Enable/disable the end vote countdown messages", _, true, 0.0, true, 1.0);
     g_Cvar_CountdownFilename = CreateConVar("multimode_countdown_filename", "countdown.txt", "Name of the countdown configuration file");
+	
+	g_Cvar_NativeVotes = CreateConVar("multimode_nativevotes", "0", "Enable/disable NativeVotes support for votes (1 = Enabled, 0 = Disabled)", _, true, 0.0, true, 1.0);
     
     g_Cvar_VoteTime = CreateConVar("multimode_vote_time", "20", "Vote duration in seconds");
     g_Cvar_VoteRandom = CreateConVar("multimode_vote_random", "1", "When enabled, all voting items are randomly drawn. When disabled, the map cycle order is used as normal.", _, true, 0.0, true, 1.0);
@@ -303,6 +307,22 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
     
     RegPluginLibrary("multimode_core");
     return APLRes_Success;
+}
+
+public void OnLibraryAdded(const char[] name)
+{
+    if (StrEqual(name, "nativevotes"))
+    {
+        // NativeVotes support available
+    }
+}
+
+public void OnLibraryRemoved(const char[] name)
+{
+    if (StrEqual(name, "nativevotes"))
+    {
+        // NativeVotes support no longer available
+    }
 }
 
 public void OnConfigsExecuted()
@@ -1673,6 +1693,223 @@ public void OnMapTimeLeftChanged()
     }
 }
 
+// //////////////////////////
+// //                      //
+// //     Native Votes     //
+// //                      //
+// //////////////////////////
+
+// Native Votes
+
+NativeVote CreateNativeVote(NativeVotes_Handler handler, bool isMapVote = false)
+{
+    if (!g_Cvar_NativeVotes.BoolValue || !LibraryExists("nativevotes"))
+        return null;
+
+    NativeVotesType voteType = NativeVotesType_Custom_Mult;
+    NativeVote vote = new NativeVote(handler, voteType);
+
+    if (vote == null)
+        return null;
+
+    char buffer[256];
+    if (isMapVote)
+    {
+        Format(buffer, sizeof(buffer), "%T", "Show Map Group Title", LANG_SERVER, g_sSelectedGameMode);
+    }
+    else
+    {
+        Format(buffer, sizeof(buffer), "%T", "Normal Vote Gamemode Group Title", LANG_SERVER);
+    }
+    vote.SetTitle(buffer);
+
+    return vote;
+}
+
+public int NativeVoteHandler(NativeVote vote, MenuAction action, int param1, int param2)
+{
+    switch (action)
+    {
+        case MenuAction_VoteStart:
+        {
+            if (g_Cvar_VoteSounds.BoolValue)
+            {
+                char sound[PLATFORM_MAX_PATH];
+                g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+                if (sound[0] != '\0')
+                {
+                    EmitSoundToAllAny(sound);
+                }
+            }
+        }
+
+        case MenuAction_End:
+        {
+            vote.Close();
+            g_bVoteActive = false;
+        }
+
+        case MenuAction_VoteCancel:
+        {
+            if (param1 == VoteCancel_NoVotes)
+            {
+                vote.DisplayFail(NativeVotesFail_NotEnoughVotes);
+            }
+            else
+            {
+                vote.DisplayFail(NativeVotesFail_Generic);
+            }
+
+            if (g_Cvar_VoteSounds.BoolValue)
+            {
+                char sound[PLATFORM_MAX_PATH];
+                g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+                if (sound[0] != '\0')
+                {
+                    EmitSoundToAllAny(sound);
+                }
+            }
+        }
+
+        case MenuAction_VoteEnd:
+        {
+            char item[64], display[256];
+            vote.GetItem(param1, item, sizeof(item), display, sizeof(display));
+			
+            NativeVotes_DisplayPass(vote, display);
+
+            if (StrEqual(item, "extend"))
+            {
+                ExtendMapTime();
+                g_bVoteActive = false;
+                g_bVoteCompleted = false;
+                StartRtvCooldown();
+                if (g_Cvar_DiscordExtend.BoolValue)
+                {
+                    NotifyDiscordExtend();
+                }
+            }
+            else
+            {
+                strcopy(g_sVoteGameMode, sizeof(g_sVoteGameMode), item);
+                
+                if (GetVoteMethod() == 2)
+                {
+                    int index = FindGameModeIndex(g_sVoteGameMode);
+                    if (index != -1)
+                    {
+                        GameModeConfig config;
+                        ArrayList list = GetGameModesList();
+                        list.GetArray(index, config);
+                        
+                        if (config.maps.Length > 0)
+                        {
+                            int randomIndex = GetRandomInt(0, config.maps.Length - 1);
+                            char map[PLATFORM_MAX_PATH];
+                            config.maps.GetString(randomIndex, map, sizeof(map));
+                            strcopy(g_sVoteMap, sizeof(g_sVoteMap), map);
+                            
+                            ExecuteVoteResult();
+                        }
+                    }
+                }
+                else
+                {
+                    StartCooldown();
+                    g_bVoteCompleted = true;
+                }
+            }
+
+            if (g_Cvar_VoteSounds.BoolValue)
+            {
+                char sound[PLATFORM_MAX_PATH];
+                g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+                if (sound[0] != '\0')
+                {
+                    EmitSoundToAllAny(sound);
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+public int NativeMapVoteHandler(NativeVote vote, MenuAction action, int param1, int param2)
+{
+    switch (action)
+    {
+        case MenuAction_VoteStart:
+        {
+            if (g_Cvar_VoteSounds.BoolValue)
+            {
+                char sound[PLATFORM_MAX_PATH];
+                g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+                if (sound[0] != '\0')
+                {
+                    EmitSoundToAllAny(sound);
+                }
+            }
+        }
+
+        case MenuAction_End:
+        {
+            vote.Close();
+            g_bVoteActive = false;
+        }
+
+        case MenuAction_VoteCancel:
+        {
+            if (param1 == VoteCancel_NoVotes)
+            {
+                vote.DisplayFail(NativeVotesFail_NotEnoughVotes);
+            }
+            else
+            {
+                vote.DisplayFail(NativeVotesFail_Generic);
+            }
+
+            if (g_Cvar_VoteSounds.BoolValue)
+            {
+                char sound[PLATFORM_MAX_PATH];
+                g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+                if (sound[0] != '\0')
+                {
+                    EmitSoundToAllAny(sound);
+                }
+            }
+        }
+
+        case MenuAction_VoteEnd:
+        {
+            char map[PLATFORM_MAX_PATH];
+            vote.GetItem(param1, map, sizeof(map));
+            strcopy(g_sVoteMap, sizeof(g_sVoteMap), map);
+
+            NativeVotes_DisplayPass(vote, map);
+
+            ExecuteVoteResult();
+
+            if (g_Cvar_VoteSounds.BoolValue)
+            {
+                char sound[PLATFORM_MAX_PATH];
+                g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+                if (sound[0] != '\0')
+                {
+                    EmitSoundToAllAny(sound);
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+// //////////////////////////
+// //                      //
+// //      Commands        //
+// //                      //
+// //////////////////////////
 
 // Commands
 
@@ -3078,12 +3315,49 @@ void StartGameModeVote(int client, bool adminVote = false)
         }
         delete remainingGameModes;
     }
+	
+	bool canExtend = (g_Cvar_ExtendEveryTime.BoolValue || !g_bMapExtended) && CanExtendMap();
+	
+    if (g_Cvar_NativeVotes.BoolValue && LibraryExists("nativevotes"))
+    {
+        NativeVote vote = CreateNativeVote(NativeVoteHandler);
+        if (vote != null)
+        {
+            if (g_Cvar_Extend.BoolValue && canExtend && ((adminVote && g_Cvar_ExtendVoteAdmin.BoolValue) || (!adminVote && g_Cvar_ExtendVote.BoolValue)))
+            {
+                char extendText[128];
+                int extendMinutes = g_Cvar_ExtendSteps.IntValue;
+                Format(extendText, sizeof(extendText), "%t", "Extend Map Normal Vote", extendMinutes);
+                vote.AddItem("extend", extendText);
+            }
+
+            for (int i = 0; i < voteGameModes.Length; i++)
+            {
+                char gm[64], display[128];
+                voteGameModes.GetString(i, gm, sizeof(gm));
+                
+                if (g_NominatedGamemodes.FindString(gm) != -1)
+                {
+                    Format(display, sizeof(display), "%s (Nomeado)", gm);
+                }
+                else
+                {
+                    strcopy(display, sizeof(display), gm);
+                }
+                
+                vote.AddItem(gm, display);
+            }
+
+            vote.DisplayVoteToAll(g_Cvar_VoteTime.IntValue);
+            g_bVoteActive = true;
+            return;
+        }
+    }
     
     Menu menu = new Menu(GameModeVoteHandler);
     menu.SetTitle("%t", "Normal Vote Gamemode Group Title");
     menu.VoteResultCallback = GameModeVoteResultHandler;
     
-    bool canExtend = (g_Cvar_ExtendEveryTime.BoolValue || !g_bMapExtended) && CanExtendMap();
     if (g_Cvar_Extend.BoolValue && canExtend && ((adminVote && g_Cvar_ExtendVoteAdmin.BoolValue) || (!adminVote && g_Cvar_ExtendVote.BoolValue)))
     {
         char extendText[128];
@@ -3841,6 +4115,35 @@ void StartMapVote(int client, const char[] sGameMode)
             voteMaps.PushString(map);
         }
         delete availableMaps;
+    }
+
+    if (g_Cvar_NativeVotes.BoolValue && LibraryExists("nativevotes")) 
+    {
+        NativeVote mapVote = new NativeVote(NativeMapVoteHandler, NativeVotesType_Custom_Mult);
+        if (mapVote != null)
+        {
+            char title[128];
+            Format(title, sizeof(title), "%T", "Start Map Vote Title", LANG_SERVER, config.name);
+            mapVote.SetTitle(title);
+
+            for (int i = 0; i < voteMaps.Length; i++)
+            {
+                char map[PLATFORM_MAX_PATH], display[256];
+                voteMaps.GetString(i, map, sizeof(map));
+                GetMapDisplayNameEx(config.name, map, display, sizeof(display));
+
+                if (mapsNominated != null && mapsNominated.FindString(map) != -1)
+                {
+                    Format(display, sizeof(display), "%s (Nomeado)", display);
+                }
+
+                mapVote.AddItem(map, display);
+            }
+
+            mapVote.DisplayVoteToAll(g_Cvar_VoteTime.IntValue);
+            g_bVoteActive = true;
+            return;
+        }
     }
 
     Menu voteMenu = new Menu(MapVoteHandler);

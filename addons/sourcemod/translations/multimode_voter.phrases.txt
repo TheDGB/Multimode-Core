@@ -182,8 +182,8 @@
 
     "Start Map Vote Title"
     {
-        "pt"    "Vote no próximo mapa:"
-        "en"    "Vote for the Next Map:"
+        "pt"    "Vote para um Mapa:"
+        "en"    "Vote for a Map:"
     }
 
     "Timing NextMap"
