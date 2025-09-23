@@ -140,6 +140,9 @@ Handle g_hRtvTimers[2];
 Handle g_hCookieVoteType;
 Handle g_hCooldownTimer = INVALID_HANDLE;
 Handle g_hHudSync;
+Handle g_OnVoteStartForward;
+Handle g_OnVoteEndForward;
+Handle g_OnGamemodeChangedForward;
 
 // Float Section
 float g_fRtvTimerStart[2];
@@ -254,6 +257,10 @@ public void OnPluginStart()
             nextmap.SetString("");
         }
     }
+	
+    g_OnVoteStartForward = CreateGlobalForward("MultiMode_OnVoteStart", ET_Ignore, Param_Cell);
+    g_OnVoteEndForward = CreateGlobalForward("MultiMode_OnVoteEnd", ET_Ignore, Param_String, Param_String);
+    g_OnGamemodeChangedForward = CreateGlobalForward("MultiMode_OnGamemodeChanged", ET_Ignore, Param_String, Param_String, Param_Cell);
     
     // Others
     g_hCvarTimeLimit = FindConVar("mp_timelimit");
@@ -1780,6 +1787,8 @@ public int NativeVoteHandler(NativeVote vote, MenuAction action, int param1, int
 
             if (StrEqual(item, "extend"))
             {
+                NativeMMC_OnVoteEnd("extend", "");
+                
                 ExtendMapTime();
                 g_bVoteActive = false;
                 g_bVoteCompleted = false;
@@ -1792,6 +1801,8 @@ public int NativeVoteHandler(NativeVote vote, MenuAction action, int param1, int
             else
             {
                 strcopy(g_sVoteGameMode, sizeof(g_sVoteGameMode), item);
+				
+                NativeMMC_OnVoteEnd(g_sVoteGameMode, "");
                 
                 if (GetVoteMethod() == 2)
                 {
@@ -1885,6 +1896,18 @@ public int NativeMapVoteHandler(NativeVote vote, MenuAction action, int param1, 
             char map[PLATFORM_MAX_PATH];
             vote.GetItem(param1, map, sizeof(map));
             strcopy(g_sVoteMap, sizeof(g_sVoteMap), map);
+
+            if (GetVoteMethod() == 3)
+            {
+                int index = FindGameModeForMap(g_sVoteMap);
+                if (index != -1)
+                {
+                    GameModeConfig config;
+                    ArrayList list = GetGameModesList();
+                    list.GetArray(index, config);
+                    strcopy(g_sVoteGameMode, sizeof(g_sVoteGameMode), config.name);
+                }
+            }
 
             NativeVotes_DisplayPass(vote, map);
 
@@ -2808,6 +2831,30 @@ public int NativeMMC_GetCurrentMap(Handle plugin, int numParams)
     return 0;
 }
 
+void NativeMMC_OnVoteStart(int initiator)
+{
+    Call_StartForward(g_OnVoteStartForward);
+    Call_PushCell(initiator);
+    Call_Finish();
+}
+
+void NativeMMC_OnVoteEnd(const char[] gamemode, const char[] map)
+{
+    Call_StartForward(g_OnVoteEndForward);
+    Call_PushString(gamemode);
+    Call_PushString(map);
+    Call_Finish();
+}
+
+void NativeMMC_OnGamemodeChanged(const char[] gamemode, const char[] map, int timing)
+{
+    Call_StartForward(g_OnGamemodeChangedForward);
+    Call_PushString(gamemode);
+    Call_PushString(map);
+    Call_PushCell(timing);
+    Call_Finish();
+}
+
 void GetRandomGameMode(char[] buffer, int maxlength)
 {
     ArrayList gameModes = GetGameModesList();
@@ -2820,6 +2867,21 @@ void GetRandomGameMode(char[] buffer, int maxlength)
     else {
         buffer[0] = '\0';
     }
+}
+
+int FindGameModeForMap(const char[] map)
+{
+    ArrayList gameModes = GetGameModesList();
+    for (int i = 0; i < gameModes.Length; i++)
+    {
+        GameModeConfig config;
+        gameModes.GetArray(i, config);
+        if (config.maps.FindString(map) != -1)
+        {
+            return i;
+        }
+    }
+    return -1;
 }
 
 // //////////////////////////
@@ -3133,8 +3195,9 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing)
     char command[256];
     strcopy(g_sNextGameMode, sizeof(g_sNextGameMode), gamemode);
     strcopy(g_sNextMap, sizeof(g_sNextMap), map);
+	
+	NativeMMC_OnGamemodeChanged(gamemode, map, timing);
     
-
     if (g_kvGameModes.JumpToKey(gamemode))
     {
         g_kvGameModes.GetString("command", command, sizeof(command));
@@ -3206,6 +3269,8 @@ void StartGameModeVote(int client, bool adminVote = false)
         CPrintToChat(client, "%t", "Gamemode Vote Already");
         return;
     }
+	
+	NativeMMC_OnVoteStart(client);
     
     ArrayList gameModes = GetGameModesList();
     if (gameModes.Length == 0)
@@ -3468,6 +3533,8 @@ public void GameModeVoteResultHandler(Menu menu, int num_votes, int num_clients,
 
     if (StrEqual(gamemode, "extend"))
     {
+	    NativeMMC_OnVoteEnd("extend", "");
+		
         ExtendMapTime();
         g_bVoteActive = false;
         g_bVoteCompleted = false;
@@ -3491,6 +3558,8 @@ public void GameModeVoteResultHandler(Menu menu, int num_votes, int num_clients,
     else
     {
         strcopy(g_sVoteGameMode, sizeof(g_sVoteGameMode), gamemode);
+		
+		NativeMMC_OnVoteEnd(g_sVoteGameMode, "");
         
         if (GetVoteMethod() == 2)
         {
@@ -3630,6 +3699,8 @@ void ExtendMapTime()
         delete g_hEndVoteTimer;
         g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
     }
+	
+	NativeMMC_OnVoteEnd("extend", "");
 
     g_bMapExtended = true;
 }
@@ -3758,7 +3829,25 @@ void NotifyDiscordExtend()
 
 public void ExecuteVoteResult()
 {
+    if (GetVoteMethod() == 3 && strlen(g_sVoteMap) > 0 && strlen(g_sVoteGameMode) == 0)
+    {
+        int index = FindGameModeForMap(g_sVoteMap);
+        if (index != -1)
+        {
+            GameModeConfig config;
+            ArrayList list = GetGameModesList();
+            list.GetArray(index, config);
+            strcopy(g_sVoteGameMode, sizeof(g_sVoteGameMode), config.name);
+        }
+        else
+        {
+            WriteToLogFile("[MultiMode Core] WARNING: Method 3: Could not find gamemode for map '%s'", g_sVoteMap);
+        }
+    }
+	
     g_eCurrentVoteTiming = g_eEndVoteTiming;
+	
+	NativeMMC_OnVoteEnd(g_sVoteGameMode, g_sVoteMap);
 	
     g_bEndVoteTriggered = false;
     g_bVoteActive = false;
@@ -3866,6 +3955,8 @@ public void ExecuteVoteResult()
 	
 	ExecuteVoteCommands(g_sVoteGameMode, g_sVoteMap);
 	
+	NativeMMC_OnGamemodeChanged(g_sVoteGameMode, g_sVoteMap, view_as<int>(g_eVoteTiming));
+	
     g_bRtvDisabled = true;
     
 }
@@ -3876,6 +3967,11 @@ void StartMapVote(int client, const char[] sGameMode)
     {
         CPrintToChat(client, "%t", "Vote Already Active");
         return;
+    }
+	
+    if (GetVoteMethod() == 3 || strlen(sGameMode) > 0)
+    {
+        NativeMMC_OnVoteStart(client);
     }
 	
     if (g_hRtvTimers[1] != INVALID_HANDLE)
@@ -3891,6 +3987,8 @@ void StartMapVote(int client, const char[] sGameMode)
     {
         WriteToLogFile("[MultiMode Core] Starting Global Map Voting (Method 3)");
         g_iVoteInitiator = client;
+        
+        g_sVoteGameMode[0] = '\0';
 
         ArrayList voteMaps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
         StringMap uniqueMaps = new StringMap();
@@ -4339,6 +4437,30 @@ stock void GetMapDisplayNameEx(const char[] gamemode, const char[] map, char[] d
             }
         }
     }
+	
+    if (gamemode[0] == '\0' && map[0] != '\0') 
+    {
+        int index = FindGameModeForMap(map);
+        if (index != -1)
+        {
+            GameModeConfig config;
+            ArrayList list = GetGameModesList();
+            list.GetArray(index, config);
+            
+            KeyValues kv = GetMapKv(config.name, map);
+            if (kv != null)
+            {
+                char customDisplay[256];
+                kv.GetString("display", customDisplay, sizeof(customDisplay), "");
+                delete kv;
+                if (customDisplay[0] != '\0') 
+                {
+                    strcopy(display, displayLen, customDisplay);
+                    return;
+                }
+            }
+        }
+    }
 
     char baseMap[PLATFORM_MAX_PATH];
     strcopy(baseMap, sizeof(baseMap), map);
@@ -4395,6 +4517,18 @@ public int MapVoteHandler(Menu menu, MenuAction action, int param1, int param2)
                 strcopy(g_sVoteMap, sizeof(g_sVoteMap), "");
                 StartRtvCooldown();
                 return 0;
+            }
+            
+            if (GetVoteMethod() == 3)
+            {
+                int index = FindGameModeForMap(g_sVoteMap);
+                if (index != -1)
+                {
+                    GameModeConfig config;
+                    ArrayList list = GetGameModesList();
+                    list.GetArray(index, config);
+                    strcopy(g_sVoteGameMode, sizeof(g_sVoteGameMode), config.name);
+                }
             }
         
             ExecuteVoteResult();
@@ -4458,5 +4592,23 @@ public void OnPluginEnd()
     if (g_LastCountdownValues != null)
     {
         delete g_LastCountdownValues;
+    }
+	
+    if (g_OnVoteStartForward != null)
+    {
+        CloseHandle(g_OnVoteStartForward);
+        g_OnVoteStartForward = null;
+    }
+	
+    if (g_OnVoteEndForward != null)
+    {
+        CloseHandle(g_OnVoteEndForward);
+        g_OnVoteEndForward = null;
+    }
+	
+    if (g_OnGamemodeChangedForward != null)
+    {
+        CloseHandle(g_OnGamemodeChangedForward);
+        g_OnGamemodeChangedForward = null;
     }
 }
