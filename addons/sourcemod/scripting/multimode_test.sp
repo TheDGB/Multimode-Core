@@ -17,11 +17,12 @@ public void OnPluginStart()
 {
     PrintToServer("[MultiMode Test] Plugin successfully loaded!");
     
-    RegConsoleCmd("sm_cancelvotetest", Command_CancelVote, "Cancels the current MultiMode vote (if active).");
-    RegConsoleCmd("sm_randommap", Command_RandomMapTest, "Gets a random map from MultiMode and prints it.");
+    RegConsoleCmd("sm_cancelvote_test", Command_CancelVoteTest, "Cancels the current MultiMode vote (if active).");
+    RegConsoleCmd("sm_randommap_test", Command_RandomMapTest, "Gets a random map from MultiMode and prints it.");
+	RegConsoleCmd("sm_reloadmapcycle_test", Command_ReloadMapCycleTest, "Reloads the MultiMode map cycle.");
 }
 
-public Action Command_CancelVote(int client, int args)
+public Action Command_CancelVoteTest(int client, int args)
 {
     if (MultiMode_CanStopVote())
     {
@@ -63,6 +64,20 @@ public Action Command_RandomMapTest(int client, int args)
     else
     {
         PrintToChat(client, "[MultiMode Test] No map could be selected!");
+    }
+
+    return Plugin_Handled;
+}
+
+public Action Command_ReloadMapCycleTest(int client, int args)
+{
+    if (MultiMode_ReloadMapCycle())
+    {
+        PrintToChatAll("[MultiMode Test] MultiMode map cycle successfully reloaded!");
+    }
+    else
+    {
+        PrintToChat(client, "[MultiMode Test] Failed to reload MultiMode map cycle!");
     }
 
     return Plugin_Handled;
