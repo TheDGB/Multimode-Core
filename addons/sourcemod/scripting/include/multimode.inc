@@ -34,13 +34,6 @@ native bool MultiMode_CanStopVote();
 native bool MultiMode_IsVoteActive();
 
 /**
- * Reloads the Multimode Map Cycle
- * 
- * @return              Reload the Multimode Map Cycle
- */
-native bool MultiMode_ReloadMapCycle();
-
-/**
  * Gets the current gamemode
  * 
  * @param buffer        Buffer to store the gamemode name

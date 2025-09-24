@@ -317,7 +317,6 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
     CreateNative("MultiMode_GetNextGameMode", NativeMMC_GetNextGameMode);
     CreateNative("MultiMode_IsRandomCycleEnabled", NativeMMC_IsRandomCycleEnabled);
 	CreateNative("MultiMode_GetRandomMap", NativeMMC_GetRandomMap);
-	CreateNative("MultiMode_ReloadMapCycle", NativeMMC_ReloadMapCycle);
     
     RegPluginLibrary("multimode_core");
     return APLRes_Success;
@@ -2990,12 +2989,6 @@ public int NativeMMC_GetRandomMap(Handle plugin, int numParams)
 public int NativeMMC_CanStopVote(Handle plugin, int numParams)
 {
     return g_bVoteActive || g_bCooldownActive;
-}
-
-public int NativeMMC_ReloadMapCycle(Handle plugin, int numParams)
-{
-    LoadGameModesConfig();
-    return true;
 }
 
 void GetRandomGameMode(char[] buffer, int maxlength)
