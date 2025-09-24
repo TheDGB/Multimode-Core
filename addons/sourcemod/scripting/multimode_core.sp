@@ -143,6 +143,7 @@ Handle g_hHudSync;
 Handle g_OnVoteStartForward;
 Handle g_OnVoteEndForward;
 Handle g_OnGamemodeChangedForward;
+Handle g_OnGamemodeChangedVoteForward;
 
 // Float Section
 float g_fRtvTimerStart[2];
@@ -258,9 +259,11 @@ public void OnPluginStart()
         }
     }
 	
+	// Forwards
     g_OnVoteStartForward = CreateGlobalForward("MultiMode_OnVoteStart", ET_Ignore, Param_Cell);
     g_OnVoteEndForward = CreateGlobalForward("MultiMode_OnVoteEnd", ET_Ignore, Param_String, Param_String);
     g_OnGamemodeChangedForward = CreateGlobalForward("MultiMode_OnGamemodeChanged", ET_Ignore, Param_String, Param_String, Param_Cell);
+	g_OnGamemodeChangedVoteForward = CreateGlobalForward("MultiMode_OnGamemodeChangedVote", ET_Ignore, Param_String, Param_String, Param_Cell);
     
     // Others
     g_hCvarTimeLimit = FindConVar("mp_timelimit");
@@ -304,6 +307,8 @@ public void OnPluginStart()
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
     CreateNative("MultiMode_StartVote", NativeMMC_StartVote);
+    CreateNative("MultiMode_StopVote", NativeMMC_StopVote);
+    CreateNative("MultiMode_CanStopVote", NativeMMC_CanStopVote);
     CreateNative("MultiMode_IsVoteActive", NativeMMC_IsVoteActive);
     CreateNative("MultiMode_GetCurrentGameMode", NativeMMC_GetCurrentGameMode);
     CreateNative("MultiMode_GetNextMap", NativeMMC_GetNextMap);
@@ -311,6 +316,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
     CreateNative("MultiMode_Nominate", NativeMMC_Nominate);
     CreateNative("MultiMode_GetNextGameMode", NativeMMC_GetNextGameMode);
     CreateNative("MultiMode_IsRandomCycleEnabled", NativeMMC_IsRandomCycleEnabled);
+	CreateNative("MultiMode_GetRandomMap", NativeMMC_GetRandomMap);
     
     RegPluginLibrary("multimode_core");
     return APLRes_Success;
@@ -2855,6 +2861,128 @@ void NativeMMC_OnGamemodeChanged(const char[] gamemode, const char[] map, int ti
     Call_Finish();
 }
 
+void NativeMMC_OnGamemodeChangedVote(const char[] gamemode, const char[] map, int timing)
+{
+    Call_StartForward(g_OnGamemodeChangedVoteForward);
+    Call_PushString(gamemode);
+    Call_PushString(map);
+    Call_PushCell(timing);
+    Call_Finish();
+}
+
+public int NativeMMC_StopVote(Handle plugin, int numParams)
+{
+    bool bWasActive = false;
+    
+    if (g_bVoteActive)
+    {
+        CancelVote();
+        g_bVoteActive = false;
+        bWasActive = true;
+    }
+    
+    if (g_bCooldownActive)
+    {
+        g_bCooldownActive = false;
+        if (g_hCooldownTimer != null)
+        {
+            KillTimer(g_hCooldownTimer);
+            g_hCooldownTimer = INVALID_HANDLE;
+        }
+        bWasActive = true;
+    }
+    
+    if (bWasActive)
+    {
+        g_bEndVoteTriggered = false;
+        g_bVoteCompleted = false;
+        
+        if (g_Cvar_VoteSounds.BoolValue)
+        {
+            char sound[PLATFORM_MAX_PATH];
+            g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+            if (sound[0] != '\0')
+            {
+                EmitSoundToAllAny(sound);
+            }
+        }
+    }
+    
+    return bWasActive;
+}
+
+public int NativeMMC_GetRandomMap(Handle plugin, int numParams)
+{
+    int maxlen = GetNativeCell(3);
+    char[] map = new char[maxlen];
+    map[0] = '\0';
+    
+    char gamemode[64];
+    GetNativeString(1, gamemode, sizeof(gamemode));
+    
+    ArrayList gameModes = GetGameModesList();
+    if (gameModes.Length == 0)
+    {
+        return false;
+    }
+    
+    int gamemodeIndex = -1;
+    
+    if (strlen(gamemode) > 0)
+    {
+        gamemodeIndex = FindGameModeIndex(gamemode);
+        if (gamemodeIndex == -1)
+        {
+            return false;
+        }
+    }
+    else
+    {
+        ArrayList validGameModes = new ArrayList();
+        
+        for (int i = 0; i < gameModes.Length; i++)
+        {
+            GameModeConfig config;
+            gameModes.GetArray(i, config);
+            
+            if (config.enabled && !config.adminonly && config.maps.Length > 0)
+            {
+                validGameModes.Push(i);
+            }
+        }
+        
+        if (validGameModes.Length == 0)
+        {
+            delete validGameModes;
+            return false;
+        }
+        
+        int randomIndex = GetRandomInt(0, validGameModes.Length - 1);
+        gamemodeIndex = validGameModes.Get(randomIndex);
+        delete validGameModes;
+    }
+    
+    GameModeConfig config;
+    gameModes.GetArray(gamemodeIndex, config);
+    
+    if (config.maps.Length == 0)
+    {
+        return false;
+    }
+    
+    int randomMapIndex = GetRandomInt(0, config.maps.Length - 1);
+    config.maps.GetString(randomMapIndex, map, maxlen);
+    
+    SetNativeString(2, map, maxlen);
+    
+    return true;
+}
+
+public int NativeMMC_CanStopVote(Handle plugin, int numParams)
+{
+    return g_bVoteActive || g_bCooldownActive;
+}
+
 void GetRandomGameMode(char[] buffer, int maxlength)
 {
     ArrayList gameModes = GetGameModesList();
@@ -3955,7 +4083,7 @@ public void ExecuteVoteResult()
 	
 	ExecuteVoteCommands(g_sVoteGameMode, g_sVoteMap);
 	
-	NativeMMC_OnGamemodeChanged(g_sVoteGameMode, g_sVoteMap, view_as<int>(g_eVoteTiming));
+    NativeMMC_OnGamemodeChangedVote(g_sVoteGameMode, g_sVoteMap, view_as<int>(g_eVoteTiming));
 	
     g_bRtvDisabled = true;
     
@@ -4610,5 +4738,11 @@ public void OnPluginEnd()
     {
         CloseHandle(g_OnGamemodeChangedForward);
         g_OnGamemodeChangedForward = null;
+    }
+	
+    if (g_OnGamemodeChangedVoteForward != null)
+    {
+        CloseHandle(g_OnGamemodeChangedVoteForward);
+        g_OnGamemodeChangedVoteForward = null;
     }
 }

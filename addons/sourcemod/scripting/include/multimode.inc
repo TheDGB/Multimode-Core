@@ -13,6 +13,20 @@
 native void MultiMode_StartVote(int client, bool adminVote = false);
 
 /**
+ * Stops/cancels the current active vote
+ * 
+ * @return              True if a vote was active and cancelled, false otherwise
+ */
+native bool MultiMode_StopVote();
+
+/**
+ * Checks if a vote can be cancelled (is active or in cooldown)
+ * 
+ * @return              True if a vote can be cancelled
+ */
+native bool MultiMode_CanStopVote();
+
+/**
  * Checks if a vote is active
  * 
  * @return              True if a vote is in progress
@@ -56,6 +70,17 @@ native void MultiMode_GetNextMap(char[] buffer, int maxlength);
 native void MultiMode_GetCurrentMap(char[] buffer, int maxlength);
 
 /**
+ * Gets a random map from a specific gamemode. If gamemode is empty, 
+ * selects a random gamemode and then a random map from it.
+ *
+ * @param gamemode      Gamemode name (empty for any gamemode)
+ * @param map           Buffer to store the map name
+ * @param maxlength     Maximum buffer size
+ * @return              True if a map was found and stored, false otherwise
+ */
+native bool MultiMode_GetRandomMap(const char[] gamemode, char[] map, int maxlength);
+
+/**
  * Checks if random cycle is enabled
  * 
  * @return              True if random cycle is active
@@ -95,6 +120,15 @@ forward void MultiMode_OnVoteEnd(const char[] gamemode, const char[] map);
  * @param timing        Application timing (0=Next map, 1=Next round, 2=Instant)
  */
 forward void MultiMode_OnGamemodeChanged(const char[] gamemode, const char[] map, int timing);
+
+/**
+ * Called when a new gamemode is set in votes
+ * 
+ * @param gamemode      New gamemode
+ * @param map           New map
+ * @param timing        Application timing (0=Next map, 1=Next round, 2=Instant)
+ */
+forward void MultiMode_OnGamemodeChangedVote(const char[] gamemode, const char[] map, int timing);
 
 public SharedPlugin __pl_multimode_core = {
     name = "multimode_core",
