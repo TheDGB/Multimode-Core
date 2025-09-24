@@ -73,12 +73,13 @@ native void MultiMode_GetCurrentMap(char[] buffer, int maxlength);
  * Gets a random map from a specific gamemode. If gamemode is empty, 
  * selects a random gamemode and then a random map from it.
  *
- * @param gamemode      Gamemode name (empty for any gamemode)
- * @param map           Buffer to store the map name
- * @param maxlength     Maximum buffer size
- * @return              True if a map was found and stored, false otherwise
+ * @param gamemode      Gamemode name (empty for any gamemode).
+ * @param gamemodeLen   Length of the gamemode buffer.
+ * @param map           Buffer to store the map name.
+ * @param maxlength     Maximum buffer size for the map.
+ * @return              True if a map was found and stored, false otherwise.
  */
-native bool MultiMode_GetRandomMap(const char[] gamemode, char[] map, int maxlength);
+native bool MultiMode_GetRandomMap(char[] gamemode, int gamemodeLen, char[] map, int maxlength);
 
 /**
  * Checks if random cycle is enabled
