@@ -43,7 +43,7 @@ public Action Command_CancelVote(int client, int args)
     return Plugin_Handled;
 }
 
-public Action Command_RandomMap(int client, int args)
+public Action Command_RandomMapTest(int client, int args)
 {
     char gamemode[64] = "";
     char map[64];
