@@ -17,11 +17,11 @@ public void OnPluginStart()
 {
     PrintToServer("[MultiMode Test] Plugin successfully loaded!");
     
-    RegConsoleCmd("sm_cancelvotetest", Command_CancelVote, "Cancels the current MultiMode vote (if active).");
-    RegConsoleCmd("sm_randommap", Command_RandomMapTest, "Gets a random map from MultiMode and prints it.");
+    RegConsoleCmd("sm_cancelvote_test", Command_CancelVoteTest, "Cancels the current MultiMode vote (if active).");
+    RegConsoleCmd("sm_randommap_test", Command_RandomMapTest, "Gets a random map from MultiMode and prints it.");
 }
 
-public Action Command_CancelVote(int client, int args)
+public Action Command_CancelVoteTest(int client, int args)
 {
     if (MultiMode_CanStopVote())
     {
@@ -43,7 +43,7 @@ public Action Command_CancelVote(int client, int args)
     return Plugin_Handled;
 }
 
-public Action Command_RandomMap(int client, int args)
+public Action Command_RandomMapTest(int client, int args)
 {
     char gamemode[64] = "";
     char map[64];
