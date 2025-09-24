@@ -45,20 +45,20 @@ public Action Command_CancelVoteTest(int client, int args)
 
 public Action Command_RandomMapTest(int client, int args)
 {
-    char gamemode[64] = "";
+    char group[64] = "";
     char map[64];
 
-    // Optional: accept a gamemode argument
+    // Optional: accept a group argument
     if (args > 0)
     {
-        GetCmdArgString(gamemode, sizeof(gamemode));
-        TrimString(gamemode);
+        GetCmdArgString(group, sizeof(group));
+        TrimString(group);
     }
 
-    if (MultiMode_GetRandomMap(gamemode, sizeof(gamemode), map, sizeof(map)))
+    if (MultiMode_GetRandomMap(group, sizeof(group), map, sizeof(map)))
     {
-        PrintToChatAll("[MultiMode Test] Random map selected: %s | Gamemode: %s", map, gamemode);
-        PrintToServer("[MultiMode Test] Random map test: %s | Gamemode: %s", map, gamemode);
+        PrintToChatAll("[MultiMode Test] Random map selected: %s | Gamemode: %s", map, group);
+        PrintToServer("[MultiMode Test] Random map test: %s | Gamemode: %s", map, group);
     }
     else
     {
@@ -82,12 +82,17 @@ public void MultiMode_OnVoteStart(int initiator)
     }
 }
 
-public void MultiMode_OnVoteEnd(const char[] gamemode, const char[] map)
+public void MultiMode_OnVoteEnd(const char[] group, const char[] map)
 {
-    PrintToServer("[MultiMode Test] Vote ended! Chosen gamemode: %s | Chosen map: %s", gamemode, map);
+    PrintToServer("[MultiMode Test] Vote ended! Chosen gamemode: %s | Chosen map: %s", group, map);
 }
 
-public void MultiMode_OnGamemodeChanged(const char[] gamemode, const char[] map, int timing)
+public void MultiMode_OnGamemodeChanged(const char[] group, const char[] map, int timing)
 {
-    PrintToServer("[MultiMode Test] Gamemode changed to: %s | Map: %s | Timing: %d", gamemode, map, timing);
+    PrintToServer("[MultiMode Test] Gamemode changed to: %s | Map: %s | Timing: %d", group, map, timing);
+}
+
+public void MultiMode_OnGamemodeChangedVote(const char[] group, const char[] map, int timing)
+{
+    PrintToServer("[MultiMode Test] Vote changed gamemode to: %s | Map: %s | Timing: %d", group, map, timing);
 }

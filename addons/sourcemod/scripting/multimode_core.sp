@@ -317,6 +317,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
     CreateNative("MultiMode_GetNextGameMode", NativeMMC_GetNextGameMode);
     CreateNative("MultiMode_IsRandomCycleEnabled", NativeMMC_IsRandomCycleEnabled);
 	CreateNative("MultiMode_GetRandomMap", NativeMMC_GetRandomMap);
+	CreateNative("MultiMode_IsGroupNominated", NativeMMC_IsGroupNominated);
+	CreateNative("MultiMode_IsMapNominated", NativeMMC_IsMapNominated);
     
     RegPluginLibrary("multimode_core");
     return APLRes_Success;
@@ -2989,6 +2991,37 @@ public int NativeMMC_GetRandomMap(Handle plugin, int numParams)
 public int NativeMMC_CanStopVote(Handle plugin, int numParams)
 {
     return g_bVoteActive || g_bCooldownActive;
+}
+
+public int NativeMMC_IsMapNominated(Handle plugin, int numParams)
+{
+    int gamemodeLen;
+    GetNativeStringLength(1, gamemodeLen);
+    char[] gamemode = new char[gamemodeLen+1];
+    GetNativeString(1, gamemode, gamemodeLen+1);
+
+    int mapLen;
+    GetNativeStringLength(2, mapLen);
+    char[] map = new char[mapLen+1];
+    GetNativeString(2, map, mapLen+1);
+
+    ArrayList mapsNominated;
+    if (g_NominatedMaps.GetValue(gamemode, mapsNominated))
+    {
+        return (mapsNominated.FindString(map) != -1);
+    }
+
+    return false;
+}
+
+public int NativeMMC_IsGroupNominated(Handle plugin, int numParams)
+{
+    int groupLen;
+    GetNativeStringLength(1, groupLen);
+    char[] group = new char[groupLen+1];
+    GetNativeString(1, group, groupLen+1);
+
+    return (g_NominatedGamemodes.FindString(group) != -1);
 }
 
 void GetRandomGameMode(char[] buffer, int maxlength)
