@@ -34,7 +34,7 @@ native bool MultiMode_CanStopVote();
 native bool MultiMode_IsVoteActive();
 
 /**
- * Realods the Multimode Map Cycle
+ * Reloads the Multimode Map Cycle
  * 
  * @return              Reload the Multimode Map Cycle
  */
