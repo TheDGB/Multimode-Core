@@ -9,15 +9,16 @@ public Plugin myinfo =
     name = "MultiMode Test",
     author = "DGB",
     description = "Test plugin for MultiMode forwards and natives",
-    version = "1.1",
+    version = "1.2",
     url = ""
 };
 
 public void OnPluginStart()
 {
     PrintToServer("[MultiMode Test] Plugin successfully loaded!");
+    
     RegConsoleCmd("sm_cancelvotetest", Command_CancelVote, "Cancels the current MultiMode vote (if active).");
-	RegConsoleCmd("sm_randommap", Command_RandomMap, "Gets a random map from a gamemode (or any if none specified).");
+    RegConsoleCmd("sm_randommap", Command_RandomMapTest, "Gets a random map from MultiMode and prints it.");
 }
 
 public Action Command_CancelVote(int client, int args)
@@ -44,44 +45,24 @@ public Action Command_CancelVote(int client, int args)
 
 public Action Command_RandomMap(int client, int args)
 {
-    char gamemode[64];
+    char gamemode[64] = "";
     char map[64];
 
+    // Optional: accept a gamemode argument
     if (args > 0)
     {
         GetCmdArgString(gamemode, sizeof(gamemode));
         TrimString(gamemode);
     }
-    else
-    {
-        gamemode[0] = '\0';
-    }
 
-    if (MultiMode_GetRandomMap(gamemode, map, sizeof(map)))
+    if (MultiMode_GetRandomMap(gamemode, sizeof(gamemode), map, sizeof(map)))
     {
-        if (gamemode[0] == '\0')
-        {
-            PrintToChat(client, "[MultiMode Test] Random map found: %s (from any gamemode)", map);
-            PrintToServer("[MultiMode Test] Random map found: %s (from any gamemode)", map);
-        }
-        else
-        {
-            PrintToChat(client, "[MultiMode Test] Random map found for gamemode '%s': %s", gamemode, map);
-            PrintToServer("[MultiMode Test] Random map found for gamemode '%s': %s", gamemode, map);
-        }
+        PrintToChatAll("[MultiMode Test] Random map selected: %s | Gamemode: %s", map, gamemode);
+        PrintToServer("[MultiMode Test] Random map test: %s | Gamemode: %s", map, gamemode);
     }
     else
     {
-        if (gamemode[0] == '\0')
-        {
-            PrintToChat(client, "[MultiMode Test] No random map could be found!");
-            PrintToServer("[MultiMode Test] No random map could be found!");
-        }
-        else
-        {
-            PrintToChat(client, "[MultiMode Test] No random map found for gamemode '%s'!", gamemode);
-            PrintToServer("[MultiMode Test] No random map found for gamemode '%s'!", gamemode);
-        }
+        PrintToChat(client, "[MultiMode Test] No map could be selected!");
     }
 
     return Plugin_Handled;

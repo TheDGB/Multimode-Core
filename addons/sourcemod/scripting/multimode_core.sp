@@ -2913,12 +2913,13 @@ public int NativeMMC_StopVote(Handle plugin, int numParams)
 
 public int NativeMMC_GetRandomMap(Handle plugin, int numParams)
 {
-    int maxlen = GetNativeCell(3);
-    char[] map = new char[maxlen];
-    map[0] = '\0';
+    int gamemodeLen = GetNativeCell(2);
+    int mapLen = GetNativeCell(4);
     
-    char gamemode[64];
-    GetNativeString(1, gamemode, sizeof(gamemode));
+    char[] gamemode = new char[gamemodeLen];
+    char[] map = new char[mapLen];
+    
+    GetNativeString(1, gamemode, gamemodeLen);
     
     ArrayList gameModes = GetGameModesList();
     if (gameModes.Length == 0)
@@ -2927,8 +2928,9 @@ public int NativeMMC_GetRandomMap(Handle plugin, int numParams)
     }
     
     int gamemodeIndex = -1;
+    bool randomGamemode = (strlen(gamemode) == 0);
     
-    if (strlen(gamemode) > 0)
+    if (!randomGamemode)
     {
         gamemodeIndex = FindGameModeIndex(gamemode);
         if (gamemodeIndex == -1)
@@ -2971,9 +2973,15 @@ public int NativeMMC_GetRandomMap(Handle plugin, int numParams)
     }
     
     int randomMapIndex = GetRandomInt(0, config.maps.Length - 1);
-    config.maps.GetString(randomMapIndex, map, maxlen);
+    config.maps.GetString(randomMapIndex, map, mapLen);
     
-    SetNativeString(2, map, maxlen);
+    // Se foi selecionado um gamemode aleatório, preenche a string do gamemode
+    if (randomGamemode)
+    {
+        SetNativeString(1, config.name, gamemodeLen);
+    }
+    
+    SetNativeString(3, map, mapLen);
     
     return true;
 }
