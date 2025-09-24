@@ -1,6 +1,3 @@
-// multimode_test.sp
-// Test plugin for MultiMode Core
-
 #include <sourcemod>
 #include <multimode>
 
@@ -9,7 +6,7 @@ public Plugin myinfo =
     name = "MultiMode Test",
     author = "DGB",
     description = "Test plugin for MultiMode forwards and natives",
-    version = "1.2",
+    version = "1.3",
     url = ""
 };
 
@@ -19,6 +16,8 @@ public void OnPluginStart()
     
     RegConsoleCmd("sm_cancelvote_test", Command_CancelVoteTest, "Cancels the current MultiMode vote (if active).");
     RegConsoleCmd("sm_randommap_test", Command_RandomMapTest, "Gets a random map from MultiMode and prints it.");
+    RegConsoleCmd("sm_isgroupnominated_test", Command_IsGroupNominatedTest, "Checks if a gamemode is nominated.");
+    RegConsoleCmd("sm_ismapnominated_test", Command_IsMapNominatedTest, "Checks if a map is nominated in a gamemode.");
 }
 
 public Action Command_CancelVoteTest(int client, int args)
@@ -48,7 +47,6 @@ public Action Command_RandomMapTest(int client, int args)
     char group[64] = "";
     char map[64];
 
-    // Optional: accept a group argument
     if (args > 0)
     {
         GetCmdArgString(group, sizeof(group));
@@ -63,6 +61,53 @@ public Action Command_RandomMapTest(int client, int args)
     else
     {
         PrintToChat(client, "[MultiMode Test] No map could be selected!");
+    }
+
+    return Plugin_Handled;
+}
+
+public Action Command_IsGroupNominatedTest(int client, int args)
+{
+    if (args < 1)
+    {
+        PrintToChat(client, "[MultiMode Test] Usage: sm_isgroupnominated_test <group>");
+        return Plugin_Handled;
+    }
+
+    char group[64];
+    GetCmdArg(1, group, sizeof(group));
+
+    if (MultiMode_IsGroupNominated(group))
+    {
+        PrintToChat(client, "[MultiMode Test] Gamemode '%s' IS nominated!", group);
+    }
+    else
+    {
+        PrintToChat(client, "[MultiMode Test] Gamemode '%s' is NOT nominated.", group);
+    }
+
+    return Plugin_Handled;
+}
+
+public Action Command_IsMapNominatedTest(int client, int args)
+{
+    if (args < 2)
+    {
+        PrintToChat(client, "[MultiMode Test] Usage: sm_ismapnominated_test <group> <map>");
+        return Plugin_Handled;
+    }
+
+    char group[64], map[64];
+    GetCmdArg(1, group, sizeof(group));
+    GetCmdArg(2, map, sizeof(map));
+
+    if (MultiMode_IsMapNominated(group, map))
+    {
+        PrintToChat(client, "[MultiMode Test] Map '%s' in gamemode '%s' IS nominated!", map, group);
+    }
+    else
+    {
+        PrintToChat(client, "[MultiMode Test] Map '%s' in gamemode '%s' is NOT nominated.", map, group);
     }
 
     return Plugin_Handled;

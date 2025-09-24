@@ -12,8 +12,6 @@
 #include <discord>
 #include <emitsoundany>
 #include <clientprefs>
-#include <halflife>
-#include <files>
 #include <multimode/base>
 #include <nativevotes>
 
@@ -88,7 +86,7 @@ bool g_bRtvInitialDelay = true;
 bool g_bRtvCooldown = false;
 bool g_bRtvDisabled = false;
 bool g_bHasNominated[MAXPLAYERS+1];
-bool change_map_round;
+bool g_bChangeMapNextRound;
 bool g_bVoteActive;
 bool g_bCooldownActive = false;
 bool g_bMapExtended = false;
@@ -1534,9 +1532,9 @@ void UpdateCurrentGameMode(const char[] map)
 
 public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 {
-    if (change_map_round)
+    if (g_bChangeMapNextRound)
     {
-        change_map_round = false;
+        g_bChangeMapNextRound = false;
         CreateTimer(3.0, Timer_ChangeMap);
     }
     
@@ -3385,7 +3383,7 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing)
         case TIMING_NEXTROUND:
         {
             SetNextMap(g_sNextMap);
-            change_map_round = true;
+            g_bChangeMapNextRound = true;
             CPrintToChatAll("%t", "Timing NextRound Notify", g_sNextMap);
             WriteToLogFile("[MultiMode Core] Next round map set (admin): %s", g_sNextMap);
         }
@@ -4041,7 +4039,7 @@ public void ExecuteVoteResult()
         
         case TIMING_NEXTROUND:
         {
-            change_map_round = true;
+            g_bChangeMapNextRound = true;
             strcopy(g_sNextMap, sizeof(g_sNextMap), g_sVoteMap);
             strcopy(g_sNextGameMode, sizeof(g_sNextGameMode), g_sVoteGameMode);
             SetNextMap(g_sNextMap);
