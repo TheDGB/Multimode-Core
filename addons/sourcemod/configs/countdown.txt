@@ -22,7 +22,7 @@
     
         "10;1"
         {
-            "hint"    "[Multimode Core] Voting for the next map will begin in: {time}"
+            "hint"    "[Multimode Core] Voting for the next map will begin in: {TIME}!"
             "sound"   "buttons/blip1.wav"
         }
 
