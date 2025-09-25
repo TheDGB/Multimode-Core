@@ -123,6 +123,14 @@ native bool MultiMode_Nominate(int client, const char[] group, const char[] map)
 forward void MultiMode_OnVoteStart(int initiator);
 
 /**
+ * Called when a vote starts (extended version)
+ * 
+ * @param initiator     Client who started the vote (0 for automatic system)
+ * @param voteType      Type of vote: 0 = gamemode vote, 1 = map vote
+ */
+forward void MultiMode_OnVoteStartEx(int initiator, int voteType);
+
+/**
  * Called when a vote ends
  * 
  * @param group         Chosen gamemode ("extend" if extending)

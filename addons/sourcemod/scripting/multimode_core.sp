@@ -30,10 +30,6 @@ ConVar g_Cvar_CooldownEnabled;
 ConVar g_Cvar_CooldownTime;
 ConVar g_Cvar_CountdownEnabled;
 ConVar g_Cvar_CountdownFilename;
-ConVar g_Cvar_Discord;
-ConVar g_Cvar_DiscordExtend;
-ConVar g_Cvar_DiscordVoteResult;
-ConVar g_Cvar_DiscordWebhook;
 ConVar g_Cvar_Enabled;
 ConVar g_Cvar_EndVoteDebug;
 ConVar g_Cvar_EndVoteEnabled;
@@ -139,6 +135,7 @@ Handle g_hCookieVoteType;
 Handle g_hCooldownTimer = INVALID_HANDLE;
 Handle g_hHudSync;
 Handle g_OnVoteStartForward;
+Handle g_OnVoteStartExForward;
 Handle g_OnVoteEndForward;
 Handle g_OnGamemodeChangedForward;
 Handle g_OnGamemodeChangedVoteForward;
@@ -204,12 +201,6 @@ public void OnPluginStart()
     g_Cvar_NominateMapExclude = CreateConVar("multimode_nominate_mapexclude", "2", "Number of recently played maps to exclude from the menu (0= Disabled)");
     g_Cvar_NominateSorted = CreateConVar("multimode_nominate_sorted", "2", "Sorting mode for maps: 0= Alphabetical, 1= Random, 2= Map Cycle Order", _, true, 0.0, true, 2.0);
     
-    g_Cvar_Discord = CreateConVar("multimode_discord", "1", "Enable sending a message to Discord when a vote is successful.", _, true, 0.0, true, 1.0);
-    
-    g_Cvar_DiscordWebhook = CreateConVar("multimode_discordwebhook", "https://discord.com/api/webhooks/...", "Discord webhook URL to send messages to.", FCVAR_PROTECTED);
-    g_Cvar_DiscordVoteResult = CreateConVar("multimode_discordvoteresults", "1", "Enable discord webhook vote results.", _, true, 0.0, true, 1.0);
-    g_Cvar_DiscordExtend = CreateConVar("multimode_discordextend", "1", "Enable discord webhook vote extensions.", _, true, 0.0, true, 1.0);
-    
     g_Cvar_VoteSounds = CreateConVar("multimode_votesounds", "1", "Enables/disables voting and automatic download sounds.", 0, true, 0.0, true, 1.0);
     g_Cvar_VoteOpenSound = CreateConVar("multimode_voteopensound", "votemap/vtst.wav", "Sound played when starting a vote");
     g_Cvar_VoteCloseSound = CreateConVar("multimode_voteclosesound", "votemap/vtend.wav", "Sound played when a vote ends");
@@ -259,6 +250,7 @@ public void OnPluginStart()
 	
 	// Forwards
     g_OnVoteStartForward = CreateGlobalForward("MultiMode_OnVoteStart", ET_Ignore, Param_Cell);
+	g_OnVoteStartExForward = CreateGlobalForward("MultiMode_OnVoteStartEx", ET_Ignore, Param_Cell, Param_Cell);
     g_OnVoteEndForward = CreateGlobalForward("MultiMode_OnVoteEnd", ET_Ignore, Param_String, Param_String);
     g_OnGamemodeChangedForward = CreateGlobalForward("MultiMode_OnGamemodeChanged", ET_Ignore, Param_String, Param_String, Param_Cell);
 	g_OnGamemodeChangedVoteForward = CreateGlobalForward("MultiMode_OnGamemodeChangedVote", ET_Ignore, Param_String, Param_String, Param_Cell);
@@ -1799,10 +1791,6 @@ public int NativeVoteHandler(NativeVote vote, MenuAction action, int param1, int
                 g_bVoteActive = false;
                 g_bVoteCompleted = false;
                 StartRtvCooldown();
-                if (g_Cvar_DiscordExtend.BoolValue)
-                {
-                    NotifyDiscordExtend();
-                }
             }
             else
             {
@@ -2844,6 +2832,18 @@ void NativeMMC_OnVoteStart(int initiator)
     Call_Finish();
 }
 
+void NativeMMC_OnVoteStartEx(int initiator, int voteType)
+{
+    Call_StartForward(g_OnVoteStartForward);
+    Call_PushCell(initiator);
+    Call_Finish();
+
+    Call_StartForward(g_OnVoteStartExForward);
+    Call_PushCell(initiator);
+    Call_PushCell(voteType);
+    Call_Finish();
+}
+
 void NativeMMC_OnVoteEnd(const char[] gamemode, const char[] map)
 {
     Call_StartForward(g_OnVoteEndForward);
@@ -3438,6 +3438,7 @@ void StartGameModeVote(int client, bool adminVote = false)
     }
 	
 	NativeMMC_OnVoteStart(client);
+	NativeMMC_OnVoteStartEx(client, 0);
     
     ArrayList gameModes = GetGameModesList();
     if (gameModes.Length == 0)
@@ -3706,10 +3707,6 @@ public void GameModeVoteResultHandler(Menu menu, int num_votes, int num_clients,
         g_bVoteActive = false;
         g_bVoteCompleted = false;
         StartRtvCooldown();
-        if (g_Cvar_DiscordExtend.BoolValue)
-        {
-            NotifyDiscordExtend();
-        }
 
         if (g_Cvar_VoteSounds.BoolValue)
         {
@@ -3963,37 +3960,6 @@ void ExtendMapTimeEx(int client, float minutes)
     g_bInternalChange = false;
 }
 
-void NotifyDiscordExtend()
-{
-    if (g_Cvar_Discord.BoolValue)
-    {
-        char webhook[256];
-        g_Cvar_DiscordWebhook.GetString(webhook, sizeof(webhook));
-
-        if (!StrEqual(webhook, ""))
-        {
-            DiscordWebHook hook = new DiscordWebHook(webhook);
-            MessageEmbed embed = new MessageEmbed();
-            
-            embed.SetTitle("Time Extension");
-            char buffer[128];
-            int extend = g_Cvar_ExtendSteps.IntValue;
-            Format(buffer, sizeof(buffer), "Map time has been extended by %d minutes.", extend);
-            embed.AddField("Extension:", buffer, false);
-            embed.SetColor("#FFE000");
-            
-            char footer[128];
-            FindConVar("hostname").GetString(footer, sizeof(footer));
-            embed.SetFooter(footer);
-            
-            hook.SlackMode = true;
-            hook.Embed(embed);
-            hook.Send();
-            delete hook;
-        }
-    }
-}
-
 public void ExecuteVoteResult()
 {
     if (GetVoteMethod() == 3 && strlen(g_sVoteMap) > 0 && strlen(g_sVoteGameMode) == 0)
@@ -4086,37 +4052,6 @@ public void ExecuteVoteResult()
         }
     }
     
-    if(g_Cvar_Discord.BoolValue && g_Cvar_DiscordVoteResult && !StrEqual(g_sVoteGameMode, ""))
-    {
-        char webhook[256];
-        g_Cvar_DiscordWebhook.GetString(webhook, sizeof(webhook));
-        
-        if(!StrEqual(webhook, ""))
-        {
-            DiscordWebHook hook = new DiscordWebHook(webhook);
-            
-            MessageEmbed embed = new MessageEmbed();
-            
-            embed.SetTitle("Gamemodes voting successful.");
-            embed.AddField("Selected gamemode:", g_sVoteGameMode, true);
-            embed.AddField("Selected map:", g_sVoteMap, true);
-            embed.SetColor("#00FF3C");
-            
-            char thumbUrl[256];
-            Format(thumbUrl, sizeof(thumbUrl), "https://image.gametracker.com/images/maps/160x120/tf2/%s.jpg", g_sVoteMap);
-            embed.SetThumb(thumbUrl);
-            
-            char footer[128];
-            FindConVar("hostname").GetString(footer, sizeof(footer));
-            embed.SetFooter(footer);
-            
-            hook.SlackMode = true;
-            hook.Embed(embed);
-            hook.Send();
-            delete hook;
-        }
-    }
-    
     strcopy(g_sNextGameMode, sizeof(g_sNextGameMode), g_sVoteGameMode);
     strcopy(g_sNextMap, sizeof(g_sNextMap), g_sVoteMap);
 	
@@ -4139,6 +4074,7 @@ void StartMapVote(int client, const char[] sGameMode)
     if (GetVoteMethod() == 3 || strlen(sGameMode) > 0)
     {
         NativeMMC_OnVoteStart(client);
+		NativeMMC_OnVoteStartEx(client, 1);
     }
 	
     if (g_hRtvTimers[1] != INVALID_HANDLE)
@@ -4668,10 +4604,6 @@ public int MapVoteHandler(Menu menu, MenuAction action, int param1, int param2)
                 g_bVoteActive = false;
                 g_bVoteCompleted = false;
                 StartRtvCooldown();
-                if (g_Cvar_DiscordExtend.BoolValue)
-                {
-                    NotifyDiscordExtend();
-                }
                 return 0;
             }
             
@@ -4765,6 +4697,12 @@ public void OnPluginEnd()
     {
         CloseHandle(g_OnVoteStartForward);
         g_OnVoteStartForward = null;
+    }
+	
+    if (g_OnVoteStartExForward != null)
+    {
+        CloseHandle(g_OnVoteStartExForward);
+        g_OnVoteStartExForward = null;
     }
 	
     if (g_OnVoteEndForward != null)
