@@ -18,6 +18,8 @@ public void OnPluginStart()
 	g_Cvar_DiscordVoteStart = CreateConVar("multimode_discordvotestart", "1", "Enable discord webhook vote start.", _, true, 0.0, true, 1.0);
     g_Cvar_DiscordVoteResult = CreateConVar("multimode_discordvoteresults", "1", "Enable discord webhook vote results.", _, true, 0.0, true, 1.0);
     g_Cvar_DiscordExtend = CreateConVar("multimode_discordextend", "1", "Enable discord webhook vote extensions.", _, true, 0.0, true, 1.0);
+	
+	AutoExecConfig(true, "multimode_discord");
 }
 
 public void MultiMode_OnVoteEnd(const char[] gamemode, const char[] map)
