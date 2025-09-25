@@ -4,25 +4,25 @@
     {
         "600"
         {
-            "hint"    "[Multimode Core] {TIME} minutes until voting begins, get ready!"
-            "chat"    "{green}[Multimode Core] {default}{TIME} minutes until voting begins, {olive}get ready!"
+            "hint"    "[Multimode Core] {TIME} minutes remaining to start a vote, get ready!"
+            "chat"    "{green}[Multimode Core] {default}{TIME} minutes remaining to start a vote, {olive}get ready!"
         }
     
         "300"
         {
-            "hint"    "[Multimode Core] {TIME} minutes until voting begins!"
-            "chat"    "{green}[Multimode Core] {default}{TIME} minutes until voting {olive}begins!"
+            "hint"    "[Multimode Core] {TIME} minutes remaining to start a vote!"
+            "chat"    "{green}[Multimode Core] {default}{TIME} minutes remaining to {olive}start a vote!"
         }
     
         "60"
         {
-            "hint"  "[Multimode Core] {TIME} minute until voting begins!"
-            "chat"  "{green}[Multimode Core] {default}{TIME} minute until voting {olive}begins!"
+            "hint"  "[Multimode Core] {TIME} minute remaining to start a vote!"
+            "chat"  "{green}[Multimode Core] {default}{TIME} minute remaining to {olive}start a vote!"
         }
     
         "10;1"
         {
-            "hint"    "[Multimode Core] {TIME} seconds until voting begins!"
+            "hint"    "[Multimode Core] Voting for the next map will begin in: {time}"
             "sound"   "buttons/blip1.wav"
         }
 
@@ -37,25 +37,25 @@
     {
         "30"
         {
-            "hint"    "[Multimode Core] {FRAGS} Frags until voting begins!"
-            "chat"    "[Multimode Core] {FRAGS} Frags until voting begins!"
+            "hint"    "[Multimode Core] {FRAGS} Frags remaining to start a vote!"
+            "chat"    "[Multimode Core] {FRAGS} Frags remaining to start a vote!"
         }
 
         "20"
         {
-            "hint"    "[Multimode Core] {FRAGS} Frags until voting begins!"
-            "chat"    "[Multimode Core] {FRAGS} Frags until voting begins!"
+            "hint"    "[Multimode Core] {FRAGS} Frags remaining to start a vote!"
+            "chat"    "[Multimode Core] {FRAGS} Frags remaining to start a vote!"
         }
 
         "10"
         {
-            "hint"    "[Multimode Core] {FRAGS} Frags until voting begins!"
-            "chat"    "[Multimode Core] {FRAGS} Frags until voting begins!"
+            "hint"    "[Multimode Core] {FRAGS} Frags remaining to start a vote!"
+            "chat"    "[Multimode Core] {FRAGS} Frags remaining to start a vote!"
         }
     
         "5;1"
         {
-            "hint"    "[Multimode Core] {FRAGS} Frags until voting begins!"
+            "hint"    "[Multimode Core] {FRAGS} Frags remaining to start a vote!"
         }
 
         "0"
@@ -69,12 +69,12 @@
     {
         "3"
         {
-            "hint"    "[Multimode Core] {ROUNDS} More rounds until voting begins, get ready!"
+            "hint"    "[Multimode Core] {ROUNDS} More rounds remaining to start a vote, get ready!"
         }
     
         "2;1"
         {
-            "hint"    "[Multimode Core] {ROUNDS} More rounds until voting begins!"
+            "hint"    "[Multimode Core] {ROUNDS} More rounds remaining to start a vote!"
             "sound"   "buttons/blip1.wav"
         }
 
