@@ -9,7 +9,6 @@
 #include <morecolors>
 #include <adminmenu>
 #include <nextmap>
-#include <discord>
 #include <emitsoundany>
 #include <clientprefs>
 #include <multimode/base>
