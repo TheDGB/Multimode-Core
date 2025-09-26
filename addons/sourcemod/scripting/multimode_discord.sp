@@ -9,6 +9,7 @@ ConVar g_Cvar_Discord;
 ConVar g_Cvar_DiscordVoteStart;
 ConVar g_Cvar_DiscordExtend;
 ConVar g_Cvar_DiscordVoteResult;
+ConVar g_Cvar_DiscordGamemodeChanged;
 ConVar g_Cvar_DiscordWebhook;
 
 public void OnPluginStart()
@@ -16,6 +17,7 @@ public void OnPluginStart()
     g_Cvar_Discord = CreateConVar("multimode_discord", "1", "Enable sending a message to Discord when a vote is successful.", _, true, 0.0, true, 1.0);
     g_Cvar_DiscordWebhook = CreateConVar("multimode_discordwebhook", "https://discord.com/api/webhooks/...", "Discord webhook URL to send messages to.", FCVAR_PROTECTED);
 	g_Cvar_DiscordVoteStart = CreateConVar("multimode_discordvotestart", "1", "Enable discord webhook vote start.", _, true, 0.0, true, 1.0);
+	g_Cvar_DiscordGamemodeChanged = CreateConVar("multimode_discordgamemodechanged", "1", "Enable discord webhook gamemode changes.", _, true, 0.0, true, 1.0);
     g_Cvar_DiscordVoteResult = CreateConVar("multimode_discordvoteresults", "1", "Enable discord webhook vote results.", _, true, 0.0, true, 1.0);
     g_Cvar_DiscordExtend = CreateConVar("multimode_discordextend", "1", "Enable discord webhook vote extensions.", _, true, 0.0, true, 1.0);
 	
@@ -37,7 +39,7 @@ public void MultiMode_OnVoteEnd(const char[] gamemode, const char[] map)
 
 public void MultiMode_OnGamemodeChanged(const char[] gamemode, const char[] map, int timing)
 {
-    if (g_Cvar_Discord.BoolValue && g_Cvar_DiscordVoteResult.BoolValue)
+    if (g_Cvar_Discord.BoolValue && g_Cvar_DiscordGamemodeChanged.BoolValue)
     {
         NotifyDiscordGamemodeChange(gamemode, map, timing);
     }
