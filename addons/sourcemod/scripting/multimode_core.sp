@@ -396,27 +396,53 @@ public void OnMapStart()
             list.GetArray(index, config);
         
             WriteToLogFile("[MultiMode Core] Using preselected gamemode: %s", config.name);
-        
+            
             if (strlen(config.command) > 0)
             {
                 WriteToLogFile("[MultiMode Core] Executing group command: %s", config.command);
                 ServerCommand("%s", config.command);
             }
-            else
+            
+            KeyValues kv = GetMapKv(config.name, CurrentMap);
+            if (kv != null)
             {
-                KeyValues kv = GetMapKv(config.name, CurrentMap);
-                if (kv != null)
+                char mapCommand[256];
+                kv.GetString("command", mapCommand, sizeof(mapCommand), "");
+                
+                if (strlen(mapCommand) > 0)
                 {
-                    char mapCommand[256];
-                    kv.GetString("command", mapCommand, sizeof(mapCommand), "");
-                    if (strlen(mapCommand) > 0)
-                    {
-                        WriteToLogFile("[MultiMode Core] Executing map command: %s", mapCommand);
-                        ServerCommand("%s", mapCommand);
-                    }
-                    delete kv;
+                    WriteToLogFile("[MultiMode Core] Executing map command: %s", mapCommand);
+                    ServerCommand("%s", mapCommand);
                 }
+                delete kv;
             }
+            
+            if (g_kvGameModes.JumpToKey(config.name) && g_kvGameModes.JumpToKey("maps"))
+            {
+                if (g_kvGameModes.GotoFirstSubKey(false))
+                {
+                    do
+                    {
+                        char mapKey[PLATFORM_MAX_PATH];
+                        g_kvGameModes.GetSectionName(mapKey, sizeof(mapKey));
+
+                        if (IsWildcardEntry(mapKey) && StrContains(CurrentMap, mapKey) == 0)
+                        {
+                            char wildcardCommand[256];
+                            g_kvGameModes.GetString("command", wildcardCommand, sizeof(wildcardCommand), "");
+                            
+                            if (strlen(wildcardCommand) > 0)
+                            {
+                                WriteToLogFile("[MultiMode Core] Executing wildcard command (%s): %s", mapKey, wildcardCommand);
+                                ServerCommand("%s", wildcardCommand);
+                            }
+                        }
+                    } while (g_kvGameModes.GotoNextKey(false));
+                    g_kvGameModes.GoBack();
+                }
+                g_kvGameModes.GoBack();
+            }
+            g_kvGameModes.Rewind();
         }
         g_sNextGameMode[0] = '\0';
     }
@@ -439,46 +465,47 @@ public void OnMapStart()
                     ServerCommand("%s", config.command);
                 }
 
+                KeyValues kv = GetMapKv(config.name, CurrentMap);
+                if (kv != null)
+                {
+                    char mapCommand[256];
+                    kv.GetString("command", mapCommand, sizeof(mapCommand), "");
+                    
+                    if (strlen(mapCommand) > 0)
+                    {
+                        WriteToLogFile("[MultiMode Core] Executing map command: %s", mapCommand);
+                        ServerCommand("%s", mapCommand);
+                    }
+                    delete kv;
+                }
+                
                 if (g_kvGameModes.JumpToKey(config.name) && g_kvGameModes.JumpToKey("maps"))
                 {
-                    if (g_kvGameModes.JumpToKey(CurrentMap))
+                    if (g_kvGameModes.GotoFirstSubKey(false))
                     {
-                        char mapCommand[256];
-                        g_kvGameModes.GetString("command", mapCommand, sizeof(mapCommand), "");
-                        if (strlen(mapCommand) > 0)
+                        do
                         {
-                            WriteToLogFile("[MultiMode Core] Executing map command: %s", mapCommand);
-                            ServerCommand("%s", mapCommand);
-                        }
-                        g_kvGameModes.GoBack();
-                    }
-                    else
-                    {
-                        if (g_kvGameModes.GotoFirstSubKey(false))
-                        {
-                            do
-                            {
-                                char mapKey[PLATFORM_MAX_PATH];
-                                g_kvGameModes.GetSectionName(mapKey, sizeof(mapKey));
+                            char mapKey[PLATFORM_MAX_PATH];
+                            g_kvGameModes.GetSectionName(mapKey, sizeof(mapKey));
 
-                                if (IsWildcardEntry(mapKey) && StrContains(CurrentMap, mapKey) == 0)
+                            if (IsWildcardEntry(mapKey) && StrContains(CurrentMap, mapKey) == 0)
+                            {
+                                char wildcardCommand[256];
+                                g_kvGameModes.GetString("command", wildcardCommand, sizeof(wildcardCommand), "");
+                                
+                                if (strlen(wildcardCommand) > 0)
                                 {
-                                    char wildcardCommand[256];
-                                    g_kvGameModes.GetString("command", wildcardCommand, sizeof(wildcardCommand), "");
-                                    if (strlen(wildcardCommand) > 0)
-                                    {
-                                        WriteToLogFile("[MultiMode Core] Executing wildcard command (%s): %s", mapKey, wildcardCommand);
-                                        ServerCommand("%s", wildcardCommand);
-                                    }
-                                    break;
+                                    WriteToLogFile("[MultiMode Core] Executing wildcard command (%s): %s", mapKey, wildcardCommand);
+                                    ServerCommand("%s", wildcardCommand);
                                 }
-                            } while (g_kvGameModes.GotoNextKey(false));
-                            g_kvGameModes.GoBack();
-                        }
+                            }
+                        } while (g_kvGameModes.GotoNextKey(false));
+                        g_kvGameModes.GoBack();
                     }
                     g_kvGameModes.GoBack();
                 }
                 g_kvGameModes.Rewind();
+                
                 break;
             }
         }
@@ -685,11 +712,12 @@ public void LoadGameModesConfig()
             config.adminonly = g_kvGameModes.GetNum("adminonly", 0);
             config.minplayers = g_kvGameModes.GetNum("minplayers", 0);
             config.maxplayers = g_kvGameModes.GetNum("maxplayers", 0);
-			
-			g_kvGameModes.GetString("pre-command", config.pre_command, sizeof(config.pre_command), "");
+            
+            g_kvGameModes.GetString("command", config.command, sizeof(config.command), "");
+            g_kvGameModes.GetString("pre-command", config.pre_command, sizeof(config.pre_command), "");
             g_kvGameModes.GetString("vote-command", config.vote_command, sizeof(config.vote_command), "");
             
-            if (g_kvGameModes.JumpToKey("serverconfig"))
+            if (strlen(config.command) == 0 && g_kvGameModes.JumpToKey("serverconfig"))
             {
                 g_kvGameModes.GetString("command", config.command, sizeof(config.command), "");
                 g_kvGameModes.GoBack();
@@ -1954,12 +1982,7 @@ void ExecutePreCommands()
     ArrayList list = GetGameModesList();
     list.GetArray(index, config);
 
-    if (strlen(config.pre_command) > 0)
-    {
-        ServerCommand("%s", config.pre_command);
-        WriteToLogFile("[MultiMode Core] Executed group pre-command: %s", config.pre_command);
-    }
-
+    bool commandExecuted = false;
     char currentMap[PLATFORM_MAX_PATH];
     GetCurrentMap(currentMap, sizeof(currentMap));
     
@@ -1968,12 +1991,20 @@ void ExecutePreCommands()
     {
         char mapPreCommand[256];
         kv.GetString("pre-command", mapPreCommand, sizeof(mapPreCommand), "");
+        
         if (strlen(mapPreCommand) > 0)
         {
             ServerCommand("%s", mapPreCommand);
             WriteToLogFile("[MultiMode Core] Executed map pre-command: %s", mapPreCommand);
+            commandExecuted = true;
         }
         delete kv;
+    }
+    
+    if (!commandExecuted && strlen(config.pre_command) > 0)
+    {
+        ServerCommand("%s", config.pre_command);
+        WriteToLogFile("[MultiMode Core] Executed group pre-command: %s", config.pre_command);
     }
 }
 
@@ -1986,24 +2017,28 @@ void ExecuteVoteCommands(const char[] gamemode, const char[] map)
     GameModeConfig config;
     ArrayList list = GetGameModesList();
     list.GetArray(index, config);
-	
-    if (strlen(config.vote_command) > 0)
-    {
-        ServerCommand("%s", config.vote_command);
-        WriteToLogFile("[MultiMode Core] Executed group vote-command: %s", config.vote_command);
-    }
-
+    
+    bool commandExecuted = false;
+    
     KeyValues kv = GetMapKv(gamemode, map);
     if (kv != null)
     {
         char mapVoteCommand[256];
         kv.GetString("vote-command", mapVoteCommand, sizeof(mapVoteCommand), "");
+        
         if (strlen(mapVoteCommand) > 0)
         {
             ServerCommand("%s", mapVoteCommand);
             WriteToLogFile("[MultiMode Core] Executed map vote-command: %s", mapVoteCommand);
+            commandExecuted = true;
         }
         delete kv;
+    }
+    
+    if (!commandExecuted && strlen(config.vote_command) > 0)
+    {
+        ServerCommand("%s", config.vote_command);
+        WriteToLogFile("[MultiMode Core] Executed group vote-command: %s", config.vote_command);
     }
 }
 
