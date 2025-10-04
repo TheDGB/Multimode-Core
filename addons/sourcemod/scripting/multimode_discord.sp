@@ -11,6 +11,8 @@ ConVar g_Cvar_DiscordExtend;
 ConVar g_Cvar_DiscordVoteResult;
 ConVar g_Cvar_DiscordGamemodeChanged;
 ConVar g_Cvar_DiscordWebhook;
+ConVar g_Cvar_DiscordRunOff;
+ConVar g_Cvar_DiscordFailed;
 
 public void OnPluginStart()
 {
@@ -20,36 +22,85 @@ public void OnPluginStart()
 	g_Cvar_DiscordGamemodeChanged = CreateConVar("multimode_discordgamemodechanged", "1", "Enable discord webhook gamemode changes.", _, true, 0.0, true, 1.0);
     g_Cvar_DiscordVoteResult = CreateConVar("multimode_discordvoteresults", "1", "Enable discord webhook vote results.", _, true, 0.0, true, 1.0);
     g_Cvar_DiscordExtend = CreateConVar("multimode_discordextend", "1", "Enable discord webhook vote extensions.", _, true, 0.0, true, 1.0);
+	g_Cvar_DiscordRunOff = CreateConVar("multimode_discordrunoff", "1", "Enable discord webhook vote run off.", _, true, 0.0, true, 1.0);
+	g_Cvar_DiscordFailed = CreateConVar("multimode_discordfailed", "1", "Enable discord webhook when a vote fails.", _, true, 0.0, true, 1.0);
 	
 	AutoExecConfig(true, "multimode_discord");
 }
 
-public void MultiMode_OnVoteEnd(const char[] gamemode, const char[] map)
+public void MultiMode_OnVoteEnd(const char[] group, const char[] subgroup, const char[] map, VoteEndReason reason)
 {
-    if (!g_Cvar_Discord.BoolValue) return;
-    
-    if (StrEqual(gamemode, "extend"))
+    if (!g_Cvar_Discord.BoolValue) 
+        return;
+
+    if (StrEqual(group, "extend"))
     {
         if (g_Cvar_DiscordExtend.BoolValue)
         {
             NotifyDiscordExtend();
         }
+        return;
+    }
+
+    switch (reason)
+    {
+        case VoteEnd_Runoff:
+        {
+		    if (g_Cvar_DiscordRunOff.BoolValue)
+            {
+                NotifyDiscordRunoff();
+			}
+        }
+        case VoteEnd_Cancelled:
+        {
+		    if (g_Cvar_DiscordFailed.BoolValue)
+            {
+                NotifyDiscordCancelled();
+			}
+        }
+        case VoteEnd_Failed:
+        {
+		    if (g_Cvar_DiscordFailed.BoolValue)
+            {
+                NotifyDiscordFailed();
+			}
+        }
     }
 }
 
-public void MultiMode_OnGamemodeChanged(const char[] gamemode, const char[] map, int timing)
+public void MultiMode_OnGamemodeChanged(const char[] group, const char[] subgroup, const char[] map, int timing)
 {
     if (g_Cvar_Discord.BoolValue && g_Cvar_DiscordGamemodeChanged.BoolValue)
     {
-        NotifyDiscordGamemodeChange(gamemode, map, timing);
+        char displayName[128];
+        if (StrEqual(subgroup, ""))
+        {
+            strcopy(displayName, sizeof(displayName), group);
+        }
+        else
+        {
+            Format(displayName, sizeof(displayName), "%s (Sub Group: %s)", group, subgroup);
+        }
+
+        NotifyDiscordGamemodeChange(displayName, map, timing);
     }
 }
 
-public void MultiMode_OnGamemodeChangedVote(const char[] gamemode, const char[] map, int timing)
+public void MultiMode_OnGamemodeChangedVote(const char[] group, const char[] subgroup, const char[] map, int timing)
 {
     if (g_Cvar_Discord.BoolValue && g_Cvar_DiscordVoteResult.BoolValue)
     {
-        NotifyDiscordVoteResult(gamemode, map, timing);
+        char displayName[128];
+        if (StrEqual(subgroup, ""))
+        {
+            strcopy(displayName, sizeof(displayName), group);
+        }
+        else
+        {
+            Format(displayName, sizeof(displayName), "%s (Sub Group: %s)", group, subgroup);
+        }
+
+        NotifyDiscordVoteResult(displayName, map, timing);
     }
 }
 
@@ -133,6 +184,84 @@ void NotifyDiscordExtend()
     embed.SetTitle("Map Extended");
     embed.AddField("Extension:", "The current map has been extended.", false);
     embed.SetColor("#FFE000");
+    
+    char footer[128];
+    FindConVar("hostname").GetString(footer, sizeof(footer));
+    embed.SetFooter(footer);
+    
+    hook.SlackMode = true;
+    hook.Embed(embed);
+    hook.Send();
+    delete hook;
+}
+
+void NotifyDiscordCancelled()
+{
+    char webhook[256];
+    g_Cvar_DiscordWebhook.GetString(webhook, sizeof(webhook));
+
+    if (StrEqual(webhook, "")) return;
+
+    DiscordWebHook hook = new DiscordWebHook(webhook);
+    MessageEmbed embed = new MessageEmbed();
+    
+    embed.SetTitle("The current Vote has been cancelled.");
+    char buffer[128];
+    Format(buffer, sizeof(buffer), "The Vote was canceled by an administrator or third-party applications.");
+    embed.AddField("Reason:", buffer, false);
+    embed.SetColor("#FF0000");
+    
+    char footer[128];
+    FindConVar("hostname").GetString(footer, sizeof(footer));
+    embed.SetFooter(footer);
+    
+    hook.SlackMode = true;
+    hook.Embed(embed);
+    hook.Send();
+    delete hook;
+}
+
+void NotifyDiscordFailed()
+{
+    char webhook[256];
+    g_Cvar_DiscordWebhook.GetString(webhook, sizeof(webhook));
+
+    if (StrEqual(webhook, "")) return;
+
+    DiscordWebHook hook = new DiscordWebHook(webhook);
+    MessageEmbed embed = new MessageEmbed();
+    
+    embed.SetTitle("The current Vote failed.");
+    char buffer[128];
+    Format(buffer, sizeof(buffer), "The current Vote failed due to Run Off limits or no votes recorded.");
+    embed.AddField("Reason:", buffer, false);
+    embed.SetColor("#FF0000");
+    
+    char footer[128];
+    FindConVar("hostname").GetString(footer, sizeof(footer));
+    embed.SetFooter(footer);
+    
+    hook.SlackMode = true;
+    hook.Embed(embed);
+    hook.Send();
+    delete hook;
+}
+
+void NotifyDiscordRunoff()
+{
+    char webhook[256];
+    g_Cvar_DiscordWebhook.GetString(webhook, sizeof(webhook));
+
+    if (StrEqual(webhook, "")) return;
+
+    DiscordWebHook hook = new DiscordWebHook(webhook);
+    MessageEmbed embed = new MessageEmbed();
+    
+    embed.SetTitle("A Run Off vote will be held.");
+    char buffer[128];
+    Format(buffer, sizeof(buffer), "No option reached the minimum number of votes to win, a Run Off vote will be held...");
+    embed.AddField("Reason:", buffer, false);
+    embed.SetColor("#FF0000");
     
     char footer[128];
     FindConVar("hostname").GetString(footer, sizeof(footer));

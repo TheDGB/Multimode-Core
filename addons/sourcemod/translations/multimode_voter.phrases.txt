@@ -186,6 +186,66 @@
         "en"    "Vote for a Map:"
     }
 
+    "SubGroup Vote Title"
+    {
+        "en" "Choose a sub-group for %s:"
+        "pt" "Escolha um sub-grupo para %s:"
+    }
+
+    "SubGroup Map Vote Title"
+    {
+        "en" "Choose a map for %s - %s:"
+        "pt" "Escolha um mapa para %s - %s:"
+    }
+
+    "Nominate SubGroup Menu Title"
+    {
+        "en" "Nominate - %s - Select SubGroup"
+        "pt" "Nomear - %s - Selecionar Subgrupo"
+    }
+
+    "Nominate SubGroup Map Title"
+    {
+        "en" "Nominate - %s - %s - Select Map"
+        "pt" "Nomear - %s - %s - Selecionar Mapa"
+    }
+
+    "No Available SubGroups"
+    {
+        "en" "No available subgroups for nomination"
+        "pt" "Nenhum subgrupo disponível para nomeação"
+    }
+
+    "SubGroup Not Found"
+    {
+        "en" "Subgroup not found"
+        "pt" "Subgrupo não encontrado"
+    }
+
+    "No Available SubGroups"
+    {
+        "en" "No available sub-groups for this game mode."
+        "pt" "Nenhum sub-grupo disponível para este modo de jogo."
+    }
+
+    "No Maps In SubGroup"
+    {
+        "en" "No maps available in this sub-group."
+        "pt" "Nenhum mapa disponível neste sub-grupo."
+    }
+
+    "No Valid Maps In SubGroup"
+    {
+        "en" "No valid maps found in this sub-group."
+        "pt" "Nenhum mapa válido encontrado neste sub-grupo."
+    }
+
+    "SubGroup Not Found"
+    {
+        "en" "Sub-group not found."
+        "pt" "Sub-grupo não encontrado."
+    }
+
     "Timing NextMap"
     {
         "pt"    "Próximo Mapa"
@@ -292,6 +352,24 @@
     {
         "pt"    "Outra votação será encaminhada em %d segundos..."
         "en"    "Another vote will be taken in %d seconds..."
+    }
+
+    "Run Off Cooldown Hud"
+    {
+        "pt"    "Uma votação de Run Off será realizado em %d segundos..."
+        "en"    "Run Off will be taken in %d seconds..."
+    }
+
+    "Run Off Voting Cooldown"
+    {
+        "pt"    "{green}[Votação] {default}Nenhuma opção atingiu o mínimo de votos para vencer, uma votação de Run Off será realizado em %d segundos..."
+        "en"    "{green}[Voting] {default}No option reached the minimum votes to win, Run Off will be taken in %d seconds.."
+    }
+
+    "Runoff Vote Failed (Limit)"
+    {
+        "en"    "Runoff vote limit reached. The vote has been cancelled."
+        "pt"    "Limite de votações de desempate atingido. A votação foi cancelada."
     }
 
     "Vote Type Menu Title"
