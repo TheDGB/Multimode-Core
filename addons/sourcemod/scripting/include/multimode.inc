@@ -3,6 +3,8 @@
 #endif
 #define _multimode_included
 
+#include <multimode/base>
+
 /**
  * Starts a gamemode/map vote.
  * 
