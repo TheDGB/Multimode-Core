@@ -15,7 +15,7 @@
 #include <nativevotes>
 
 #define COMMAND_KEY          "command"
-#define PLUGIN_VERSION "2.8.3beta"
+#define PLUGIN_VERSION "2.8.5"
 
 // Convar Section
 ConVar g_Cvar_CooldownEnabled;
@@ -1183,28 +1183,69 @@ void HandleWinner(const char[] winner, VoteType voteType)
             {
                 strcopy(g_sVoteGameMode, sizeof(g_sVoteGameMode), winner);
                 
-                if (HasSubGroups(winner))
-                {
-                    g_bVoteActive = false;
-                    StartCooldown(VOTE_TYPE_SUBGROUP, winner, "", g_iVoteInitiator);
-                }
-                else if (GetVoteMethod() == 2)
+                if (GetVoteMethod() == 2)
                 {
                     int index = FindGameModeIndex(winner);
                     if (index != -1)
                     {
                         GameModeConfig config;
                         GetGameModesList().GetArray(index, config);
+
+                        ArrayList allMaps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
                         
-                        if (config.maps.Length > 0)
+                        for (int i = 0; i < config.maps.Length; i++)
                         {
-                            int randomIndex = GetRandomInt(0, config.maps.Length - 1);
                             char map[PLATFORM_MAX_PATH];
-                            config.maps.GetString(randomIndex, map, sizeof(map));
-                            strcopy(g_sVoteMap, sizeof(g_sVoteMap), map);
-                            ExecuteVoteResult();
+                            config.maps.GetString(i, map, sizeof(map));
+                            allMaps.PushString(map);
                         }
+
+                        for (int i = 0; i < config.subGroups.Length; i++)
+                        {
+                            SubGroupConfig subConfig;
+                            config.subGroups.GetArray(i, subConfig);
+                            for (int j = 0; j < subConfig.maps.Length; j++)
+                            {
+                                char map[PLATFORM_MAX_PATH];
+                                subConfig.maps.GetString(j, map, sizeof(map));
+                                if (allMaps.FindString(map) == -1) {
+                                     allMaps.PushString(map);
+                                }
+                            }
+                        }
+
+                        if (allMaps.Length > 0)
+                        {
+                            int randomIndex = GetRandomInt(0, allMaps.Length - 1);
+                            char map[PLATFORM_MAX_PATH];
+                            allMaps.GetString(randomIndex, map, sizeof(map));
+                            strcopy(g_sVoteMap, sizeof(g_sVoteMap), map);
+
+                            g_sVoteSubGroup[0] = '\0';
+                            for (int i = 0; i < config.subGroups.Length; i++)
+                            {
+                                SubGroupConfig subConfig;
+                                config.subGroups.GetArray(i, subConfig);
+                                if (subConfig.maps.FindString(map) != -1)
+                                {
+                                    strcopy(g_sVoteSubGroup, sizeof(g_sVoteSubGroup), subConfig.name);
+                                    break;
+                                }
+                            }
+
+                            if (strlen(g_sVoteSubGroup) > 0) {
+                                ExecuteSubGroupVoteResult();
+                            } else {
+                                ExecuteVoteResult();
+                            }
+                        }
+                        delete allMaps;
                     }
+                }
+                else if (HasSubGroups(winner))
+                {
+                    g_bVoteActive = false;
+                    StartCooldown(VOTE_TYPE_SUBGROUP, winner, "", g_iVoteInitiator);
                 }
                 else
                 {
@@ -5178,6 +5219,32 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
                     {
                         voteMaps.PushString(map);
                         uniqueMaps.SetValue(map, true);
+                    }
+                }
+
+                for (int k = 0; k < config.subGroups.Length; k++)
+                {
+                    SubGroupConfig subConfig;
+                    config.subGroups.GetArray(k, subConfig);
+                    
+                    if (!subConfig.enabled) continue;
+                    
+                    if (subConfig.adminonly == 1 && !g_bCurrentVoteAdmin)
+                        continue;
+
+                    int players = GetRealClientCount();
+                    if (subConfig.minplayers > 0 && players < subConfig.minplayers) continue;
+                    if (subConfig.maxplayers > 0 && players > subConfig.maxplayers) continue;
+
+                    for (int j = 0; j < subConfig.maps.Length; j++)
+                    {
+                        char map[PLATFORM_MAX_PATH];
+                        subConfig.maps.GetString(j, map, sizeof(map));
+                        if (!uniqueMaps.ContainsKey(map))
+                        {
+                            voteMaps.PushString(map);
+                            uniqueMaps.SetValue(map, true);
+                        }
                     }
                 }
             }
