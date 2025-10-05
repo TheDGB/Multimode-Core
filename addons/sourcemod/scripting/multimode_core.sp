@@ -1167,9 +1167,9 @@ void HandleWinner(const char[] winner, VoteType voteType)
 {
     g_eCurrentVoteTiming = g_eVoteTiming;
 
-    if (StrEqual(winner, "extend"))
+    if (StrEqual(winner, "Extend Map"))
     {
-        NativeMMC_OnVoteEnd("extend", "", "", VoteEnd_Extend);
+        NativeMMC_OnVoteEnd("Extend Map", "", "", VoteEnd_Extend);
         ExtendMapTime();
         g_bVoteActive = false;
         g_bVoteCompleted = false;
@@ -1246,7 +1246,7 @@ void HandleWinner(const char[] winner, VoteType voteType)
         if (sound[0] != '\0') EmitSoundToAllAny(sound);
     }
     
-    if(!StrEqual(winner, "extend"))
+    if(!StrEqual(winner, "Extend Map"))
     {
         g_bVoteActive = false;
         g_bVoteCompleted = true;
@@ -4445,7 +4445,7 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
                 char extendText[128];
                 int extendMinutes = g_Cvar_ExtendSteps.IntValue;
                 Format(extendText, sizeof(extendText), "%t", "Extend Map Normal Vote", extendMinutes);
-                vote.AddItem("extend", extendText);
+                vote.AddItem("Extend Map", extendText);
             }
 
             for (int i = 0; i < voteGameModes.Length; i++)
@@ -4481,7 +4481,7 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
         char extendText[128];
         int extendMinutes = g_Cvar_ExtendSteps.IntValue;
         Format(extendText, sizeof(extendText), "%t", "Extend Map Normal Vote", extendMinutes);
-        menu.AddItem("extend", extendText);
+        menu.AddItem("Extend Map", extendText);
     }
         
     if (g_Cvar_VoteSounds.BoolValue)
@@ -4798,7 +4798,7 @@ void ExtendMapTime()
         g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
     }
 	
-	NativeMMC_OnVoteEnd("extend", "", "", VoteEnd_Extend);
+	NativeMMC_OnVoteEnd("Extend Map", "", "", VoteEnd_Extend);
 
     g_bMapExtended = true;
 }
@@ -5250,7 +5250,7 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
                     char extendText[128];
                     int extendMinutes = g_Cvar_ExtendSteps.IntValue;
                     Format(extendText, sizeof(extendText), "%t", "Extend Map Normal Vote", extendMinutes);
-                    vote.AddItem("extend", extendText);
+                    vote.AddItem("Extend Map", extendText);
                 }
 
                 char map[PLATFORM_MAX_PATH], display[256];
@@ -5281,7 +5281,7 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
             char extendText[128];
             int extendMinutes = g_Cvar_ExtendSteps.IntValue;
             Format(extendText, sizeof(extendText), "%t", "Extend Map Normal Vote", extendMinutes);
-            menu.AddItem("extend", extendText);
+            menu.AddItem("Extend Map", extendText);
         }
 
         char map[PLATFORM_MAX_PATH], display[256];
