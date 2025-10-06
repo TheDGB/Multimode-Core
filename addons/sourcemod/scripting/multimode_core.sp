@@ -15,7 +15,7 @@
 #include <nativevotes>
 
 #define COMMAND_KEY          "command"
-#define PLUGIN_VERSION "2.8.5"
+#define PLUGIN_VERSION "2.8.7"
 
 // Convar Section
 ConVar g_Cvar_CooldownEnabled;
@@ -880,6 +880,8 @@ public void LoadGameModesConfig()
             config.subGroups = new ArrayList(sizeof(SubGroupConfig));
             if (g_kvGameModes.JumpToKey("subgroup"))
             {
+                config.subgroups_invote = g_kvGameModes.GetNum("subgroups_invote", 6);
+                
                 if (g_kvGameModes.GotoFirstSubKey(false))
                 {
                     do
@@ -3401,6 +3403,10 @@ void ShowNominateMapMenu(int client, const char[] gamemode, const char[] subgrou
     {
         char map[PLATFORM_MAX_PATH];
         filteredMaps.GetString(i, map, sizeof(map));
+        if (!CanClientNominate(client, gamemode, subgroup, map))
+        {
+            continue;
+        }
 
         if (g_Cvar_NominateSelectedMapExclude.BoolValue && 
             mapsNominated != null && 
@@ -4614,6 +4620,8 @@ void StartSubGroupVote(int client, const char[] gamemode, ArrayList runoffItems 
     else
     {
         voteSubGroups = new ArrayList(ByteCountToCells(64));
+        ArrayList allSubGroups = new ArrayList(ByteCountToCells(64));
+
         for (int i = 0; i < config.subGroups.Length; i++)
         {
             SubGroupConfig subConfig;
@@ -4628,8 +4636,25 @@ void StartSubGroupVote(int client, const char[] gamemode, ArrayList runoffItems 
             if (subConfig.minplayers > 0 && players < subConfig.minplayers) continue;
             if (subConfig.maxplayers > 0 && players > subConfig.maxplayers) continue;
 
-            voteSubGroups.PushString(subConfig.name);
+            allSubGroups.PushString(subConfig.name);
         }
+
+        bool bUseRandom = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminRandom.BoolValue : g_Cvar_VoteRandom.BoolValue;
+        if (bUseRandom)
+        {
+            allSubGroups.Sort(Sort_Random, Sort_String);
+        }
+
+        int limit = config.subgroups_invote;
+        int count = allSubGroups.Length < limit ? allSubGroups.Length : limit;
+
+        for (int i = 0; i < count; i++)
+        {
+            char subGroupName[64];
+            allSubGroups.GetString(i, subGroupName, sizeof(subGroupName));
+            voteSubGroups.PushString(subGroupName);
+        }
+        delete allSubGroups;
     }
 
     if (voteSubGroups.Length == 0)

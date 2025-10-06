@@ -59,6 +59,7 @@ enum struct GameModeConfig {
     char pre_command[256];
     char vote_command[256];
     int maps_invote;
+    int subgroups_invote;
     int adminonly;
     int enabled;
     int maxplayers;
@@ -108,6 +109,69 @@ stock ArrayList GetGameModesList() {
 forward void OnGamemodeConfigLoaded();
 
 KeyValues g_kvGameModes;
+
+stock void GetNominateFlags(const char[] gamemode, const char[] subgroup, const char[] map, char[] flags, int maxlen)
+{
+    flags[0] = '\0';
+
+    if (strlen(subgroup) > 0) {
+        if (g_kvGameModes.JumpToKey(gamemode) && g_kvGameModes.JumpToKey("subgroup") && g_kvGameModes.JumpToKey(subgroup) && g_kvGameModes.JumpToKey("maps")) {
+            if (g_kvGameModes.JumpToKey(map)) {
+                g_kvGameModes.GetString("nominate_flags", flags, maxlen);
+                g_kvGameModes.GoBack();
+            }
+            g_kvGameModes.GoBack();
+            g_kvGameModes.GoBack();
+            g_kvGameModes.GoBack();
+            g_kvGameModes.GoBack();
+        }
+        g_kvGameModes.Rewind();
+        if (flags[0] != '\0') return;
+    }
+
+    if (g_kvGameModes.JumpToKey(gamemode) && g_kvGameModes.JumpToKey("maps")) {
+        if (g_kvGameModes.JumpToKey(map)) {
+            g_kvGameModes.GetString("nominate_flags", flags, maxlen);
+            g_kvGameModes.GoBack();
+        }
+        g_kvGameModes.GoBack();
+        g_kvGameModes.GoBack();
+    }
+    g_kvGameModes.Rewind();
+    if (flags[0] != '\0') return;
+
+    if (strlen(subgroup) > 0) {
+        if (g_kvGameModes.JumpToKey(gamemode) && g_kvGameModes.JumpToKey("subgroup") && g_kvGameModes.JumpToKey(subgroup)) {
+            g_kvGameModes.GetString("nominate_flags", flags, maxlen);
+            g_kvGameModes.GoBack();
+            g_kvGameModes.GoBack();
+            g_kvGameModes.GoBack();
+        }
+        g_kvGameModes.Rewind();
+        if (flags[0] != '\0') return;
+    }
+
+    if (g_kvGameModes.JumpToKey(gamemode)) {
+        g_kvGameModes.GetString("nominate_flags", flags, maxlen);
+        g_kvGameModes.GoBack();
+    }
+    g_kvGameModes.Rewind();
+}
+
+stock bool CanClientNominate(int client, const char[] gamemode, const char[] subgroup, const char[] map)
+{
+    char flags[32];
+    GetNominateFlags(gamemode, subgroup, map, flags, sizeof(flags));
+
+    // If no flags are defined, anyone can nominate.
+    if (flags[0] == '\0') {
+        return true;
+    }
+
+    int requiredFlags = ReadFlagString(flags);
+    
+    return CheckCommandAccess(client, "", requiredFlags, true);
+}
 
 stock void ParseGameModes()
 {
