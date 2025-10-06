@@ -3186,6 +3186,11 @@ void ShowNominateGamemodeMenu(int client)
         GameModeConfig config;
         gameModes.GetArray(i, config);
 
+        if (!CanClientNominate(client, config.name, "", ""))
+        {
+            continue;
+        }
+
         if (g_Cvar_NominateSelectedGroupExclude.BoolValue &&
             g_NominatedGamemodes.FindString(config.name) != -1)
         {
@@ -3267,6 +3272,11 @@ void ShowNominateSubGroupMenu(int client, const char[] gamemode)
         config.subGroups.GetArray(i, subConfig);
 
         if (!subConfig.enabled) continue;
+
+        if (!CanClientNominate(client, gamemode, subConfig.name, ""))
+        {
+            continue;
+        }
 
         if (subConfig.adminonly == 1 && !CheckCommandAccess(client, "sm_admin", ADMFLAG_GENERIC, true))
             continue;
