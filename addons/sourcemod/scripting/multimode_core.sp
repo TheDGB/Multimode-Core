@@ -886,6 +886,14 @@ public void LoadGameModesConfig()
                 {
                     do
                     {
+                        char sectionName[64];
+                        g_kvGameModes.GetSectionName(sectionName, sizeof(sectionName));
+
+                        if (StrEqual(sectionName, "subgroups_invote", false))
+                        {
+                            continue;
+                        }
+						
                         SubGroupConfig subConfig;
                         g_kvGameModes.GetSectionName(subConfig.name, sizeof(subConfig.name));
                         
