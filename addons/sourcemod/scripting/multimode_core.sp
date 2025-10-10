@@ -166,6 +166,8 @@ public void OnPluginStart()
     
     // Reg Admin Commands
     RegAdminCmd("multimode_reload", Command_ReloadGamemodes, ADMFLAG_CONFIG, "Reloads gamemodes configuration");
+    RegAdminCmd("multimode_setnextmap", Command_SetNextMap, ADMFLAG_CHANGEMAP, "Sets the next map. Usage: <map> <timing> [group] [subgroup]");
+    RegAdminCmd("sm_setnextmap", Command_SetNextMap, ADMFLAG_CHANGEMAP, "Sets the next map. Usage: <map> <timing> [group] [subgroup]");
     RegAdminCmd("sm_forcemode", Command_ForceMode, ADMFLAG_CHANGEMAP, "Force game mode and map");
     RegAdminCmd("sm_testvote", Command_VoteMenu, ADMFLAG_VOTE, "Start Voting Mode/Map Testing Voting");
     RegAdminCmd("sm_votecancel", Command_CancelVote, ADMFLAG_VOTE, "Cancel the current MultiMode vote");
@@ -3930,6 +3932,121 @@ int FindGameModeForMap(const char[] map)
 // //////////////////////////
 
 // Commands Extra
+
+public Action Command_SetNextMap(int client, int args)
+{
+    char sMap[PLATFORM_MAX_PATH];
+    GetCmdArg(1, sMap, sizeof(sMap));
+    ReplaceString(sMap, sizeof(sMap), ".bsp", "");
+
+    char sTiming[8];
+    GetCmdArg(2, sTiming, sizeof(sTiming));
+    int iTiming = StringToInt(sTiming);
+
+    if (iTiming < 1 || iTiming > 3)
+    {
+        ReplyToCommand(client, "[MultiMode] Error: Invalid timing. Use 1, 2 ou 3.");
+        return Plugin_Handled;
+    }
+
+    char sGroup[64];
+    char sSubGroup[64];
+    bool bGroupSpecified = false;
+
+    if (args >= 3)
+    {
+        GetCmdArg(3, sGroup, sizeof(sGroup));
+        bGroupSpecified = true;
+        if (args >= 4)
+        {
+            GetCmdArg(4, sSubGroup, sizeof(sSubGroup));
+        }
+        else
+        {
+            sSubGroup[0] = '\0';
+        }
+    }
+
+    ArrayList gameModes = GetGameModesList();
+    bool bMapFound = false;
+
+    if (bGroupSpecified)
+    {
+        int iGroupIndex = FindGameModeIndex(sGroup);
+        if (iGroupIndex != -1)
+        {
+            GameModeConfig config;
+            gameModes.GetArray(iGroupIndex, config);
+
+            if (strlen(sSubGroup) > 0)
+            {
+                int iSubGroupIndex = FindSubGroupIndex(sGroup, sSubGroup);
+                if (iSubGroupIndex != -1)
+                {
+                    SubGroupConfig subConfig;
+                    config.subGroups.GetArray(iSubGroupIndex, subConfig);
+                    if (subConfig.maps.FindString(sMap) != -1)
+                    {
+                        bMapFound = true;
+                    }
+                }
+            }
+            else if (config.maps.FindString(sMap) != -1)
+            {
+                bMapFound = true;
+            }
+        }
+
+        if (!bMapFound)
+        {
+            ReplyToCommand(client, "[MultiMode] Warning: Map '%s' not found in the specified group/subgroup, but will be used anyway.", sMap);
+        }
+    }
+    else
+    {
+        for (int i = 0; i < gameModes.Length; i++)
+        {
+            GameModeConfig config;
+            gameModes.GetArray(i, config);
+
+            if (config.maps.FindString(sMap) != -1)
+            {
+                strcopy(sGroup, sizeof(sGroup), config.name);
+                sSubGroup[0] = '\0';
+                bMapFound = true;
+                break;
+            }
+
+            for (int j = 0; j < config.subGroups.Length; j++)
+            {
+                SubGroupConfig subConfig;
+                config.subGroups.GetArray(j, subConfig);
+                if (subConfig.maps.FindString(sMap) != -1)
+                {
+                    strcopy(sGroup, sizeof(sGroup), config.name);
+                    strcopy(sSubGroup, sizeof(sSubGroup), subConfig.name);
+                    bMapFound = true;
+                    break;
+                }
+            }
+
+            if (bMapFound)
+                break;
+        }
+
+        if (!bMapFound)
+        {
+            strcopy(sGroup, sizeof(sGroup), "NoN");
+            sSubGroup[0] = '\0';
+            ReplyToCommand(client, "[MultiMode] Warning: Map '%s' not found in the map cycle.", sMap);
+        }
+    }
+
+    ReplyToCommand(client, "[MultiMode] Setting next map to '%s' (Group: %s, Subgroup: %s).", sMap, sGroup, strlen(sSubGroup) > 0 ? sSubGroup : "NoN");
+    ExecuteModeChange(sGroup, sMap, iTiming - 1, sSubGroup);
+
+    return Plugin_Handled;
+}
 
 public Action Command_ToggleVoteSounds(int client, int args)
 {
