@@ -3996,11 +3996,6 @@ public Action Command_SetNextMap(int client, int args)
                 bMapFound = true;
             }
         }
-
-        if (!bMapFound)
-        {
-            ReplyToCommand(client, "[MultiMode] Warning: Map '%s' not found in the specified group/subgroup, but will be used anyway.", sMap);
-        }
     }
     else
     {
