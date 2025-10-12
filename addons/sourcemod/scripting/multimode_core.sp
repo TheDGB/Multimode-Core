@@ -855,9 +855,9 @@ public void LoadGameModesConfig()
             config.maxplayers = g_kvGameModes.GetNum("maxplayers", 0);
 
             char time_buffer[8];
-            g_kvGameModes.GetString("min_time", time_buffer, sizeof(time_buffer), "-1");
+            g_kvGameModes.GetString("mintime", time_buffer, sizeof(time_buffer), "-1");
             config.mintime = StringToInt(time_buffer);
-            g_kvGameModes.GetString("max_time", time_buffer, sizeof(time_buffer), "-1");
+            g_kvGameModes.GetString("maxtime", time_buffer, sizeof(time_buffer), "-1");
             config.maxtime = StringToInt(time_buffer);
             
             g_kvGameModes.GetString("command", config.command, sizeof(config.command), "");
@@ -944,9 +944,9 @@ public void LoadGameModesConfig()
                         subConfig.maxplayers = g_kvGameModes.GetNum("maxplayers", 0);
                         subConfig.maps_invote = g_kvGameModes.GetNum("maps_invote", 6);
 
-                        g_kvGameModes.GetString("min_time", time_buffer, sizeof(time_buffer), "-1");
+                        g_kvGameModes.GetString("mintime", time_buffer, sizeof(time_buffer), "-1");
                         subConfig.mintime = StringToInt(time_buffer);
-                        g_kvGameModes.GetString("max_time", time_buffer, sizeof(time_buffer), "-1");
+                        g_kvGameModes.GetString("maxtime", time_buffer, sizeof(time_buffer), "-1");
                         subConfig.maxtime = StringToInt(time_buffer);
                         
                         g_kvGameModes.GetString("command", subConfig.command, sizeof(subConfig.command), "");
@@ -5298,10 +5298,10 @@ stock bool IsCurrentlyAvailableByTime(const char[] group, const char[] subgroup 
 
         if (kv != null)
         {
-            kv.GetString("min_time", buffer, sizeof(buffer));
+            kv.GetString("mintime", buffer, sizeof(buffer));
             if (buffer[0] != '\0') minTime = StringToInt(buffer);
 
-            kv.GetString("max_time", buffer, sizeof(buffer));
+            kv.GetString("maxtime", buffer, sizeof(buffer));
             if (buffer[0] != '\0') maxTime = StringToInt(buffer);
             
             delete kv;
