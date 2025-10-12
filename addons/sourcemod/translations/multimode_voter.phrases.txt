@@ -332,18 +332,6 @@
         "en"    "{red}The vote is already active or the plugin is disabled."
     }
 
-    "Map Extended"
-    {
-        "pt"    "Mapa estendido por %d minutos!"
-        "en"    "Map extended by %d minutes!"
-    }
-
-    "Admin Map Extended"
-    {
-        "pt"    "Mapa forçadamente estendido para +%.1f minutos!"
-        "en"    "Forced map extended to +%.1f minutes!"
-    }
-
     "Non Maps Items"
     {
         "pt"    "{red}Nenhum mapa disponível para este modo!"
@@ -372,24 +360,6 @@
     {
         "pt"    "{red}Votação ja em progresso..."
         "en"    "{red}Voting already in progress..."
-    }
-
-    "Map Extended Time"
-    {
-        "pt"    "{green}%d minutos{default}"
-        "en"    "{green}%d minutes{default}"
-    }
-
-    "Map Extended Rounds"
-    {
-        "pt"    ", {green}%d rodadas{default}"
-        "en"    ", {green}%d rounds{default}"
-    }
-
-    "Map Extended Frags"
-    {
-        "pt"    ", {green}%d frags{default}"
-        "en"    ", {green}%d frags{default}"
     }
 
     "Cooldown Hud"
