@@ -128,7 +128,7 @@ stock void GetNominateFlags(const char[] gamemode, const char[] subgroup, const 
     if (strlen(subgroup) > 0) {
         if (g_kvGameModes.JumpToKey(gamemode) && g_kvGameModes.JumpToKey("subgroup") && g_kvGameModes.JumpToKey(subgroup) && g_kvGameModes.JumpToKey("maps")) {
             if (g_kvGameModes.JumpToKey(map)) {
-                g_kvGameModes.GetString("nominate_flags", flags, maxlen);
+                g_kvGameModes.GetString("NOMINATE_FLAGS_KEY", flags, maxlen);
                 g_kvGameModes.GoBack();
             }
             g_kvGameModes.GoBack();
@@ -142,7 +142,7 @@ stock void GetNominateFlags(const char[] gamemode, const char[] subgroup, const 
 
     if (g_kvGameModes.JumpToKey(gamemode) && g_kvGameModes.JumpToKey("maps")) {
         if (g_kvGameModes.JumpToKey(map)) {
-            g_kvGameModes.GetString("nominate_flags", flags, maxlen);
+            g_kvGameModes.GetString("NOMINATE_FLAGS_KEY", flags, maxlen);
             g_kvGameModes.GoBack();
         }
         g_kvGameModes.GoBack();
@@ -153,7 +153,7 @@ stock void GetNominateFlags(const char[] gamemode, const char[] subgroup, const 
 
     if (strlen(subgroup) > 0) {
         if (g_kvGameModes.JumpToKey(gamemode) && g_kvGameModes.JumpToKey("subgroup") && g_kvGameModes.JumpToKey(subgroup)) {
-            g_kvGameModes.GetString("nominate_flags", flags, maxlen);
+            g_kvGameModes.GetString("NOMINATE_FLAGS_KEY", flags, maxlen);
             g_kvGameModes.GoBack();
             g_kvGameModes.GoBack();
             g_kvGameModes.GoBack();
@@ -163,7 +163,7 @@ stock void GetNominateFlags(const char[] gamemode, const char[] subgroup, const 
     }
 
     if (g_kvGameModes.JumpToKey(gamemode)) {
-        g_kvGameModes.GetString("nominate_flags", flags, maxlen);
+        g_kvGameModes.GetString("NOMINATE_FLAGS_KEY", flags, maxlen);
         g_kvGameModes.GoBack();
     }
     g_kvGameModes.Rewind();
@@ -198,7 +198,7 @@ stock void ParseGameModes()
             
             if (g_kvGameModes.JumpToKey("serverconfig"))
             {
-                g_kvGameModes.GetString("command", config.command, sizeof(config.command), "");
+                g_kvGameModes.GetString("COMMAND_KEY", config.command, sizeof(config.command), "");
                 g_kvGameModes.GoBack();
             }
             
@@ -229,15 +229,15 @@ stock void ParseGameModes()
                         SubGroupConfig subConfig;
                         g_kvGameModes.GetSectionName(subConfig.name, sizeof(subConfig.name));
                         
-                        subConfig.enabled = g_kvGameModes.GetNum("enabled", 1);
-                        subConfig.adminonly = g_kvGameModes.GetNum("adminonly", 0);
-                        subConfig.minplayers = g_kvGameModes.GetNum("minplayers", 0);
-                        subConfig.maxplayers = g_kvGameModes.GetNum("maxplayers", 0);
-                        subConfig.maps_invote = g_kvGameModes.GetNum("maps_invote", 6);
+                        subConfig.enabled = g_kvGameModes.GetNum("ENABLED_KEY", 1);
+                        subConfig.adminonly = g_kvGameModes.GetNum("ADMINONLY_KEY", 0);
+                        subConfig.minplayers = g_kvGameModes.GetNum("MINPLAYERS_KEY", 0);
+                        subConfig.maxplayers = g_kvGameModes.GetNum("MAXPLAYERS_KEY", 0);
+                        subConfig.maps_invote = g_kvGameModes.GetNum("MAPS_INVOTE_KEY", 6);
                         
-                        g_kvGameModes.GetString("command", subConfig.command, sizeof(subConfig.command), "");
-                        g_kvGameModes.GetString("pre-command", subConfig.pre_command, sizeof(subConfig.pre_command), "");
-                        g_kvGameModes.GetString("vote-command", subConfig.vote_command, sizeof(subConfig.vote_command), "");
+                        g_kvGameModes.GetString("COMMAND_KEY", subConfig.command, sizeof(subConfig.command), "");
+                        g_kvGameModes.GetString("PRE_COMMAND_KEY", subConfig.pre_command, sizeof(subConfig.pre_command), "");
+                        g_kvGameModes.GetString("VOTE_COMMAND_KEY", subConfig.vote_command, sizeof(subConfig.vote_command), "");
                         
                         subConfig.maps = new ArrayList(ByteCountToCells(256));
                         

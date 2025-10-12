@@ -14,8 +14,21 @@
 #include <multimode/base>
 #include <nativevotes>
 
-#define COMMAND_KEY          "command"
-#define PLUGIN_VERSION "2.8.8"
+#define ADMINONLY_KEY               "adminonly"
+#define COMMAND_KEY                 "command"
+#define DISPLAY_KEY                 "display"
+#define ENABLED_KEY                 "enabled"
+#define MAPS_INVOTE_KEY             "maps_invote"
+#define MAXPLAYERS_KEY              "maxplayers"
+#define MAXTIME_KEY                 "maxtime"
+#define MINPLAYERS_KEY              "minplayers"
+#define MINTIME_KEY                 "mintime"
+#define NOMINATE_FLAGS_KEY          "nominate_flags"
+#define PRE_COMMAND_KEY             "pre-command"
+#define SUBGROUPS_INVOTE_KEY        "subgroups_invote"
+#define VOTE_COMMAND_KEY            "vote-command"
+
+#define PLUGIN_VERSION              "2.8.8"
 
 // Convar Section
 ConVar g_Cvar_CooldownEnabled;
@@ -403,7 +416,7 @@ public void OnConfigsExecuted()
                         if (StrContains(mapName, "workshop/") == 0)
                         {
                             char displayName[128];
-                            g_kvGameModes.GetString("display", displayName, sizeof(displayName), "");
+                            g_kvGameModes.GetString("DISPLAY_KEY", displayName, sizeof(displayName), "");
                         }
                     } while (g_kvGameModes.GotoNextKey(false));
                     g_kvGameModes.GoBack();
@@ -458,7 +471,7 @@ public void OnMapStart()
                     if (kv != null)
                     {
                         char mapCommand[256];
-                        kv.GetString("command", mapCommand, sizeof(mapCommand), "");
+                        kv.GetString(COMMAND_KEY, mapCommand, sizeof(mapCommand), "");
                         
                         if (strlen(mapCommand) > 0)
                         {
@@ -480,7 +493,7 @@ public void OnMapStart()
             if (kv != null)
             {
                 char mapCommand[256];
-                kv.GetString("command", mapCommand, sizeof(mapCommand), "");
+                kv.GetString(COMMAND_KEY, mapCommand, sizeof(mapCommand), "");
                 
                 if (strlen(mapCommand) > 0)
                 {
@@ -502,7 +515,7 @@ public void OnMapStart()
                         if (IsWildcardEntry(mapKey) && StrContains(CurrentMap, mapKey) == 0)
                         {
                             char wildcardCommand[256];
-                            g_kvGameModes.GetString("command", wildcardCommand, sizeof(wildcardCommand), "");
+                            g_kvGameModes.GetString("COMMAND_KEY", wildcardCommand, sizeof(wildcardCommand), "");
                             
                             if (strlen(wildcardCommand) > 0)
                             {
@@ -553,7 +566,7 @@ public void OnMapStart()
                     if (kv != null)
                     {
                         char mapCommand[256];
-                        kv.GetString("command", mapCommand, sizeof(mapCommand), "");
+                        kv.GetString(COMMAND_KEY, mapCommand, sizeof(mapCommand), "");
                         
                         if (strlen(mapCommand) > 0)
                         {
@@ -585,7 +598,7 @@ public void OnMapStart()
                 if (kv != null)
                 {
                     char mapCommand[256];
-                    kv.GetString("command", mapCommand, sizeof(mapCommand), "");
+                    kv.GetString(COMMAND_KEY, mapCommand, sizeof(mapCommand), "");
                     
                     if (strlen(mapCommand) > 0)
                     {
@@ -607,7 +620,7 @@ public void OnMapStart()
                             if (IsWildcardEntry(mapKey) && StrContains(CurrentMap, mapKey) == 0)
                             {
                                 char wildcardCommand[256];
-                                g_kvGameModes.GetString("command", wildcardCommand, sizeof(wildcardCommand), "");
+                                g_kvGameModes.GetString("COMMAND_KEY", wildcardCommand, sizeof(wildcardCommand), "");
                                 
                                 if (strlen(wildcardCommand) > 0)
                                 {
@@ -849,31 +862,31 @@ public void LoadGameModesConfig()
             GameModeConfig config;
             g_kvGameModes.GetSectionName(config.name, sizeof(config.name));
             
-            config.enabled = g_kvGameModes.GetNum("enabled", 1);
-            config.adminonly = g_kvGameModes.GetNum("adminonly", 0);
-            config.minplayers = g_kvGameModes.GetNum("minplayers", 0);
-            config.maxplayers = g_kvGameModes.GetNum("maxplayers", 0);
+            config.enabled = g_kvGameModes.GetNum("ENABLED_KEY", 1);
+            config.adminonly = g_kvGameModes.GetNum("ADMINONLY_KEY", 0);
+            config.minplayers = g_kvGameModes.GetNum("MINPLAYERS_KEY", 0);
+            config.maxplayers = g_kvGameModes.GetNum("MAXPLAYERS_KEY", 0);
 
             char time_buffer[8];
-            g_kvGameModes.GetString("mintime", time_buffer, sizeof(time_buffer), "-1");
+            g_kvGameModes.GetString("MINTIME_KEY", time_buffer, sizeof(time_buffer), "-1");
             config.mintime = StringToInt(time_buffer);
-            g_kvGameModes.GetString("maxtime", time_buffer, sizeof(time_buffer), "-1");
+            g_kvGameModes.GetString("MAXTIME_KEY", time_buffer, sizeof(time_buffer), "-1");
             config.maxtime = StringToInt(time_buffer);
             
-            g_kvGameModes.GetString("command", config.command, sizeof(config.command), "");
-            g_kvGameModes.GetString("pre-command", config.pre_command, sizeof(config.pre_command), "");
-            g_kvGameModes.GetString("vote-command", config.vote_command, sizeof(config.vote_command), "");
+            g_kvGameModes.GetString("COMMAND_KEY", config.command, sizeof(config.command), "");
+            g_kvGameModes.GetString("PRE_COMMAND_KEY", config.pre_command, sizeof(config.pre_command), "");
+            g_kvGameModes.GetString("VOTE_COMMAND_KEY", config.vote_command, sizeof(config.vote_command), "");
             
             if (strlen(config.command) == 0 && g_kvGameModes.JumpToKey("serverconfig"))
             {
-                g_kvGameModes.GetString("command", config.command, sizeof(config.command), "");
+                g_kvGameModes.GetString("COMMAND_KEY", config.command, sizeof(config.command), "");
                 g_kvGameModes.GoBack();
             }
             
             config.maps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
             if (g_kvGameModes.JumpToKey("maps"))
             {
-                config.maps_invote = g_kvGameModes.GetNum("maps_invote", 6);
+                config.maps_invote = g_kvGameModes.GetNum("MAPS_INVOTE_KEY", 6);
                 
                 if (g_kvGameModes.GotoFirstSubKey(false))
                 {
@@ -921,7 +934,7 @@ public void LoadGameModesConfig()
             config.subGroups = new ArrayList(sizeof(SubGroupConfig));
             if (g_kvGameModes.JumpToKey("subgroup"))
             {
-                config.subgroups_invote = g_kvGameModes.GetNum("subgroups_invote", 6);
+                config.subgroups_invote = g_kvGameModes.GetNum("SUBGROUPS_INVOTE_KEY", 6);
                 
                 if (g_kvGameModes.GotoFirstSubKey(false))
                 {
@@ -930,7 +943,7 @@ public void LoadGameModesConfig()
                         char sectionName[64];
                         g_kvGameModes.GetSectionName(sectionName, sizeof(sectionName));
 
-                        if (StrEqual(sectionName, "subgroups_invote", false))
+                        if (StrEqual(sectionName, "SUBGROUPS_INVOTE_KEY", false))
                         {
                             continue;
                         }
@@ -938,20 +951,20 @@ public void LoadGameModesConfig()
                         SubGroupConfig subConfig;
                         g_kvGameModes.GetSectionName(subConfig.name, sizeof(subConfig.name));
                         
-                        subConfig.enabled = g_kvGameModes.GetNum("enabled", 1);
-                        subConfig.adminonly = g_kvGameModes.GetNum("adminonly", 0);
-                        subConfig.minplayers = g_kvGameModes.GetNum("minplayers", 0);
-                        subConfig.maxplayers = g_kvGameModes.GetNum("maxplayers", 0);
-                        subConfig.maps_invote = g_kvGameModes.GetNum("maps_invote", 6);
+                        subConfig.enabled = g_kvGameModes.GetNum("ENABLED_KEY", 1);
+                        subConfig.adminonly = g_kvGameModes.GetNum("ADMINONLY_KEY", 0);
+                        subConfig.minplayers = g_kvGameModes.GetNum("MINPLAYERS_KEY", 0);
+                        subConfig.maxplayers = g_kvGameModes.GetNum("MAXPLAYERS_KEY", 0);
+                        subConfig.maps_invote = g_kvGameModes.GetNum("MAPS_INVOTE_KEY", 6);
 
-                        g_kvGameModes.GetString("mintime", time_buffer, sizeof(time_buffer), "-1");
+                        g_kvGameModes.GetString("MINTIME_KEY", time_buffer, sizeof(time_buffer), "-1");
                         subConfig.mintime = StringToInt(time_buffer);
-                        g_kvGameModes.GetString("maxtime", time_buffer, sizeof(time_buffer), "-1");
+                        g_kvGameModes.GetString("MAXTIME_KEY", time_buffer, sizeof(time_buffer), "-1");
                         subConfig.maxtime = StringToInt(time_buffer);
                         
-                        g_kvGameModes.GetString("command", subConfig.command, sizeof(subConfig.command), "");
-                        g_kvGameModes.GetString("pre-command", subConfig.pre_command, sizeof(subConfig.pre_command), "");
-                        g_kvGameModes.GetString("vote-command", subConfig.vote_command, sizeof(subConfig.vote_command), "");
+                        g_kvGameModes.GetString("COMMAND_KEY", subConfig.command, sizeof(subConfig.command), "");
+                        g_kvGameModes.GetString("PRE_COMMAND_KEY", subConfig.pre_command, sizeof(subConfig.pre_command), "");
+                        g_kvGameModes.GetString("VOTE_COMMAND_KEY", subConfig.vote_command, sizeof(subConfig.vote_command), "");
                         
                         subConfig.maps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
                         
@@ -1503,7 +1516,7 @@ public Action Timer_ChangeMap(Handle timer)
     if (kv != null)
     {
         char mapPreCommand[256];
-        kv.GetString("pre-command", mapPreCommand, sizeof(mapPreCommand), "");
+        kv.GetString("PRE_COMMAND_KEY", mapPreCommand, sizeof(mapPreCommand), "");
         if (strlen(mapPreCommand) > 0)
         {
             ServerCommand("%s", mapPreCommand);
@@ -2654,7 +2667,7 @@ void ExecutePreCommands()
     if (kv != null)
     {
         char mapPreCommand[256];
-        kv.GetString("pre-command", mapPreCommand, sizeof(mapPreCommand), "");
+        kv.GetString("PRE_COMMAND_KEY", mapPreCommand, sizeof(mapPreCommand), "");
         
         if (strlen(mapPreCommand) > 0)
         {
@@ -2688,7 +2701,7 @@ void ExecuteVoteCommands(const char[] gamemode, const char[] map)
     if (kv != null)
     {
         char mapVoteCommand[256];
-        kv.GetString("vote-command", mapVoteCommand, sizeof(mapVoteCommand), "");
+        kv.GetString("VOTE_COMMAND_KEY", mapVoteCommand, sizeof(mapVoteCommand), "");
         
         if (strlen(mapVoteCommand) > 0)
         {
@@ -4703,7 +4716,7 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing, cons
     
     if (g_kvGameModes.JumpToKey(gamemode))
     {
-        g_kvGameModes.GetString("command", command, sizeof(command));
+        g_kvGameModes.GetString("COMMAND_KEY", command, sizeof(command));
         g_kvGameModes.Rewind();
     }
 
@@ -5591,7 +5604,7 @@ public void ExecuteSubGroupVoteResult()
         if (kv != null)
         {
             char mapVoteCommand[256];
-            kv.GetString("vote-command", mapVoteCommand, sizeof(mapVoteCommand), "");
+            kv.GetString("VOTE_COMMAND_KEY", mapVoteCommand, sizeof(mapVoteCommand), "");
             
             if (strlen(mapVoteCommand) > 0)
             {
@@ -6532,7 +6545,7 @@ stock void GetMapDisplayNameEx(const char[] gamemode, const char[] map, char[] d
         if (subKv != null)
         {
             char customDisplay[256];
-            subKv.GetString("display", customDisplay, sizeof(customDisplay), "");
+            subKv.GetString("DISPLAY_KEY", customDisplay, sizeof(customDisplay), "");
             delete subKv;
             if (customDisplay[0] != '\0') 
             {
@@ -6548,7 +6561,7 @@ stock void GetMapDisplayNameEx(const char[] gamemode, const char[] map, char[] d
         if (kv != null)
         {
             char customDisplay[256];
-            kv.GetString("display", customDisplay, sizeof(customDisplay), "");
+            kv.GetString("DISPLAY_KEY", customDisplay, sizeof(customDisplay), "");
             delete kv;
             if (customDisplay[0] != '\0') 
             {
@@ -6580,7 +6593,7 @@ stock void GetMapDisplayNameEx(const char[] gamemode, const char[] map, char[] d
                 if (subKv != null)
                 {
                     char customDisplay[256];
-                    subKv.GetString("display", customDisplay, sizeof(customDisplay), "");
+                    subKv.GetString("DISPLAY_KEY", customDisplay, sizeof(customDisplay), "");
                     delete subKv;
                     if (customDisplay[0] != '\0') 
                     {
@@ -6607,7 +6620,7 @@ stock void GetMapDisplayNameEx(const char[] gamemode, const char[] map, char[] d
             if (kv != null)
             {
                 char customDisplay[256];
-                kv.GetString("display", customDisplay, sizeof(customDisplay), "");
+                kv.GetString("DISPLAY_KEY", customDisplay, sizeof(customDisplay), "");
                 delete kv;
                 if (customDisplay[0] != '\0') 
                 {
@@ -6626,7 +6639,7 @@ stock void GetMapDisplayNameEx(const char[] gamemode, const char[] map, char[] d
             if (subKv != null)
             {
                 char customDisplay[256];
-                subKv.GetString("display", customDisplay, sizeof(customDisplay), "");
+                subKv.GetString("DISPLAY_KEY", customDisplay, sizeof(customDisplay), "");
                 delete subKv;
                 if (customDisplay[0] != '\0') 
                 {
