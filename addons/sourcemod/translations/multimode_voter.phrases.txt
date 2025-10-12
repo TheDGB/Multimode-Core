@@ -1,5 +1,11 @@
 "Phrases"
-{         
+{  
+    "Current MMC Version"
+    {
+        "pt"    "{green}[Multimode] {default}Versão atual do Multimode Core: {olive}%s"
+        "en"    "{green}[Multimode] {default}Current Multimode Core Version: {olive}%s"
+    }
+       
     "RTV Available In"
     {
         "pt"    "{green}[Rock The Vote] {default}O RTV estará disponível em {green}%d {default}segundos!"
