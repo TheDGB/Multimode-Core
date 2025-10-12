@@ -56,6 +56,8 @@ enum struct SubGroupConfig {
     int enabled;
     int maxplayers;
     int minplayers;
+    int mintime;
+    int maxtime;
     ArrayList maps;
     int maps_invote;
 }
@@ -71,6 +73,8 @@ enum struct GameModeConfig {
     int enabled;
     int maxplayers;
     int minplayers;
+    int mintime;
+    int maxtime;
     ArrayList maps;
     ArrayList subGroups;
 }

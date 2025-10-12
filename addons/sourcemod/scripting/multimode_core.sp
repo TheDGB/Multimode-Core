@@ -853,6 +853,12 @@ public void LoadGameModesConfig()
             config.adminonly = g_kvGameModes.GetNum("adminonly", 0);
             config.minplayers = g_kvGameModes.GetNum("minplayers", 0);
             config.maxplayers = g_kvGameModes.GetNum("maxplayers", 0);
+
+            char time_buffer[8];
+            g_kvGameModes.GetString("min_time", time_buffer, sizeof(time_buffer), "-1");
+            config.mintime = StringToInt(time_buffer);
+            g_kvGameModes.GetString("max_time", time_buffer, sizeof(time_buffer), "-1");
+            config.maxtime = StringToInt(time_buffer);
             
             g_kvGameModes.GetString("command", config.command, sizeof(config.command), "");
             g_kvGameModes.GetString("pre-command", config.pre_command, sizeof(config.pre_command), "");
@@ -937,6 +943,11 @@ public void LoadGameModesConfig()
                         subConfig.minplayers = g_kvGameModes.GetNum("minplayers", 0);
                         subConfig.maxplayers = g_kvGameModes.GetNum("maxplayers", 0);
                         subConfig.maps_invote = g_kvGameModes.GetNum("maps_invote", 6);
+
+                        g_kvGameModes.GetString("min_time", time_buffer, sizeof(time_buffer), "-1");
+                        subConfig.mintime = StringToInt(time_buffer);
+                        g_kvGameModes.GetString("max_time", time_buffer, sizeof(time_buffer), "-1");
+                        subConfig.maxtime = StringToInt(time_buffer);
                         
                         g_kvGameModes.GetString("command", subConfig.command, sizeof(subConfig.command), "");
                         g_kvGameModes.GetString("pre-command", subConfig.pre_command, sizeof(subConfig.pre_command), "");
@@ -1837,7 +1848,7 @@ void SelectRandomNextMap(bool bSetNextMap = false)
         GameModeConfig config;
         gameModes.GetArray(i, config);
         
-        if (!config.enabled || config.adminonly) continue;
+        if (!config.enabled || config.adminonly || !IsCurrentlyAvailableByTime(config.name)) continue;
         
         validGameModes.PushArray(config);
     }
@@ -1848,11 +1859,28 @@ void SelectRandomNextMap(bool bSetNextMap = false)
     GameModeConfig config;
     validGameModes.GetArray(iRandomMode, config);
 
-    if(config.maps.Length == 0) return;
+    ArrayList validMaps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
+    for (int i = 0; i < config.maps.Length; i++)
+    {
+        char sMap[PLATFORM_MAX_PATH];
+        config.maps.GetString(i, sMap, sizeof(sMap));
+        if (IsCurrentlyAvailableByTime(config.name, "", sMap))
+        {
+            validMaps.PushString(sMap);
+        }
+    }
 
-    int iRandomMap = GetRandomInt(0, config.maps.Length - 1);
+    if(validMaps.Length == 0) 
+    {
+        delete validGameModes;
+        delete validMaps;
+        return;
+    }
+
+    int iRandomMap = GetRandomInt(0, validMaps.Length - 1);
     char sMap[PLATFORM_MAX_PATH];
-    config.maps.GetString(iRandomMap, sMap, sizeof(sMap));
+    validMaps.GetString(iRandomMap, sMap, sizeof(sMap));
+    delete validMaps;
 
     if(IsMapValid(sMap))
     {
@@ -3541,6 +3569,8 @@ void ShowNominateSubGroupMenu(int client, const char[] gamemode)
         int players = GetRealClientCount();
         if (subConfig.minplayers > 0 && players < subConfig.minplayers) continue;
         if (subConfig.maxplayers > 0 && players > subConfig.maxplayers) continue;
+        
+        if (!IsCurrentlyAvailableByTime(gamemode, subConfig.name)) continue;
 
         menu.AddItem(subConfig.name, subConfig.name);
     }
@@ -3634,6 +3664,11 @@ void ShowNominateMapMenu(int client, const char[] gamemode, const char[] subgrou
         availableMaps.GetString(i, map, sizeof(map));
 
         if (excludeMaps != null && excludeMaps.FindString(map) != -1)
+        {
+            continue;
+        }
+
+        if (!IsCurrentlyAvailableByTime(gamemode, subgroup, map))
         {
             continue;
         }
@@ -4799,7 +4834,8 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
                 ? GamemodeAvailableAdminVote(config.name) 
                 : GamemodeAvailable(config.name);
 
-            if (available && voteGameModes.FindString(nominatedGM) == -1) 
+            if (available && voteGameModes.FindString(nominatedGM) == -1 && 
+                IsCurrentlyAvailableByTime(groupName)) 
             {
                 voteGameModes.PushString(nominatedGM);
             }
@@ -4837,7 +4873,10 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
                 if (groupExclude > 0 && g_PlayedGamemodes.FindString(config.name) != -1)
                     continue;
 
-                if (g_NominatedGamemodes.FindString(config.name) == -1 && voteGameModes.FindString(config.name) == -1)
+                // ADD TIME CHECK HERE
+                if (g_NominatedGamemodes.FindString(config.name) == -1 && 
+                    voteGameModes.FindString(config.name) == -1 &&
+                    IsCurrentlyAvailableByTime(config.name))
                 {
                     remainingGameModes.PushString(config.name);
                 }
@@ -5184,6 +5223,8 @@ bool GamemodeAvailable(const char[] gamemode)
     if (config.minplayers > 0 && players < config.minplayers) return false;
     if (config.maxplayers > 0 && players > config.maxplayers) return false;
     
+    if (!IsCurrentlyAvailableByTime(gamemode)) return false;
+    
     return true;
 }
 
@@ -5202,6 +5243,109 @@ bool GamemodeAvailableAdminVote(const char[] gamemode)
     if (config.minplayers > 0 && players < config.minplayers) return false;
     if (config.maxplayers > 0 && players > config.maxplayers) return false;
     
+    if (!IsCurrentlyAvailableByTime(gamemode)) return false;
+    
+    return true;
+}
+
+stock bool IsTimeAllowed(int minTime, int maxTime)
+{
+    if (minTime == -1 && maxTime == -1)
+    {
+        return true;
+    }
+
+    char sCurrentTime[5];
+    FormatTime(sCurrentTime, sizeof(sCurrentTime), "%H%M");
+    int iCurrentTime = StringToInt(sCurrentTime);
+
+    if (minTime != -1 && maxTime != -1)
+    {
+        if (minTime <= maxTime)
+        {
+            return iCurrentTime >= minTime && iCurrentTime <= maxTime;
+        }
+        else
+        {
+            return iCurrentTime >= minTime || iCurrentTime <= maxTime;
+        }
+    }
+    else if (minTime != -1)
+    {
+        return iCurrentTime >= minTime;
+    }
+    else // maxTime != -1
+    {
+        return iCurrentTime <= maxTime;
+    }
+}
+
+stock bool IsCurrentlyAvailableByTime(const char[] group, const char[] subgroup = "", const char[] map = "")
+{
+    char buffer[8];
+    int minTime = -1, maxTime = -1;
+
+    KeyValues kv;
+    if (strlen(map) > 0)
+    {
+        if (strlen(subgroup) > 0)
+        {
+            kv = GetSubGroupMapKv(group, subgroup, map);
+        }
+        else
+        {
+            kv = GetMapKv(group, map);
+        }
+
+        if (kv != null)
+        {
+            kv.GetString("min_time", buffer, sizeof(buffer));
+            if (buffer[0] != '\0') minTime = StringToInt(buffer);
+
+            kv.GetString("max_time", buffer, sizeof(buffer));
+            if (buffer[0] != '\0') maxTime = StringToInt(buffer);
+            
+            delete kv;
+
+            if (minTime != -1 || maxTime != -1)
+            {
+                return IsTimeAllowed(minTime, maxTime);
+            }
+        }
+    }
+
+    if (strlen(subgroup) > 0)
+    {
+        int groupIndex = FindGameModeIndex(group);
+        if (groupIndex != -1)
+        {
+            int subIndex = FindSubGroupIndex(group, subgroup);
+            if (subIndex != -1)
+            {
+                GameModeConfig config;
+                GetGameModesList().GetArray(groupIndex, config);
+                SubGroupConfig subConfig;
+                config.subGroups.GetArray(subIndex, subConfig);
+                
+                if (subConfig.mintime != -1 || subConfig.maxtime != -1)
+                {
+                    return IsTimeAllowed(subConfig.mintime, subConfig.maxtime);
+                }
+            }
+        }
+    }
+
+    int groupIndex = FindGameModeIndex(group);
+    if (groupIndex != -1)
+    {
+        GameModeConfig config;
+        GetGameModesList().GetArray(groupIndex, config);
+        if (config.mintime != -1 || config.maxtime != -1)
+        {
+            return IsTimeAllowed(config.mintime, config.maxtime);
+        }
+    }
+
     return true;
 }
 
@@ -5585,7 +5729,9 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
                 {
                     char map[PLATFORM_MAX_PATH];
                     config.maps.GetString(j, map, sizeof(map));
-                    if (!uniqueMaps.ContainsKey(map))
+                    
+                    if (!uniqueMaps.ContainsKey(map) && 
+                        IsCurrentlyAvailableByTime(config.name, "", map))
                     {
                         voteMaps.PushString(map);
                         uniqueMaps.SetValue(map, true);
@@ -5610,7 +5756,9 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
                     {
                         char map[PLATFORM_MAX_PATH];
                         subConfig.maps.GetString(j, map, sizeof(map));
-                        if (!uniqueMaps.ContainsKey(map))
+                        
+                        if (!uniqueMaps.ContainsKey(map) && 
+                            IsCurrentlyAvailableByTime(config.name, subConfig.name, map))
                         {
                             voteMaps.PushString(map);
                             uniqueMaps.SetValue(map, true);
@@ -5648,7 +5796,17 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
                 {
                     char map[PLATFORM_MAX_PATH];
                     mapsNominated.GetString(j, map, sizeof(map));
-                    if (!uniqueMaps.ContainsKey(map))
+                    
+                    char subgroup[64] = "";
+                    if (StrContains(group, "/") != -1)
+                    {
+                        char parts[2][64];
+                        ExplodeString(group, "/", parts, 2, 64);
+                        strcopy(subgroup, sizeof(subgroup), parts[1]);
+                    }
+                    
+                    if (!uniqueMaps.ContainsKey(map) && 
+                        IsCurrentlyAvailableByTime(groupName, subgroup, map))
                     {
                         voteMaps.PushString(map);
                         uniqueMaps.SetValue(map, true);
@@ -5983,7 +6141,7 @@ void StartSubGroupMapVote(int client, const char[] gamemode, const char[] subgro
             char map[PLATFORM_MAX_PATH];
             subConfig.maps.GetString(i, map, sizeof(map));
             
-            if (IsMapValid(map))
+            if (IsMapValid(map) && IsCurrentlyAvailableByTime(gamemode, subgroup, map))
             {
                 voteMaps.PushString(map);
             }
