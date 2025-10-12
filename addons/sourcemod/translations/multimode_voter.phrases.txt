@@ -132,6 +132,50 @@
         "en"    "{green}[Nominate] {default}%s nominated: {olive}%s - %s"
     }
 
+    "Unnominate Menu Title"
+    {
+	    "pt"	"Un-nominate Menu"
+	    "en"	"Un-nominate Menu"
+    }
+
+    "Unnominate Clear All"
+    {
+	    "pt"	"Limpar todas as nomeações."
+	    "en"	"Clear all nominations."
+    }
+
+    "Unnominate None"
+    {
+	    "pt"	"{green}[Nominate] {default}Você não tem nomeações para remover."
+	    "en"	"{green}[Nominate] {default}You have no nominations to remove."
+    }
+
+    "Unnominate All Removed"
+    {
+	    "pt"	"{red}[Nominate] {default}Todas as suas nomeações foram removidas."
+	    "en"	"{red}[Nominate] {default}All of your nominations have been removed."
+    }
+
+    "Unnominate Can Nominate Again"
+    {
+	    "pt"	"{green}[Nominate] {default}Você recuperou sua chance de nomear para este mapa."
+	    "en"	"{green}[Nominate] {default}You have regained your nomination chance for this map."
+    }
+
+    "Unnominate Single Removed"
+    {
+            "#format"   "{1:s},{2:s}"
+
+	    "pt"	"{red}[Nominate] {default}Sua nomeação para {darkred}'{1}' em '{2}' {default}foi removida."
+	    "en"	"{red}[Nominate] {default}Your nomination for {darkred}'{1}' in '{2}' {default}has been removed."
+    }
+
+    "Unnominate System Is Disabled"
+    {
+	    "pt"    "{red}[Nominate] {default}O sistema de unnominate está desativado no momento!"
+	    "en"    "{red}[Nominate] {default}The unnominate system is currently disabled!"
+    }
+
     "Normal Vote Gamemode Group Title"
     {
         "pt"    "Vote no Modo de Jogo:"

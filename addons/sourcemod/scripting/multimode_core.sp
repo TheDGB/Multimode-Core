@@ -15,7 +15,7 @@
 #include <nativevotes>
 
 #define COMMAND_KEY          "command"
-#define PLUGIN_VERSION "2.8.7"
+#define PLUGIN_VERSION "2.8.8"
 
 // Convar Section
 ConVar g_Cvar_CooldownEnabled;
@@ -47,6 +47,8 @@ ConVar g_Cvar_NominateOneChance;
 ConVar g_Cvar_NominateSelectedGroupExclude;
 ConVar g_Cvar_NominateSelectedMapExclude;
 ConVar g_Cvar_NominateSorted;
+ConVar g_Cvar_NominateOneChanceAbsolute;
+ConVar g_Cvar_UnnominateEnabled;
 ConVar g_Cvar_RandomCycleEnabled;
 ConVar g_Cvar_RandomCycleType;
 ConVar g_Cvar_Runoff;
@@ -94,6 +96,7 @@ bool g_bVoteCompleted = false;
 ArrayList g_NominatedGamemodes;
 ArrayList g_PlayedGamemodes;
 ArrayList g_RunoffItems;
+ArrayList g_PlayerNominations[MAXPLAYERS + 1];
 
 // StringMap Section
 StringMap g_Countdowns;
@@ -161,8 +164,16 @@ public void OnPluginStart()
     LoadTranslations("multimode_voter.phrases");
     
     // Reg Console Commands
-    RegConsoleCmd("sm_rtv", Command_RTV, "Vote to change map");
-    RegConsoleCmd("sm_nominate", Command_Nominate, "Name a game mode and map");
+    RegConsoleCmd("sm_rtv", Command_RTV, "Rock The Vote");
+	RegConsoleCmd("sm_rockthevote", Command_RTV, "Rock The Vote (ALT)");
+	
+    RegConsoleCmd("sm_nominate", Command_Nominate, "Nominate a gamemode and map");
+	RegConsoleCmd("sm_nom", Command_Nominate, "Nominate a gamemode and map (ALT)");
+	
+    RegConsoleCmd("sm_unnominate", Command_Unnominate, "Remove one or all of your nominations.");
+	RegConsoleCmd("sm_unnom", Command_Unnominate, "Remove one or all of your nominations. (ALT)");
+    RegConsoleCmd("sm_quickunnominate", Command_QuickUnnominate, "Quickly remove all your nominations.");
+    RegConsoleCmd("sm_quickunnom", Command_QuickUnnominate, "Quickly remove all your nominations. (ALT)");
     
     // Reg Admin Commands
     RegAdminCmd("multimode_reload", Command_ReloadGamemodes, ADMFLAG_CONFIG, "Reloads gamemodes configuration");
@@ -214,7 +225,9 @@ public void OnPluginStart()
     g_Cvar_EndVoteDebug = CreateConVar("multimode_endvotedebug", "0", "Enables/disables detailed End Vote logs", 0, true, 0.0, true, 1.0);
 	
     g_Cvar_NominateEnabled = CreateConVar("multimode_nominate", "1", "Enables or disables the nominate system", _, true, 0.0, true, 1.0);
+    g_Cvar_UnnominateEnabled = CreateConVar("multimode_unnominate", "1", "Enables or disables the unnominate system.", _, true, 0.0, true, 1.0);
     g_Cvar_NominateOneChance = CreateConVar("multimode_nominate_onechance", "1", "Allows users to nominate only once per map", _, true, 0.0, true, 1.0);
+    g_Cvar_NominateOneChanceAbsolute = CreateConVar("multimode_nominate_onechance_absolute", "0", "If 1, players do not get back their only nomination chance after removing a nomination.", _, true, 0.0, true, 1.0);
     g_Cvar_NominateSelectedGroupExclude = CreateConVar("multimode_nominate_selectedgroupexclude", "0", "Removes the nominated gamemode from the nominate menu", _, true, 0.0, true, 1.0);
 	g_Cvar_NominateSelectedMapExclude = CreateConVar("multimode_nominate_selectedmapexclude", "1", "Removes the nominated map from the nominate menu", _, true, 0.0, true, 1.0);
     g_Cvar_NominateGroupExclude = CreateConVar("multimode_nominate_groupexclude", "0", "Number of recently played gamemodes to exclude from the menu (0= Disabled)");
@@ -311,6 +324,11 @@ public void OnPluginStart()
     if (LibraryExists("adminmenu") && ((topmenu = GetAdminTopMenu()) != null))
     {
         OnAdminMenuReady(topmenu);
+    }
+	
+    for (int i = 0; i <= MAXPLAYERS; i++)
+    {
+        g_PlayerNominations[i] = new ArrayList(sizeof(NominationInfo));
     }
 }
 
@@ -754,12 +772,27 @@ public void OnMapStart()
         SelectRandomNextMap(true);
         WriteToLogFile("[Random Cycle] Type 1: Map set at startup.");
     }
+	
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        g_bRtvVoted[i] = false;
+        g_bHasNominated[i] = false;
+        if (g_PlayerNominations[i] != null)
+        {
+            g_PlayerNominations[i].Clear();
+        }
+    }
 
     g_bGameEndTriggered = false;
 }
 
 public void OnClientDisconnect(int client)
 {
+    if (g_PlayerNominations[client] != null && g_PlayerNominations[client].Length > 0)
+    {
+        RemoveAllClientNominations(client, false);
+    }
+
     if(g_bRtvVoted[client]) {
         g_bRtvVoted[client] = false;
         if(g_iRtvVotes > 0) {
@@ -2187,9 +2220,21 @@ public Action OnPlayerChat(int client, const char[] command, int argc)
         return Plugin_Continue;
     }
 	
-    else if (StrEqual(text, "nominate", false))
+    else if (StrEqual(text, "nominate", false)|| StrEqual(text, "nom", false))
     {
         Command_Nominate(client, 0);
+        return Plugin_Continue;
+    }
+	
+    else if (StrEqual(text, "unnominate", false) || StrEqual(text, "unnom", false))
+    {
+        Command_Unnominate(client, 0);
+        return Plugin_Continue;
+    }
+	
+    else if (StrEqual(text, "quickunnominate", false) || StrEqual(text, "quickunnom", false))
+    {
+        Command_QuickUnnominate(client, 0);
         return Plugin_Continue;
     }
 
@@ -3167,6 +3212,208 @@ public Action Command_Nominate(int client, int args)
     return Plugin_Handled;
 }
 
+public Action Command_Unnominate(int client, int args)
+{
+    if (!g_Cvar_UnnominateEnabled.BoolValue)
+    {
+        CPrintToChat(client, "%t", "Unnominate System Is Disabled");
+        return Plugin_Handled;
+    }
+	
+    char buffer[125];
+	
+    if (g_PlayerNominations[client].Length == 0)
+    {
+        CPrintToChat(client, "%t", "Unnominate None"); 
+        return Plugin_Handled;
+    }
+
+    Menu menu = new Menu(UnnominateMenuHandler);
+    menu.SetTitle("%t", "Unnominate Menu Title");
+	
+    FormatEx(buffer, sizeof(buffer), "%t", "Unnominate Clear All");
+    menu.AddItem("cleanup", buffer);
+
+    for (int i = 0; i < g_PlayerNominations[client].Length; i++)
+    {
+        NominationInfo nInfo;
+        g_PlayerNominations[client].GetArray(i, nInfo);
+
+        char display[256];
+        if (strlen(nInfo.subgroup) > 0)
+        {
+            Format(display, sizeof(display), "%s/%s - %s", nInfo.group, nInfo.subgroup, nInfo.map);
+        }
+        else
+        {
+            Format(display, sizeof(display), "%s - %s", nInfo.group, nInfo.map);
+        }
+        
+        char info[16];
+        IntToString(i, info, sizeof(info));
+        menu.AddItem(info, display);
+    }
+    
+    menu.ExitButton = true;
+    menu.Display(client, MENU_TIME_FOREVER);
+    return Plugin_Handled;
+}
+
+public int UnnominateMenuHandler(Menu menu, MenuAction action, int client, int param2)
+{
+    if (action == MenuAction_Select)
+    {
+        char info[32];
+        menu.GetItem(param2, info, sizeof(info));
+
+        if (StrEqual(info, "cleanup"))
+        {
+            RemoveAllClientNominations(client);
+        }
+        else
+        {
+            int index = StringToInt(info);
+            if (index >= 0 && index < g_PlayerNominations[client].Length)
+            {
+                RemoveClientNomination(client, index);
+            }
+        }
+    }
+    else if (action == MenuAction_End)
+    {
+        delete menu;
+    }
+    return 0;
+}
+
+public Action Command_QuickUnnominate(int client, int args)
+{
+    if (!g_Cvar_UnnominateEnabled.BoolValue)
+    {
+        CPrintToChat(client, "%t", "Unnominate System Is Disabled");
+        return Plugin_Handled;
+    }
+	
+    if (g_PlayerNominations[client].Length == 0)
+    {
+        CPrintToChat(client, "%t", "Unnominate None");
+        return Plugin_Handled;
+    }
+    RemoveAllClientNominations(client);
+    return Plugin_Handled;
+}
+
+void RemoveAllClientNominations(int client, bool showMessage = true)
+{
+    if (g_PlayerNominations[client] == null || g_PlayerNominations[client].Length == 0)
+    {
+        return;
+    }
+
+    while (g_PlayerNominations[client].Length > 0)
+    {
+        RemoveClientNomination(client, 0, false);
+    }
+    
+    if (showMessage)
+    {
+        CPrintToChat(client, "%t", "Unnominate All Removed");
+    }
+}
+
+void RemoveClientNomination(int client, int index, bool showMessage = true)
+{
+    NominationInfo nInfo;
+    g_PlayerNominations[client].GetArray(index, nInfo);
+    
+    char group[64], subgroup[64], map[PLATFORM_MAX_PATH];
+    strcopy(group, sizeof(group), nInfo.group);
+    strcopy(subgroup, sizeof(subgroup), nInfo.subgroup);
+    strcopy(map, sizeof(map), nInfo.map);
+    
+    g_PlayerNominations[client].Erase(index);
+
+    bool mapStillNominated = false;
+    bool groupStillNominated = false;
+    char key[128];
+    if (strlen(subgroup) > 0)
+    {
+        Format(key, sizeof(key), "%s/%s", group, subgroup);
+    }
+    else
+    {
+        strcopy(key, sizeof(key), group);
+    }
+
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (g_PlayerNominations[i] == null) continue;
+        for (int j = 0; j < g_PlayerNominations[i].Length; j++)
+        {
+            NominationInfo otherInfo;
+            g_PlayerNominations[i].GetArray(j, otherInfo);
+            
+            if (StrEqual(otherInfo.map, map) && StrEqual(otherInfo.group, group) && StrEqual(otherInfo.subgroup, subgroup))
+            {
+                mapStillNominated = true;
+            }
+
+            if (StrEqual(otherInfo.group, group) && StrEqual(otherInfo.subgroup, subgroup))
+            {
+                groupStillNominated = true;
+            }
+
+            if (mapStillNominated && groupStillNominated) break;
+        }
+        if (mapStillNominated && groupStillNominated) break;
+    }
+
+    if (!mapStillNominated)
+    {
+        ArrayList mapsNominated;
+        if (g_NominatedMaps.GetValue(key, mapsNominated))
+        {
+            int mapIndex = mapsNominated.FindString(map);
+            if (mapIndex != -1)
+            {
+                mapsNominated.Erase(mapIndex);
+            }
+        }
+    }
+
+    if (!groupStillNominated)
+    {
+        int groupIndex = g_NominatedGamemodes.FindString(key);
+        if (groupIndex != -1)
+        {
+            g_NominatedGamemodes.Erase(groupIndex);
+        }
+    }
+
+    if (g_PlayerNominations[client].Length == 0)
+    {
+        if (g_Cvar_NominateOneChance.BoolValue && !g_Cvar_NominateOneChanceAbsolute.BoolValue)
+        {
+            g_bHasNominated[client] = false;
+            if (showMessage)
+            {
+                CPrintToChat(client, "%t", "Unnominate Can Nominate Again");
+            }
+        }
+    }
+
+    if (showMessage)
+    {
+        char displayKey[192];
+        if(strlen(subgroup) > 0)
+            Format(displayKey, sizeof(displayKey), "%s/%s", group, subgroup);
+        else
+            strcopy(displayKey, sizeof(displayKey), group);
+            
+        CPrintToChat(client, "%t", "Unnominate Single Removed", map, displayKey);
+    }
+}
+
 void ShowNominateGamemodeMenu(int client)
 {
     Menu menu = new Menu(NominateGamemodeMenuHandler);
@@ -3505,8 +3752,14 @@ void RegisterNomination(int client, const char[] gamemode, const char[] subgroup
 
     g_bHasNominated[client] = true;
     
-    CPrintToChat(client, "%t", "Nominated Client", key, map);
+    NominationInfo nInfo;
+    strcopy(nInfo.group, sizeof(nInfo.group), gamemode);
+    strcopy(nInfo.subgroup, sizeof(nInfo.subgroup), subgroup);
+    strcopy(nInfo.map, sizeof(nInfo.map), map);
+    g_PlayerNominations[client].PushArray(nInfo);
     
+    CPrintToChat(client, "%t", "Nominated Client", key, map);
+	
     char clientName[MAX_NAME_LENGTH];
     GetClientName(client, clientName, sizeof(clientName));
     
@@ -6336,6 +6589,14 @@ public void OnPluginEnd()
         }
         delete snapshot;
         delete g_Countdowns;
+    }
+	
+    for (int i = 0; i <= MAXPLAYERS; i++)
+    {
+        if (g_PlayerNominations[i] != null)
+        {
+            delete g_PlayerNominations[i];
+        }
     }
     
     if (g_LastCountdownValues != null)

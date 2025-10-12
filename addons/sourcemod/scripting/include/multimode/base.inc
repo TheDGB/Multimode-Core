@@ -16,6 +16,13 @@ enum TimingMode
     TIMING_INSTANT
 };
 
+enum struct NominationInfo
+{
+    char group[64];
+    char subgroup[64];
+    char map[PLATFORM_MAX_PATH];
+}
+
 enum VoteEndReason
 {
     VoteEnd_Winner,     /**< A winner was chosen. */
