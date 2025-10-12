@@ -14,8 +14,7 @@
 #include <multimode/base>
 #include <nativevotes>
 
-#define COMMAND_KEY          "command"
-#define PLUGIN_VERSION "2.8.8"
+#define PLUGIN_VERSION "2.8.9"
 
 // Convar Section
 ConVar g_Cvar_CooldownEnabled;
@@ -174,6 +173,8 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_unnom", Command_Unnominate, "Remove one or all of your nominations. (ALT)");
     RegConsoleCmd("sm_quickunnominate", Command_QuickUnnominate, "Quickly remove all your nominations.");
     RegConsoleCmd("sm_quickunnom", Command_QuickUnnominate, "Quickly remove all your nominations. (ALT)");
+	
+	RegConsoleCmd("multimode_version", Command_MultimodeVersion, "Displays the current Multimode Core version");
     
     // Reg Admin Commands
     RegAdminCmd("multimode_reload", Command_ReloadGamemodes, ADMFLAG_CONFIG, "Reloads gamemodes configuration");
@@ -4410,6 +4411,14 @@ public Action Command_CancelVote(int client, int args)
     
     return Plugin_Handled;
 }
+
+public Action Command_MultimodeVersion(int client, int args)
+{
+    CPrintToChat(client, "%t", "Current MMC Version", PLUGIN_VERSION);
+
+    return Plugin_Handled;
+}
+
 
 void ShowGameModeMenu(int client, bool forceMode)
 {
