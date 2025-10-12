@@ -4873,7 +4873,6 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
                 if (groupExclude > 0 && g_PlayedGamemodes.FindString(config.name) != -1)
                     continue;
 
-                // ADD TIME CHECK HERE
                 if (g_NominatedGamemodes.FindString(config.name) == -1 && 
                     voteGameModes.FindString(config.name) == -1 &&
                     IsCurrentlyAvailableByTime(config.name))
