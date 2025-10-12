@@ -4414,8 +4414,8 @@ public Action Command_CancelVote(int client, int args)
 
 public Action Command_MultimodeVersion(int client, int args)
 {
-    CPrintToChat(client, "%t", "Current MMC Version", PLUGIN_VERSION);
-
+    CReplyToCommand(client, "%t", "Current MMC Version", PLUGIN_VERSION);
+	
     return Plugin_Handled;
 }
 
