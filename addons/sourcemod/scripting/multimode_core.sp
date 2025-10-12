@@ -5224,20 +5224,7 @@ void ExtendMapTime()
     bool bExtendedRounds = false, bExtendedFrags = false;
     PerformExtension(float(extendMinutes), roundStep, fragStep, bExtendedRounds, bExtendedFrags);
     
-    char hudMsg[128];
-    Format(hudMsg, sizeof(hudMsg), "%t", "Map Extended", extendMinutes);
-    
-    SetHudTextParamsEx(-1.00, -0.75, 10.0, {0, 255, 0, 255}, {0, 0, 0, 0}, 2, 0.0, 0.1, 0.1);
-    for (int i = 1; i <= MaxClients; i++) {
-        if (IsClientInGame(i) && !IsFakeClient(i)) {
-            ShowSyncHudText(i, g_hHudSync, hudMsg);
-        }
-    }
-    
-    char buffer[256];
-    Format(buffer, sizeof(buffer), "%t", "Map Extended Time", extendMinutes);
-    
-    CPrintToChatAll(buffer);
+    WriteToLogFile("The map was extended by vote by %d minutes, %d rounds and %d frags.", extendMinutes, roundStep, fragStep);
     
     g_bEndVoteTriggered = false;
     
@@ -5311,31 +5298,6 @@ void ExtendMapTimeEx(int client, float minutes)
     bool bExtendedRounds = false, bExtendedFrags = false;
     PerformExtension(timeStep, roundStep, fragStep, bExtendedRounds, bExtendedFrags);
     
-    char hudMsg[128];
-    Format(hudMsg, sizeof(hudMsg), "%t", "Admin Map Extended", minutes);
-    
-    SetHudTextParamsEx(-1.00, -0.75, 10.0, {0, 255, 0, 255}, {0, 0, 0, 0}, 2, 0.0, 0.1, 0.1);
-    for (int i = 1; i <= MaxClients; i++) {
-        if (IsClientInGame(i) && !IsFakeClient(i)) {
-            ShowSyncHudText(i, g_hHudSync, hudMsg);
-        }
-    }
-    
-    char buffer[256];
-    Format(buffer, sizeof(buffer), "%t", "Admin Map Extended Time", minutes);
-    
-    if (bExtendedRounds) {
-        char temp[64];
-        Format(temp, sizeof(temp), "%t", "Map Extended Rounds", roundStep);
-        StrCat(buffer, sizeof(buffer), temp);
-    }
-    if (bExtendedFrags) {
-        char temp[64];
-        Format(temp, sizeof(temp), "%t", "Map Extended Frags", fragStep);
-        StrCat(buffer, sizeof(buffer), temp);
-    }
-    
-    CPrintToChatAll(buffer);
     char clientName[MAX_NAME_LENGTH];
     GetClientName(client, clientName, sizeof(clientName));
     WriteToLogFile("\"%s\" extended the map by %.1f minutes, %d rounds and %d frags.", clientName, minutes, g_Cvar_ExtendRoundStep.IntValue, g_Cvar_ExtendFragStep.IntValue);
