@@ -14,7 +14,7 @@
 #include <multimode/base>
 #include <nativevotes>
 
-#define PLUGIN_VERSION "2.9.1"
+#define PLUGIN_VERSION "2.9.2"
 
 // Convar Section
 ConVar g_Cvar_CooldownEnabled;
@@ -56,6 +56,8 @@ ConVar g_Cvar_RunoffInVoteLimit;
 ConVar g_Cvar_RunoffThreshold;
 ConVar g_Cvar_RunoffVoteFailed;
 ConVar g_Cvar_RunoffVoteLimit;
+ConVar g_Cvar_RunoffVoteOpenSound;
+ConVar g_Cvar_RunoffVoteCloseSound;
 ConVar g_Cvar_RtvDelay;
 ConVar g_Cvar_RtvEnabled;
 ConVar g_Cvar_RtvFirstDelay;
@@ -84,6 +86,7 @@ bool g_bGameEndTriggered = false;
 bool g_bHasNominated[MAXPLAYERS+1];
 bool g_bInternalChange = false;
 bool g_bIsRunoffCooldown = false;
+bool g_bIsRunoffVote = false;
 bool g_bMapExtended = false;
 bool g_bRtvCooldown = false;
 bool g_bRtvDisabled = false;
@@ -215,6 +218,8 @@ public void OnPluginStart()
     g_Cvar_VoteAdminMapExclude = CreateConVar("multimode_voteadmin_mapexclude", "2", "Number of recently played maps to exclude from admin votes (0= Disabled)");
 	
     g_Cvar_Runoff = CreateConVar("multimode_runoff", "1", "Enable runoff system, voting for ties or if no option reaches the threshold.", _, true, 0.0, true, 1.0);
+    g_Cvar_RunoffVoteOpenSound = CreateConVar("multimode_runoff_voteopensound", "votemap/vtst.wav", "Sound played when starting a runoff vote.");
+    g_Cvar_RunoffVoteCloseSound = CreateConVar("multimode_runoff_voteclosesound", "votemap/vtend.wav", "Sound played when a runoff vote ends.");
     g_Cvar_RunoffThreshold = CreateConVar("multimode_runoff_threshold", "0.6", "Minimum percentage of votes an option needs to win directly (0.0 to disable threshold check.).", _, true, 0.0, true, 1.0);
     g_Cvar_RunoffVoteFailed = CreateConVar("multimode_runoff_votefailed", "0", "What to do if a runoff vote also fails: 1= Do Nothing, 0= Pick the first option from the runoff.", _, true, 0.0, true, 1.0);
     g_Cvar_RunoffInVoteLimit = CreateConVar("multimode_runoff_invotelimit", "3", "Maximum number of items to include in a runoff vote.", _, true, 2.0);
@@ -302,6 +307,8 @@ public void OnPluginStart()
     HookConVarChange(g_hCvarTimeLimit, OnTimelimitChanged);
     HookConVarChange(g_Cvar_VoteOpenSound, OnSoundConVarChanged);
     HookConVarChange(g_Cvar_VoteCloseSound, OnSoundConVarChanged);
+    HookConVarChange(g_Cvar_RunoffVoteOpenSound, OnSoundConVarChanged);
+    HookConVarChange(g_Cvar_RunoffVoteCloseSound, OnSoundConVarChanged);
 	HookConVarChange(g_Cvar_CountdownEnabled, OnCountdownCvarChanged);
     HookConVarChange(g_Cvar_CountdownFilename, OnCountdownCvarChanged);
     
@@ -841,6 +848,28 @@ public void OnMapStart()
                 AddFileToDownloadsTable(downloadPath);
             else
                 WriteToLogFile("Closing sound file not found: %s", downloadPath);
+        }
+
+        g_Cvar_RunoffVoteOpenSound.GetString(sound, sizeof(sound));
+        if (sound[0] != '\0')
+        {
+            PrecacheSoundAny(sound);
+            FormatEx(downloadPath, sizeof(downloadPath), "sound/%s", sound);
+            if (FileExists(downloadPath, true))
+                AddFileToDownloadsTable(downloadPath);
+            else
+                WriteToLogFile("Runoff opening sound file not found: %s", downloadPath);
+        }
+
+        g_Cvar_RunoffVoteCloseSound.GetString(sound, sizeof(sound));
+        if (sound[0] != '\0')
+        {
+            PrecacheSoundAny(sound);
+            FormatEx(downloadPath, sizeof(downloadPath), "sound/%s", sound);
+            if (FileExists(downloadPath, true))
+                AddFileToDownloadsTable(downloadPath);
+            else
+                WriteToLogFile("Runoff closing sound file not found: %s", downloadPath);
         }
     }
 
@@ -1434,7 +1463,14 @@ void HandleWinner(const char[] winner, VoteType voteType)
     if (g_Cvar_VoteSounds.BoolValue)
     {
         char sound[PLATFORM_MAX_PATH];
-        g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+        if (g_bIsRunoffVote)
+        {
+            g_Cvar_RunoffVoteCloseSound.GetString(sound, sizeof(sound));
+        }
+        else
+        {
+            g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+        }
         if (sound[0] != '\0') EmitSoundToAllAny(sound);
     }
     
@@ -1444,6 +1480,7 @@ void HandleWinner(const char[] winner, VoteType voteType)
         g_bVoteCompleted = true;
         g_bEndVoteTriggered = true;
     }
+    g_bIsRunoffVote = false;
 }
 
 // Run Off
@@ -2327,6 +2364,38 @@ public void OnSoundConVarChanged(ConVar convar, const char[] oldValue, const cha
                 }
             }
         }
+        else if (convar == g_Cvar_RunoffVoteOpenSound)
+        {
+            if (newValue[0] != '\0')
+            {
+                PrecacheSoundAny(newValue);
+                FormatEx(downloadPath, sizeof(downloadPath), "sound/%s", newValue);
+                if (FileExists(downloadPath, true))
+                {
+                    AddFileToDownloadsTable(downloadPath);
+                }
+                else
+                {
+                    WriteToLogFile("Runoff opening sound file not found: %s", downloadPath);
+                }
+            }
+        }
+        else if (convar == g_Cvar_RunoffVoteCloseSound)
+        {
+            if (newValue[0] != '\0')
+            {
+                PrecacheSoundAny(newValue);
+                FormatEx(downloadPath, sizeof(downloadPath), "sound/%s", newValue);
+                if (FileExists(downloadPath, true))
+                {
+                    AddFileToDownloadsTable(downloadPath);
+                }
+                else
+                {
+                    WriteToLogFile("Runoff closing sound file not found: %s", downloadPath);
+                }
+            }
+        }
     }
 }
 
@@ -2419,7 +2488,14 @@ public int NativeVoteHandler(NativeVote vote, MenuAction action, int param1, int
             if (g_Cvar_VoteSounds.BoolValue)
             {
                 char sound[PLATFORM_MAX_PATH];
-                g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+                if (g_bIsRunoffVote)
+                {
+                    g_Cvar_RunoffVoteOpenSound.GetString(sound, sizeof(sound));
+                }
+                else
+                {
+                    g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+                }
                 if (sound[0] != '\0')
                 {
                     EmitSoundToAllAny(sound);
@@ -2447,12 +2523,20 @@ public int NativeVoteHandler(NativeVote vote, MenuAction action, int param1, int
             if (g_Cvar_VoteSounds.BoolValue)
             {
                 char sound[PLATFORM_MAX_PATH];
-                g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+                if (g_bIsRunoffVote)
+                {
+                    g_Cvar_RunoffVoteCloseSound.GetString(sound, sizeof(sound));
+                }
+                else
+                {
+                    g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+                }
                 if (sound[0] != '\0')
                 {
                     EmitSoundToAllAny(sound);
                 }
             }
+            g_bIsRunoffVote = false;
         }
     }
 
@@ -2483,7 +2567,14 @@ public int NativeSubGroupVoteHandler(NativeVote vote, MenuAction action, int par
             if (g_Cvar_VoteSounds.BoolValue)
             {
                 char sound[PLATFORM_MAX_PATH];
-                g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+                if (g_bIsRunoffVote)
+                {
+                    g_Cvar_RunoffVoteOpenSound.GetString(sound, sizeof(sound));
+                }
+                else
+                {
+                    g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+                }
                 if (sound[0] != '\0')
                 {
                     EmitSoundToAllAny(sound);
@@ -2507,6 +2598,7 @@ public int NativeSubGroupVoteHandler(NativeVote vote, MenuAction action, int par
             {
                 vote.DisplayFail(NativeVotesFail_Generic);
             }
+            g_bIsRunoffVote = false;
         }
         
         case MenuAction_VoteEnd:
@@ -2530,7 +2622,14 @@ public int NativeMapVoteHandler(NativeVote vote, MenuAction action, int param1, 
             if (g_Cvar_VoteSounds.BoolValue)
             {
                 char sound[PLATFORM_MAX_PATH];
-                g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+                if (g_bIsRunoffVote)
+                {
+                    g_Cvar_RunoffVoteOpenSound.GetString(sound, sizeof(sound));
+                }
+                else
+                {
+                    g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+                }
                 if (sound[0] != '\0')
                 {
                     EmitSoundToAllAny(sound);
@@ -2558,12 +2657,20 @@ public int NativeMapVoteHandler(NativeVote vote, MenuAction action, int param1, 
             if (g_Cvar_VoteSounds.BoolValue)
             {
                 char sound[PLATFORM_MAX_PATH];
-                g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+                if (g_bIsRunoffVote)
+                {
+                    g_Cvar_RunoffVoteCloseSound.GetString(sound, sizeof(sound));
+                }
+                else
+                {
+                    g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+                }
                 if (sound[0] != '\0')
                 {
                     EmitSoundToAllAny(sound);
                 }
             }
+            g_bIsRunoffVote = false;
         }
 		
         case MenuAction_VoteEnd:
@@ -2587,7 +2694,14 @@ public int NativeSubGroupMapVoteHandler(NativeVote vote, MenuAction action, int 
             if (g_Cvar_VoteSounds.BoolValue)
             {
                 char sound[PLATFORM_MAX_PATH];
-                g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+                if (g_bIsRunoffVote)
+                {
+                    g_Cvar_RunoffVoteOpenSound.GetString(sound, sizeof(sound));
+                }
+                else
+                {
+                    g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+                }
                 if (sound[0] != '\0')
                 {
                     EmitSoundToAllAny(sound);
@@ -2611,6 +2725,7 @@ public int NativeSubGroupMapVoteHandler(NativeVote vote, MenuAction action, int 
             {
                 vote.DisplayFail(NativeVotesFail_Generic);
             }
+            g_bIsRunoffVote = false;
         }
 		
         case MenuAction_VoteEnd:
@@ -2826,12 +2941,20 @@ public void AdminMenu_CancelVote(TopMenu topmenu, TopMenuAction action, TopMenuO
             if (g_Cvar_VoteSounds.BoolValue)
             {
                 char sound[PLATFORM_MAX_PATH];
-                g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+                if (g_bIsRunoffVote)
+                {
+                    g_Cvar_RunoffVoteCloseSound.GetString(sound, sizeof(sound));
+                }
+                else
+                {
+                    g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+                }
                 if (sound[0] != '\0')
                 {
                     EmitSoundToAllAny(sound);
                 }
             }
+            g_bIsRunoffVote = false;
             
             CPrintToChatAll("%t", "Admin Cancel Vote", client);
         }
@@ -4022,12 +4145,20 @@ public int NativeMMC_StopVote(Handle plugin, int numParams)
         if (g_Cvar_VoteSounds.BoolValue)
         {
             char sound[PLATFORM_MAX_PATH];
-            g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+            if (g_bIsRunoffVote)
+            {
+                g_Cvar_RunoffVoteCloseSound.GetString(sound, sizeof(sound));
+            }
+            else
+            {
+                g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+            }
             if (sound[0] != '\0')
             {
                 EmitSoundToAllAny(sound);
             }
         }
+        g_bIsRunoffVote = false;
         NativeMMC_OnVoteEnd("", "", "", VoteEnd_Cancelled);
     }
     
@@ -4366,12 +4497,20 @@ public Action Command_CancelVote(int client, int args)
         if (g_Cvar_VoteSounds.BoolValue)
         {
             char sound[PLATFORM_MAX_PATH];
-            g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+            if (g_bIsRunoffVote)
+            {
+                g_Cvar_RunoffVoteCloseSound.GetString(sound, sizeof(sound));
+            }
+            else
+            {
+                g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
+            }
             if (sound[0] != '\0')
             {
                 EmitSoundToAllAny(sound);
             }
         }
+        g_bIsRunoffVote = false;
         
         CPrintToChatAll("%t", "Admin Cancel Vote", client);
 		NativeMMC_OnVoteEnd("", "", "", VoteEnd_Cancelled);
@@ -4746,6 +4885,7 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing, cons
 
 void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems = null)
 {
+    g_bIsRunoffVote = (runoffItems != null);
     WriteToLogFile("[MultiMode Core] Stabilized Voting (Gamemode)");
     
     if (!g_Cvar_Enabled.BoolValue || g_bVoteActive || g_bCooldownActive)
@@ -4936,7 +5076,14 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
     if (g_Cvar_VoteSounds.BoolValue)
     {
         char sound[PLATFORM_MAX_PATH];
-        g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+        if (g_bIsRunoffVote)
+        {
+            g_Cvar_RunoffVoteOpenSound.GetString(sound, sizeof(sound));
+        }
+        else
+        {
+            g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+        }
         if (sound[0] != '\0')
         {
             EmitSoundToAllAny(sound);
@@ -4988,6 +5135,7 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
 
 void StartSubGroupVote(int client, const char[] gamemode, ArrayList runoffItems = null)
 {
+    g_bIsRunoffVote = (runoffItems != null);
     if (!g_Cvar_Enabled.BoolValue || g_bVoteActive || g_bCooldownActive)
     {
         CPrintToChatAll("%t", "Vote Already Active");
@@ -5100,7 +5248,14 @@ void StartSubGroupVote(int client, const char[] gamemode, ArrayList runoffItems 
     if (g_Cvar_VoteSounds.BoolValue)
     {
         char sound[PLATFORM_MAX_PATH];
-        g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+        if (g_bIsRunoffVote)
+        {
+            g_Cvar_RunoffVoteOpenSound.GetString(sound, sizeof(sound));
+        }
+        else
+        {
+            g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+        }
         if (sound[0] != '\0')
         {
             EmitSoundToAllAny(sound);
@@ -5463,6 +5618,7 @@ public void ExecuteSubGroupVoteResult()
 
 void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = null)
 {
+    g_bIsRunoffVote = (runoffItems != null);
     if (g_bVoteActive || !g_Cvar_Enabled.BoolValue)
     {
         CPrintToChat(client, "%t", "Vote Already Active");
@@ -5685,7 +5841,14 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
         if (g_Cvar_VoteSounds.BoolValue)
         {
             char sound[PLATFORM_MAX_PATH];
-            g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+            if (g_bIsRunoffVote)
+            {
+                g_Cvar_RunoffVoteOpenSound.GetString(sound, sizeof(sound));
+            }
+            else
+            {
+                g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+            }
             if (sound[0] != '\0') EmitSoundToAllAny(sound);
         }
 
@@ -5846,7 +6009,14 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
     if (g_Cvar_VoteSounds.BoolValue)
     {
         char sound[PLATFORM_MAX_PATH];
-        g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+        if (g_bIsRunoffVote)
+        {
+            g_Cvar_RunoffVoteOpenSound.GetString(sound, sizeof(sound));
+        }
+        else
+        {
+            g_Cvar_VoteOpenSound.GetString(sound, sizeof(sound));
+        }
         if (sound[0] != '\0') EmitSoundToAllAny(sound);
     }
 
@@ -5895,6 +6065,7 @@ public void MapVoteResultHandler(Menu menu, int num_votes, int num_clients, cons
 
 void StartSubGroupMapVote(int client, const char[] gamemode, const char[] subgroup, ArrayList runoffItems = null)
 {
+    g_bIsRunoffVote = (runoffItems != null);
     if (g_bVoteActive || !g_Cvar_Enabled.BoolValue)
     {
         CPrintToChat(client, "%t", "Vote Already Active");
