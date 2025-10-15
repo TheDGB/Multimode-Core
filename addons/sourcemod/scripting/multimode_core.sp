@@ -14,7 +14,7 @@
 #include <multimode/base>
 #include <nativevotes>
 
-#define PLUGIN_VERSION "2.9.0"
+#define PLUGIN_VERSION "2.9.1"
 
 // Convar Section
 ConVar g_Cvar_CooldownEnabled;
@@ -37,6 +37,7 @@ ConVar g_Cvar_ExtendSteps;
 ConVar g_Cvar_ExtendVote;
 ConVar g_Cvar_ExtendVoteAdmin;
 ConVar g_Cvar_Logs;
+ConVar g_Cvar_MapCycleFile;
 ConVar g_Cvar_Method;
 ConVar g_Cvar_NativeVotes;
 ConVar g_Cvar_NominateEnabled;
@@ -187,6 +188,8 @@ public void OnPluginStart()
     
     // Convars
     g_Cvar_Enabled = CreateConVar("multimode_enabled", "1", "Enable the multimode voting system");
+	
+	g_Cvar_MapCycleFile = CreateConVar("multimode_mapcycle", "mmc_mapcycle.txt", "Name of the map cycle file to use (search in addons/sourcemod/configs).");
         
     g_Cvar_RtvEnabled = CreateConVar("multimode_rtv_enabled", "1", "Enables and disables the Rock The Vote system on the server", _, true, 0.0, true, 1.0);
     g_Cvar_RtvMinPlayers = CreateConVar("multimode_rtv_min", "1", "Minimum number of players required to start RTV", _, true, 1.0);
@@ -375,11 +378,14 @@ public void OnConfigsExecuted()
     g_kvGameModes = new KeyValues("Mapcycle");
     
     char configPath[PLATFORM_MAX_PATH];
-    BuildPath(Path_SM, configPath, sizeof(configPath), "configs/gamemodes.cfg");
+    char mapcycleFile[PLATFORM_MAX_PATH];
+    
+    g_Cvar_MapCycleFile.GetString(mapcycleFile, sizeof(mapcycleFile));
+    BuildPath(Path_SM, configPath, sizeof(configPath), "configs/%s", mapcycleFile);
     
     if (!g_kvGameModes.ImportFromFile(configPath))
     {
-        WriteToLogFile("Falha ao carregar gamemodes.cfg");
+        WriteToLogFile("Falha ao carregar %s", mapcycleFile);
         return;
     }
     
@@ -915,11 +921,14 @@ public void LoadGameModesConfig()
     g_kvGameModes = new KeyValues("Mapcycle");
     
     char configPath[PLATFORM_MAX_PATH];
-    BuildPath(Path_SM, configPath, sizeof(configPath), "configs/gamemodes.cfg");
+    char mapcycleFile[PLATFORM_MAX_PATH];
+    
+    g_Cvar_MapCycleFile.GetString(mapcycleFile, sizeof(mapcycleFile));
+    BuildPath(Path_SM, configPath, sizeof(configPath), "configs/%s", mapcycleFile);
     
     if (!g_kvGameModes.ImportFromFile(configPath))
     {
-        WriteToLogFile("Failed to load gamemodes.cfg");
+        WriteToLogFile("Failed to load %s", mapcycleFile);
         return;
     }
 
