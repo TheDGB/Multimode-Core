@@ -1,7 +1,7 @@
 # Multimode Core
 This is a utility plugin for Source Mod that recreates the mapchooser/UMC for multimode gamemode selector for multimode servers.
 
-Inspired by Map Chooser from Source Mode and UMC (Ultimate Map Chooser).
+Inspired by Map Chooser from SourceMod and UMC (Ultimate Map Chooser).
 
 Do you have a suggestion for the plugin? You can make a **pull request!**
 
