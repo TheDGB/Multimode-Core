@@ -14,7 +14,7 @@
 #include <multimode/base>
 #include <nativevotes>
 
-#define PLUGIN_VERSION "2.8.9"
+#define PLUGIN_VERSION "2.9.0"
 
 // Convar Section
 ConVar g_Cvar_CooldownEnabled;
@@ -439,6 +439,12 @@ public void OnMapStart()
         
             WriteToLogFile("[MultiMode Core] Using preselected gamemode: %s", config.name);
             
+            if (strlen(config.config) > 0)
+            {
+                WriteToLogFile("[MultiMode Core] Executing group config: %s", config.config);
+                ServerCommand("exec %s", config.config);
+            }
+            
             bool subgroupProcessed = false;
             if (strlen(g_sNextSubGroup) > 0)
             {
@@ -447,6 +453,12 @@ public void OnMapStart()
                 {
                     SubGroupConfig subConfig;
                     config.subGroups.GetArray(subgroupIndex, subConfig);
+                    
+                    if (strlen(subConfig.config) > 0)
+                    {
+                        WriteToLogFile("[MultiMode Core] Executing subgroup config: %s", subConfig.config);
+                        ServerCommand("exec %s", subConfig.config);
+                    }
                     
                     if (strlen(subConfig.command) > 0)
                     {
@@ -458,6 +470,14 @@ public void OnMapStart()
                     KeyValues kv = GetSubGroupMapKv(config.name, g_sNextSubGroup, CurrentMap);
                     if (kv != null)
                     {
+                        char mapConfig[256];
+                        kv.GetString("config", mapConfig, sizeof(mapConfig), "");
+                        if (strlen(mapConfig) > 0)
+                        {
+                            WriteToLogFile("[MultiMode Core] Executing subgroup map config: %s", mapConfig);
+                            ServerCommand("exec %s", mapConfig);
+                        }
+                        
                         char mapCommand[256];
                         kv.GetString("command", mapCommand, sizeof(mapCommand), "");
                         
@@ -480,6 +500,14 @@ public void OnMapStart()
             KeyValues kv = GetMapKv(config.name, CurrentMap);
             if (kv != null)
             {
+                char mapConfig[256];
+                kv.GetString("config", mapConfig, sizeof(mapConfig), "");
+                if (strlen(mapConfig) > 0)
+                {
+                    WriteToLogFile("[MultiMode Core] Executing map config: %s", mapConfig);
+                    ServerCommand("exec %s", mapConfig);
+                }
+
                 char mapCommand[256];
                 kv.GetString("command", mapCommand, sizeof(mapCommand), "");
                 
@@ -502,6 +530,14 @@ public void OnMapStart()
 
                         if (IsWildcardEntry(mapKey) && StrContains(CurrentMap, mapKey) == 0)
                         {
+                            char wildcardConfig[256];
+                            g_kvGameModes.GetString("config", wildcardConfig, sizeof(wildcardConfig), "");
+                            if (strlen(wildcardConfig) > 0)
+                            {
+                                WriteToLogFile("[MultiMode Core] Executing wildcard config (%s): %s", mapKey, wildcardConfig);
+                                ServerCommand("exec %s", wildcardConfig);
+                            }
+                            
                             char wildcardCommand[256];
                             g_kvGameModes.GetString("command", wildcardCommand, sizeof(wildcardCommand), "");
                             
@@ -544,6 +580,23 @@ public void OnMapStart()
                     
                     WriteToLogFile("[MultiMode Core] Group found with subgroup: %s (SubGroup: %s)", config.name, subConfig.name);
 
+                    if (strlen(config.config) > 0)
+                    {
+                        WriteToLogFile("[MultiMode Core] Executing group config: %s", config.config);
+                        ServerCommand("exec %s", config.config);
+                    }
+                    if (strlen(config.command) > 0)
+                    {
+                        WriteToLogFile("[MultiMode Core] Executing group command: %s", config.command);
+                        ServerCommand("%s", config.command);
+                    }
+                    
+                    if (strlen(subConfig.config) > 0)
+                    {
+                        WriteToLogFile("[MultiMode Core] Executing subgroup config: %s", subConfig.config);
+                        ServerCommand("exec %s", subConfig.config);
+                    }
+
                     if (strlen(subConfig.command) > 0)
                     {
                         WriteToLogFile("[MultiMode Core] Executing subgroup command: %s", subConfig.command);
@@ -553,6 +606,14 @@ public void OnMapStart()
                     KeyValues kv = GetSubGroupMapKv(config.name, subConfig.name, CurrentMap);
                     if (kv != null)
                     {
+                        char mapConfig[256];
+                        kv.GetString("config", mapConfig, sizeof(mapConfig), "");
+                        if (strlen(mapConfig) > 0)
+                        {
+                            WriteToLogFile("[MultiMode Core] Executing subgroup map config: %s", mapConfig);
+                            ServerCommand("exec %s", mapConfig);
+                        }
+                        
                         char mapCommand[256];
                         kv.GetString("command", mapCommand, sizeof(mapCommand), "");
                         
@@ -576,6 +637,12 @@ public void OnMapStart()
                 strcopy(g_sCurrentGameMode, sizeof(g_sCurrentGameMode), config.name);
                 WriteToLogFile("[MultiMode Core] Group found: %s", config.name);
 
+                if (strlen(config.config) > 0)
+                {
+                    WriteToLogFile("[MultiMode Core] Executing group config: %s", config.config);
+                    ServerCommand("exec %s", config.config);
+                }
+
                 if (strlen(config.command) > 0)
                 {
                     WriteToLogFile("[MultiMode Core] Executing group command: %s", config.command);
@@ -585,6 +652,14 @@ public void OnMapStart()
                 KeyValues kv = GetMapKv(config.name, CurrentMap);
                 if (kv != null)
                 {
+                    char mapConfig[256];
+                    kv.GetString("config", mapConfig, sizeof(mapConfig), "");
+                    if (strlen(mapConfig) > 0)
+                    {
+                        WriteToLogFile("[MultiMode Core] Executing map config: %s", mapConfig);
+                        ServerCommand("exec %s", mapConfig);
+                    }
+                    
                     char mapCommand[256];
                     kv.GetString("command", mapCommand, sizeof(mapCommand), "");
                     
@@ -607,6 +682,14 @@ public void OnMapStart()
 
                             if (IsWildcardEntry(mapKey) && StrContains(CurrentMap, mapKey) == 0)
                             {
+                                char wildcardConfig[256];
+                                g_kvGameModes.GetString("config", wildcardConfig, sizeof(wildcardConfig), "");
+                                if (strlen(wildcardConfig) > 0)
+                                {
+                                    WriteToLogFile("[MultiMode Core] Executing wildcard config (%s): %s", mapKey, wildcardConfig);
+                                    ServerCommand("exec %s", wildcardConfig);
+                                }
+                                
                                 char wildcardCommand[256];
                                 g_kvGameModes.GetString("command", wildcardCommand, sizeof(wildcardCommand), "");
                                 
@@ -864,6 +947,7 @@ public void LoadGameModesConfig()
             g_kvGameModes.GetString("command", config.command, sizeof(config.command), "");
             g_kvGameModes.GetString("pre-command", config.pre_command, sizeof(config.pre_command), "");
             g_kvGameModes.GetString("vote-command", config.vote_command, sizeof(config.vote_command), "");
+            g_kvGameModes.GetString("config", config.config, sizeof(config.config), "");
             
             if (strlen(config.command) == 0 && g_kvGameModes.JumpToKey("serverconfig"))
             {
@@ -953,6 +1037,7 @@ public void LoadGameModesConfig()
                         g_kvGameModes.GetString("command", subConfig.command, sizeof(subConfig.command), "");
                         g_kvGameModes.GetString("pre-command", subConfig.pre_command, sizeof(subConfig.pre_command), "");
                         g_kvGameModes.GetString("vote-command", subConfig.vote_command, sizeof(subConfig.vote_command), "");
+                        g_kvGameModes.GetString("config", subConfig.config, sizeof(subConfig.config), "");
                         
                         subConfig.maps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
                         

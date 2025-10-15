@@ -49,6 +49,7 @@ enum VoteType
 
 enum struct SubGroupConfig {
     char name[64];
+    char config[256];
     char command[256];
     char pre_command[256];
     char vote_command[256];
@@ -64,6 +65,7 @@ enum struct SubGroupConfig {
 
 enum struct GameModeConfig {
     char name[64];
+    char config[256];
     char command[256];
     char pre_command[256];
     char vote_command[256];
@@ -316,17 +318,4 @@ int GetRealClientCount()
         }
     }
     return count;
-}
-
-stock void ExecuteModeCommands(const char[] gamemode)
-{
-    char sCommand[255];
-    if (g_kvGameModes.JumpToKey(gamemode))
-    {
-        if (g_kvGameModes.GetString("command", sCommand, sizeof(sCommand)))
-        {
-            ServerCommand(sCommand);
-        }
-        g_kvGameModes.Rewind();
-    }
 }
