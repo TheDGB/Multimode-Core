@@ -1437,42 +1437,6 @@ void HandleWinner(const char[] winner, VoteType voteType)
     }
 }
 
-void ExpandWildcardMaps(const char[] pattern, ArrayList maplist)
-{
-    Handle dir = OpenDirectory("maps");
-    FileType type;
-    char fileName[PLATFORM_MAX_PATH];
-    char mapName[PLATFORM_MAX_PATH];
-    
-    if (dir == null) return;
-
-    while (ReadDirEntry(dir, fileName, sizeof(fileName), type))
-    {
-        if (type == FileType_File && StrContains(fileName, ".bsp") != -1)
-        {
-            strcopy(mapName, sizeof(mapName), fileName);
-            int extpos = StrContains(mapName, ".bsp");
-            if (extpos != -1) mapName[extpos] = '\0';
-            
-            if (StrContains(mapName, pattern) == 0 && IsMapValid(mapName))
-            {
-                if (maplist.FindString(mapName) == -1)
-                {
-                    maplist.PushString(mapName);
-                }
-            }
-        }
-    }
-    
-    CloseHandle(dir);
-}
-
-bool IsWildcardEntry(const char[] mapname)
-{
-    int len = strlen(mapname);
-    return (len > 0 && mapname[len-1] == '_');
-}
-
 // Run Off
 
 void StartPendingRunoffVote()
@@ -1887,20 +1851,6 @@ void CountdownMessages(const char[] type, int value)
     }
 }
 
-
-void FormatTimeValue(int timeValue, char[] buffer, int bufferSize)
-{
-    if (timeValue >= 60)
-    {
-        int minutes = timeValue / 60;
-        Format(buffer, bufferSize, "%d", minutes);
-    }
-    else
-    {
-        Format(buffer, bufferSize, "%d", timeValue);
-    }
-}
-
 // //////////////////////
 // //                  //
 // //   Random Cycle   //
@@ -2222,39 +2172,6 @@ public Action Timer_UpdateCooldownHUD(Handle timer)
     }
     
     return (remaining > 0) ? Plugin_Continue : Plugin_Stop;
-}
-
-void UpdateCurrentGameMode(const char[] map)
-{
-    ArrayList gameModes = GetGameModesList();
-    
-    for(int i = 0; i < gameModes.Length; i++)
-    {
-        GameModeConfig config;
-        gameModes.GetArray(i, config);
-        
-        for (int j = 0; j < config.subGroups.Length; j++)
-        {
-            SubGroupConfig subConfig;
-            config.subGroups.GetArray(j, subConfig);
-            
-            if(subConfig.maps.FindString(map) != -1)
-            {
-                char temp[128];
-                Format(temp, sizeof(temp), "%s/%s", config.name, subConfig.name);
-                strcopy(g_sCurrentGameMode, sizeof(g_sCurrentGameMode), temp);
-                return;
-            }
-        }
-        
-        if(config.maps.FindString(map) != -1)
-        {
-            strcopy(g_sCurrentGameMode, sizeof(g_sCurrentGameMode), config.name);
-            return;
-        }
-    }
-    
-    g_sCurrentGameMode[0] = '\0';
 }
 
 // //////////////////
@@ -4270,35 +4187,6 @@ public int NativeMMC_IsGroupNominated(Handle plugin, int numParams)
     return (g_NominatedGamemodes.FindString(group) != -1);
 }
 
-void GetRandomGameMode(char[] buffer, int maxlength)
-{
-    ArrayList gameModes = GetGameModesList();
-    if(gameModes.Length > 0) {
-        int index = GetRandomInt(0, gameModes.Length-1);
-        GameModeConfig config;
-        gameModes.GetArray(index, config);
-        strcopy(buffer, maxlength, config.name);
-    }
-    else {
-        buffer[0] = '\0';
-    }
-}
-
-int FindGameModeForMap(const char[] map)
-{
-    ArrayList gameModes = GetGameModesList();
-    for (int i = 0; i < gameModes.Length; i++)
-    {
-        GameModeConfig config;
-        gameModes.GetArray(i, config);
-        if (config.maps.FindString(map) != -1)
-        {
-            return i;
-        }
-    }
-    return -1;
-}
-
 // //////////////////////////
 // //                      //
 // //    Commands Extra    //
@@ -4423,16 +4311,6 @@ public Action Command_ToggleVoteSounds(int client, int args)
     g_Cvar_VoteSounds.SetBool(newValue);
     
     return Plugin_Handled;
-}
-
-float GetRemainingTime(int timerIndex)
-{
-    if(timerIndex < 0 || timerIndex >= sizeof(g_hRtvTimers)) return 0.0;
-    if(g_hRtvTimers[timerIndex] == INVALID_HANDLE) return 0.0;
-    
-    float elapsed = GetEngineTime() - g_fRtvTimerStart[timerIndex];
-    float remaining = g_fRtvTimerDuration[timerIndex] - elapsed;
-    return remaining > 0.0 ? remaining : 0.0;
 }
 
 public Action Command_ForceMode(int client, int args)
@@ -5250,32 +5128,6 @@ public void SubGroupVoteResultHandler(Menu menu, int num_votes, int num_clients,
     ProcessVoteResults(menu, num_votes, num_clients, item_info, num_items, VOTE_TYPE_SUBGROUP);
 }
 
-void WriteToLogFile(const char[] format, any ...)
-{
-    if (g_Cvar_Logs.BoolValue)
-    {
-        char buffer[512];
-        VFormat(buffer, sizeof(buffer), format, 2);
-
-        char logPath[PLATFORM_MAX_PATH];
-        BuildPath(Path_SM, logPath, sizeof(logPath), "logs/multimode_logs.txt");
-
-        File file = OpenFile(logPath, "a+");
-        if (file != null)
-        {
-            char timeStr[64];
-            FormatTime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S");
-            file.WriteLine("[%s] %s", timeStr, buffer);
-            LogMessage("%s", buffer);
-            delete file;
-        }
-        else
-        {
-            WriteToLogFile("Failed to write to log file: %s", logPath);
-        }
-    }
-}
-
 public int GameModeVoteHandler(Menu menu, MenuAction action, int param1, int param2)
 {
     if (action == MenuAction_End)
@@ -5289,157 +5141,6 @@ public int GameModeVoteHandler(Menu menu, MenuAction action, int param1, int par
 public void GameModeVoteResultHandler(Menu menu, int num_votes, int num_clients, const int[][] client_info, int num_items, const int[][] item_info)
 {
     ProcessVoteResults(menu, num_votes, num_clients, item_info, num_items, VOTE_TYPE_GROUP);
-}
-
-// ////////////////////////
-// //                    //
-// //    Limitations     //
-// //                    //
-// ////////////////////////
-
-// Limitations
-
-bool GamemodeAvailable(const char[] gamemode)
-{
-    int index = FindGameModeIndex(gamemode);
-    if (index == -1) return false;
-
-    GameModeConfig config;
-    ArrayList list = GetGameModesList();
-    list.GetArray(index, config);
-    
-    if (config.enabled == 0) return false;
-    
-    if (config.adminonly == 1) return false;
-    
-    int players = GetRealClientCount();
-    if (config.minplayers > 0 && players < config.minplayers) return false;
-    if (config.maxplayers > 0 && players > config.maxplayers) return false;
-    
-    if (!IsCurrentlyAvailableByTime(gamemode)) return false;
-    
-    return true;
-}
-
-bool GamemodeAvailableAdminVote(const char[] gamemode)
-{
-    int index = FindGameModeIndex(gamemode);
-    if (index == -1) return false;
-
-    GameModeConfig config;
-    ArrayList list = GetGameModesList();
-    list.GetArray(index, config);
-    
-    if (config.enabled == 0) return false;
-    
-    int players = GetRealClientCount();
-    if (config.minplayers > 0 && players < config.minplayers) return false;
-    if (config.maxplayers > 0 && players > config.maxplayers) return false;
-    
-    if (!IsCurrentlyAvailableByTime(gamemode)) return false;
-    
-    return true;
-}
-
-stock bool IsTimeAllowed(int minTime, int maxTime)
-{
-    if (minTime == -1 && maxTime == -1)
-    {
-        return true;
-    }
-
-    char sCurrentTime[5];
-    FormatTime(sCurrentTime, sizeof(sCurrentTime), "%H%M");
-    int iCurrentTime = StringToInt(sCurrentTime);
-
-    if (minTime != -1 && maxTime != -1)
-    {
-        if (minTime <= maxTime)
-        {
-            return iCurrentTime >= minTime && iCurrentTime <= maxTime;
-        }
-        else
-        {
-            return iCurrentTime >= minTime || iCurrentTime <= maxTime;
-        }
-    }
-    else if (minTime != -1)
-    {
-        return iCurrentTime >= minTime;
-    }
-    else // maxTime != -1
-    {
-        return iCurrentTime <= maxTime;
-    }
-}
-
-stock bool IsCurrentlyAvailableByTime(const char[] group, const char[] subgroup = "", const char[] map = "")
-{
-    char buffer[8];
-    int minTime = -1, maxTime = -1;
-
-    KeyValues kv;
-    if (strlen(map) > 0)
-    {
-        if (strlen(subgroup) > 0)
-        {
-            kv = GetSubGroupMapKv(group, subgroup, map);
-        }
-        else
-        {
-            kv = GetMapKv(group, map);
-        }
-
-        if (kv != null)
-        {
-            kv.GetString("mintime", buffer, sizeof(buffer));
-            if (buffer[0] != '\0') minTime = StringToInt(buffer);
-
-            kv.GetString("maxtime", buffer, sizeof(buffer));
-            if (buffer[0] != '\0') maxTime = StringToInt(buffer);
-            
-            delete kv;
-
-            if (minTime != -1 || maxTime != -1)
-            {
-                return IsTimeAllowed(minTime, maxTime);
-            }
-        }
-    }
-
-    if (strlen(subgroup) > 0)
-    {
-        int groupIndex = FindGameModeIndex(group);
-        if (groupIndex != -1)
-        {
-            int subIndex = FindSubGroupIndex(group, subgroup);
-            if (subIndex != -1)
-            {
-                GameModeConfig config;
-                GetGameModesList().GetArray(groupIndex, config);
-                SubGroupConfig subConfig;
-                config.subGroups.GetArray(subIndex, subConfig);
-                
-                if (subConfig.mintime != -1 || subConfig.maxtime != -1)
-                {
-                    return IsTimeAllowed(subConfig.mintime, subConfig.maxtime);
-                }
-            }
-        }
-    }
-
-    int groupIndex = FindGameModeIndex(group);
-    if (groupIndex != -1)
-    {
-        GameModeConfig config;
-        GetGameModesList().GetArray(groupIndex, config);
-        if (config.mintime != -1 || config.maxtime != -1)
-        {
-            return IsTimeAllowed(config.mintime, config.maxtime);
-        }
-    }
-
-    return true;
 }
 
 // //////////////////////////////////////////////
@@ -5504,16 +5205,6 @@ void PerformExtension(float timeStep, int roundStep, int fragStep, bool &bExtend
     }
     
     g_bInternalChange = false;
-}
-
-bool CanExtendMap()
-{
-    ConVar timelimit = FindConVar("mp_timelimit");
-    ConVar maxrounds = FindConVar("mp_maxrounds");
-    ConVar winlimit = FindConVar("mp_winlimit");
-    ConVar fraglimit = FindConVar("mp_fraglimit");
-    
-    return (timelimit != null && timelimit.FloatValue > 0.0) || (maxrounds != null && maxrounds.IntValue > 0) || (winlimit != null && winlimit.IntValue > 0) || (fraglimit != null && fraglimit.IntValue > 0);
 }
 
 // //////////////////////////////////////////////
@@ -6178,6 +5869,16 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
     }
 }
 
+public int MapVoteHandler(Menu menu, MenuAction action, int param1, int param2) 
+{
+    if (action == MenuAction_End) 
+    {
+        delete menu;
+        g_bVoteActive = false;
+    }
+    return 0;
+}
+
 public void MapVoteResultHandler(Menu menu, int num_votes, int num_clients, const int[][] client_info, int num_items, const int[][] item_info)
 {
     ProcessVoteResults(menu, num_votes, num_clients, item_info, num_items, VOTE_TYPE_MAP);
@@ -6445,6 +6146,314 @@ public Action Timer_ExecutePendingVote(Handle timer)
     return Plugin_Stop;
 }
 
+// //////////////////////
+// //                  //
+// //    Assistants    //
+// //                  //
+// //////////////////////
+
+// Assistants
+
+void ExpandWildcardMaps(const char[] pattern, ArrayList maplist)
+{
+    Handle dir = OpenDirectory("maps");
+    FileType type;
+    char fileName[PLATFORM_MAX_PATH];
+    char mapName[PLATFORM_MAX_PATH];
+    
+    if (dir == null) return;
+
+    while (ReadDirEntry(dir, fileName, sizeof(fileName), type))
+    {
+        if (type == FileType_File && StrContains(fileName, ".bsp") != -1)
+        {
+            strcopy(mapName, sizeof(mapName), fileName);
+            int extpos = StrContains(mapName, ".bsp");
+            if (extpos != -1) mapName[extpos] = '\0';
+            
+            if (StrContains(mapName, pattern) == 0 && IsMapValid(mapName))
+            {
+                if (maplist.FindString(mapName) == -1)
+                {
+                    maplist.PushString(mapName);
+                }
+            }
+        }
+    }
+    
+    CloseHandle(dir);
+}
+
+bool IsWildcardEntry(const char[] mapname)
+{
+    int len = strlen(mapname);
+    return (len > 0 && mapname[len-1] == '_');
+}
+
+void FormatTimeValue(int timeValue, char[] buffer, int bufferSize)
+{
+    if (timeValue >= 60)
+    {
+        int minutes = timeValue / 60;
+        Format(buffer, bufferSize, "%d", minutes);
+    }
+    else
+    {
+        Format(buffer, bufferSize, "%d", timeValue);
+    }
+}
+
+void UpdateCurrentGameMode(const char[] map)
+{
+    ArrayList gameModes = GetGameModesList();
+    
+    for(int i = 0; i < gameModes.Length; i++)
+    {
+        GameModeConfig config;
+        gameModes.GetArray(i, config);
+        
+        for (int j = 0; j < config.subGroups.Length; j++)
+        {
+            SubGroupConfig subConfig;
+            config.subGroups.GetArray(j, subConfig);
+            
+            if(subConfig.maps.FindString(map) != -1)
+            {
+                char temp[128];
+                Format(temp, sizeof(temp), "%s/%s", config.name, subConfig.name);
+                strcopy(g_sCurrentGameMode, sizeof(g_sCurrentGameMode), temp);
+                return;
+            }
+        }
+        
+        if(config.maps.FindString(map) != -1)
+        {
+            strcopy(g_sCurrentGameMode, sizeof(g_sCurrentGameMode), config.name);
+            return;
+        }
+    }
+    
+    g_sCurrentGameMode[0] = '\0';
+}
+
+void GetRandomGameMode(char[] buffer, int maxlength)
+{
+    ArrayList gameModes = GetGameModesList();
+    if(gameModes.Length > 0) {
+        int index = GetRandomInt(0, gameModes.Length-1);
+        GameModeConfig config;
+        gameModes.GetArray(index, config);
+        strcopy(buffer, maxlength, config.name);
+    }
+    else {
+        buffer[0] = '\0';
+    }
+}
+
+int FindGameModeForMap(const char[] map)
+{
+    ArrayList gameModes = GetGameModesList();
+    for (int i = 0; i < gameModes.Length; i++)
+    {
+        GameModeConfig config;
+        gameModes.GetArray(i, config);
+        if (config.maps.FindString(map) != -1)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+float GetRemainingTime(int timerIndex)
+{
+    if(timerIndex < 0 || timerIndex >= sizeof(g_hRtvTimers)) return 0.0;
+    if(g_hRtvTimers[timerIndex] == INVALID_HANDLE) return 0.0;
+    
+    float elapsed = GetEngineTime() - g_fRtvTimerStart[timerIndex];
+    float remaining = g_fRtvTimerDuration[timerIndex] - elapsed;
+    return remaining > 0.0 ? remaining : 0.0;
+}
+
+void WriteToLogFile(const char[] format, any ...)
+{
+    if (g_Cvar_Logs.BoolValue)
+    {
+        char buffer[512];
+        VFormat(buffer, sizeof(buffer), format, 2);
+
+        char logPath[PLATFORM_MAX_PATH];
+        BuildPath(Path_SM, logPath, sizeof(logPath), "logs/multimode_logs.txt");
+
+        File file = OpenFile(logPath, "a+");
+        if (file != null)
+        {
+            char timeStr[64];
+            FormatTime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S");
+            file.WriteLine("[%s] %s", timeStr, buffer);
+            LogMessage("%s", buffer);
+            delete file;
+        }
+        else
+        {
+            WriteToLogFile("Failed to write to log file: %s", logPath);
+        }
+    }
+}
+
+bool GamemodeAvailable(const char[] gamemode)
+{
+    int index = FindGameModeIndex(gamemode);
+    if (index == -1) return false;
+
+    GameModeConfig config;
+    ArrayList list = GetGameModesList();
+    list.GetArray(index, config);
+    
+    if (config.enabled == 0) return false;
+    
+    if (config.adminonly == 1) return false;
+    
+    int players = GetRealClientCount();
+    if (config.minplayers > 0 && players < config.minplayers) return false;
+    if (config.maxplayers > 0 && players > config.maxplayers) return false;
+    
+    if (!IsCurrentlyAvailableByTime(gamemode)) return false;
+    
+    return true;
+}
+
+bool GamemodeAvailableAdminVote(const char[] gamemode)
+{
+    int index = FindGameModeIndex(gamemode);
+    if (index == -1) return false;
+
+    GameModeConfig config;
+    ArrayList list = GetGameModesList();
+    list.GetArray(index, config);
+    
+    if (config.enabled == 0) return false;
+    
+    int players = GetRealClientCount();
+    if (config.minplayers > 0 && players < config.minplayers) return false;
+    if (config.maxplayers > 0 && players > config.maxplayers) return false;
+    
+    if (!IsCurrentlyAvailableByTime(gamemode)) return false;
+    
+    return true;
+}
+
+stock bool IsTimeAllowed(int minTime, int maxTime)
+{
+    if (minTime == -1 && maxTime == -1)
+    {
+        return true;
+    }
+
+    char sCurrentTime[5];
+    FormatTime(sCurrentTime, sizeof(sCurrentTime), "%H%M");
+    int iCurrentTime = StringToInt(sCurrentTime);
+
+    if (minTime != -1 && maxTime != -1)
+    {
+        if (minTime <= maxTime)
+        {
+            return iCurrentTime >= minTime && iCurrentTime <= maxTime;
+        }
+        else
+        {
+            return iCurrentTime >= minTime || iCurrentTime <= maxTime;
+        }
+    }
+    else if (minTime != -1)
+    {
+        return iCurrentTime >= minTime;
+    }
+    else // maxTime != -1
+    {
+        return iCurrentTime <= maxTime;
+    }
+}
+
+stock bool IsCurrentlyAvailableByTime(const char[] group, const char[] subgroup = "", const char[] map = "")
+{
+    char buffer[8];
+    int minTime = -1, maxTime = -1;
+
+    KeyValues kv;
+    if (strlen(map) > 0)
+    {
+        if (strlen(subgroup) > 0)
+        {
+            kv = GetSubGroupMapKv(group, subgroup, map);
+        }
+        else
+        {
+            kv = GetMapKv(group, map);
+        }
+
+        if (kv != null)
+        {
+            kv.GetString("mintime", buffer, sizeof(buffer));
+            if (buffer[0] != '\0') minTime = StringToInt(buffer);
+
+            kv.GetString("maxtime", buffer, sizeof(buffer));
+            if (buffer[0] != '\0') maxTime = StringToInt(buffer);
+            
+            delete kv;
+
+            if (minTime != -1 || maxTime != -1)
+            {
+                return IsTimeAllowed(minTime, maxTime);
+            }
+        }
+    }
+
+    if (strlen(subgroup) > 0)
+    {
+        int groupIndex = FindGameModeIndex(group);
+        if (groupIndex != -1)
+        {
+            int subIndex = FindSubGroupIndex(group, subgroup);
+            if (subIndex != -1)
+            {
+                GameModeConfig config;
+                GetGameModesList().GetArray(groupIndex, config);
+                SubGroupConfig subConfig;
+                config.subGroups.GetArray(subIndex, subConfig);
+                
+                if (subConfig.mintime != -1 || subConfig.maxtime != -1)
+                {
+                    return IsTimeAllowed(subConfig.mintime, subConfig.maxtime);
+                }
+            }
+        }
+    }
+
+    int groupIndex = FindGameModeIndex(group);
+    if (groupIndex != -1)
+    {
+        GameModeConfig config;
+        GetGameModesList().GetArray(groupIndex, config);
+        if (config.mintime != -1 || config.maxtime != -1)
+        {
+            return IsTimeAllowed(config.mintime, config.maxtime);
+        }
+    }
+
+    return true;
+}
+
+bool CanExtendMap()
+{
+    ConVar timelimit = FindConVar("mp_timelimit");
+    ConVar maxrounds = FindConVar("mp_maxrounds");
+    ConVar winlimit = FindConVar("mp_winlimit");
+    ConVar fraglimit = FindConVar("mp_fraglimit");
+    
+    return (timelimit != null && timelimit.FloatValue > 0.0) || (maxrounds != null && maxrounds.IntValue > 0) || (winlimit != null && winlimit.IntValue > 0) || (fraglimit != null && fraglimit.IntValue > 0);
+}
+
 int FindGameModeIndex(const char[] name)
 {
     ArrayList list = GetGameModesList();
@@ -6488,6 +6497,14 @@ bool HasSubGroups(const char[] gamemode)
     
     return (config.subGroups != null && config.subGroups.Length > 0);
 }
+
+// //////////////////////
+// //                  //
+// //    KV SECTION    //
+// //                  //
+// //////////////////////
+
+// KV Section
 
 KeyValues GetMapKv(const char[] gamemode, const char[] mapname)
 {
@@ -6740,16 +6757,6 @@ stock void GetMapDisplayNameEx(const char[] gamemode, const char[] map, char[] d
     }
     
     strcopy(display, displayLen, baseMap);
-}
-
-public int MapVoteHandler(Menu menu, MenuAction action, int param1, int param2) 
-{
-    if (action == MenuAction_End) 
-    {
-        delete menu;
-        g_bVoteActive = false;
-    }
-    return 0;
 }
 
 public void OnGamemodeConfigLoaded()
