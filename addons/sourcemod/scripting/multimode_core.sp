@@ -14,7 +14,7 @@
 #include <multimode/base>
 #include <nativevotes>
 
-#define PLUGIN_VERSION "2.9.2"
+#define PLUGIN_VERSION "2.9.3"
 
 // Convar Section
 ConVar g_Cvar_CooldownEnabled;
@@ -3834,7 +3834,16 @@ void ShowNominateMapMenu(int client, const char[] gamemode, const char[] subgrou
     }
 
     ArrayList mapsNominated;
-    g_NominatedMaps.GetValue(gamemode, mapsNominated);
+    char key[128];
+    if (strlen(subgroup) > 0)
+    {
+        Format(key, sizeof(key), "%s/%s", gamemode, subgroup);
+    }
+    else
+    {
+        strcopy(key, sizeof(key), gamemode);
+    }
+    g_NominatedMaps.GetValue(key, mapsNominated);
 
     for (int i = 0; i < filteredMaps.Length; i++)
     {
@@ -3853,7 +3862,7 @@ void ShowNominateMapMenu(int client, const char[] gamemode, const char[] subgrou
         }
 
         char displayName[256];
-        GetMapDisplayNameEx(gamemode, map, displayName, sizeof(displayName));
+        GetMapDisplayNameEx(gamemode, map, displayName, sizeof(displayName), subgroup);
 
         if (mapsNominated != null && mapsNominated.FindString(map) != -1)
         {
@@ -4538,31 +4547,40 @@ void ShowGameModeMenu(int client, bool forceMode)
     
     ArrayList gameModes = GetGameModesList();
     
+    char currentGroup[64];
+    SplitGamemodeString(g_sCurrentGameMode, currentGroup, sizeof(currentGroup), "", 0);
+
     for (int i = 0; i < gameModes.Length; i++)
     {
         GameModeConfig config;
         gameModes.GetArray(i, config);
         
         char display[128];
+        char prefix[8] = "";
+
+        if (StrEqual(config.name, currentGroup))
+        {
+            strcopy(prefix, sizeof(prefix), " (*)");
+        }
         
-		bool isVoted = (g_bVoteCompleted && StrEqual(config.name, g_sVoteGameMode));
+        bool isVoted = (g_bVoteCompleted && StrEqual(config.name, g_sVoteGameMode));
         char voteIndicator[6];
         strcopy(voteIndicator, sizeof(voteIndicator), isVoted ? " (#)" : "");
         
         if (forceMode)
         {
             if (config.enabled == 0 && config.adminonly == 1)
-                Format(display, sizeof(display), "[DISABLED, ADMIN] %s%s", config.name, voteIndicator);
+                Format(display, sizeof(display), "[DISABLED, ADMIN] %s%s%s", config.name, voteIndicator, prefix);
             else if (config.enabled == 0)
-                Format(display, sizeof(display), "[DISABLED] %s%s", config.name, voteIndicator);
+                Format(display, sizeof(display), "[DISABLED] %s%s%s", config.name, voteIndicator, prefix);
             else if (config.adminonly == 1)
-                Format(display, sizeof(display), "[ADMIN] %s%s", config.name, voteIndicator);
+                Format(display, sizeof(display), "[ADMIN] %s%s%s", config.name, voteIndicator, prefix);
             else
-                Format(display, sizeof(display), "%s%s", config.name, voteIndicator);
+                Format(display, sizeof(display), "%s%s%s", config.name, voteIndicator, prefix);
         }
         else
         {
-            Format(display, sizeof(display), "%s%s", config.name, voteIndicator);
+            Format(display, sizeof(display), "%s%s%s", prefix, config.name, voteIndicator);
         }
         
         menu.AddItem(config.name, display);
@@ -4631,6 +4649,9 @@ void ShowMapMenu(int client, const char[] sGameMode, const char[] subgroup = "")
     ArrayList mapsClone = view_as<ArrayList>(CloneHandle(maps));
     mapsClone.Sort(Sort_Random, Sort_String);
     
+    char currentMapName[PLATFORM_MAX_PATH];
+    GetCurrentMap(currentMapName, sizeof(currentMapName));
+    
     char map[256];
     char display[256];
     
@@ -4640,11 +4661,17 @@ void ShowMapMenu(int client, const char[] sGameMode, const char[] subgroup = "")
         
         GetMapDisplayNameEx(config.name, map, display, sizeof(display), subgroup);
         
+        char prefix[8] = "";
+        if (StrEqual(map, currentMapName))
+        {
+            strcopy(prefix, sizeof(prefix), " (*)");
+        }
+
         bool isMapVoted = (g_bVoteCompleted && StrEqual(map, g_sVoteMap) && StrEqual(sGameMode, g_sVoteGameMode));
         char voteIndicator[6];
         strcopy(voteIndicator, sizeof(voteIndicator), isMapVoted ? " (#)" : "");
         
-        Format(display, sizeof(display), "%s%s", display, voteIndicator);
+        Format(display, sizeof(display), "%s%s%s", display, voteIndicator, prefix);
         
         menu.AddItem(map, display);
     }
@@ -4691,6 +4718,9 @@ void ShowForceSubGroupMenu(int client, const char[] gamemode)
     Menu menu = new Menu(ForceSubGroupMenuHandler);
     menu.SetTitle("Selecionar Subgrupo para: %s", gamemode);
 
+    char currentGroup[64], currentSubgroup[64];
+    SplitGamemodeString(g_sCurrentGameMode, currentGroup, sizeof(currentGroup), currentSubgroup, sizeof(currentSubgroup));
+
     for (int i = 0; i < config.subGroups.Length; i++)
     {
         SubGroupConfig subConfig;
@@ -4698,7 +4728,16 @@ void ShowForceSubGroupMenu(int client, const char[] gamemode)
 
         if (!subConfig.enabled) continue;
 
-        menu.AddItem(subConfig.name, subConfig.name);
+        char display[128];
+        char prefix[8] = "";
+
+        if (StrEqual(gamemode, currentGroup) && StrEqual(subConfig.name, currentSubgroup))
+        {
+            strcopy(prefix, sizeof(prefix), " (*)");
+        }
+
+        Format(display, sizeof(display), "%s%s", subConfig.name, prefix);
+        menu.AddItem(subConfig.name, display);
     }
 
     if (menu.ItemCount == 0)
@@ -4929,20 +4968,21 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
     else
     {
         voteGameModes = new ArrayList(ByteCountToCells(64));
-        int groupExclude = adminVote ? 
-            g_Cvar_VoteAdminGroupExclude.IntValue : 
-            g_Cvar_VoteGroupExclude.IntValue;
+        ArrayList nominatedItems = new ArrayList(ByteCountToCells(128));
+        ArrayList otherItems = new ArrayList(ByteCountToCells(64));
 
-        for (int i = 0; i < g_NominatedGamemodes.Length; i++) 
+        int groupExclude = adminVote ? g_Cvar_VoteAdminGroupExclude.IntValue : g_Cvar_VoteGroupExclude.IntValue;
+
+        for (int i = 0; i < g_NominatedGamemodes.Length; i++)
         {
             char nominatedGM[128];
             g_NominatedGamemodes.GetString(i, nominatedGM, sizeof(nominatedGM));
-        
-            if (groupExclude > 0 && g_PlayedGamemodes.FindString(nominatedGM) != -1) 
+
+            if (groupExclude > 0 && g_PlayedGamemodes.FindString(nominatedGM) != -1)
             {
                 continue;
             }
-        
+
             char groupName[64];
             SplitGamemodeString(nominatedGM, groupName, sizeof(groupName), "", 0);
             int index = FindGameModeIndex(groupName);
@@ -4951,70 +4991,58 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
             GameModeConfig config;
             gameModes.GetArray(index, config);
 
-            bool available = (adminVote) 
-                ? GamemodeAvailableAdminVote(config.name) 
-                : GamemodeAvailable(config.name);
+            bool available = adminVote ? GamemodeAvailableAdminVote(config.name) : GamemodeAvailable(config.name);
 
-            if (available && voteGameModes.FindString(nominatedGM) == -1 && 
-                IsCurrentlyAvailableByTime(groupName)) 
+            if (available && nominatedItems.FindString(nominatedGM) == -1 && IsCurrentlyAvailableByTime(groupName))
             {
-                voteGameModes.PushString(nominatedGM);
+                nominatedItems.PushString(nominatedGM);
             }
         }
-        
+
+        for (int i = 0; i < gameModes.Length; i++)
+        {
+            GameModeConfig config;
+            gameModes.GetArray(i, config);
+
+            bool available = adminVote ? (config.enabled == 1) : GamemodeAvailable(config.name);
+            if (!available) continue;
+
+            if (groupExclude > 0 && g_PlayedGamemodes.FindString(config.name) != -1)
+                continue;
+
+            if (g_NominatedGamemodes.FindString(config.name) == -1 && IsCurrentlyAvailableByTime(config.name))
+            {
+                otherItems.PushString(config.name);
+            }
+        }
+
         bool bUseRandom = adminVote ? g_Cvar_VoteAdminRandom.BoolValue : g_Cvar_VoteRandom.BoolValue;
-        
-        if (bUseRandom) 
+
+        if (bUseRandom)
         {
-            voteGameModes.Sort(Sort_Random, Sort_String);
+            nominatedItems.Sort(Sort_Random, Sort_String);
+            otherItems.Sort(Sort_Random, Sort_String);
         }
-        
-        if (voteGameModes.Length > 6)
+
+        for (int i = 0; i < nominatedItems.Length && voteGameModes.Length < 6; i++)
         {
-            voteGameModes.Resize(6);
+            char gm[128];
+            nominatedItems.GetString(i, gm, sizeof(gm));
+            voteGameModes.PushString(gm);
         }
-        
-        if (voteGameModes.Length < 6)
+
+        for (int i = 0; i < otherItems.Length && voteGameModes.Length < 6; i++)
         {
-            ArrayList remainingGameModes = new ArrayList(ByteCountToCells(64));
-            for (int i = 0; i < gameModes.Length; i++)
+            char gm[64];
+            otherItems.GetString(i, gm, sizeof(gm));
+            if (voteGameModes.FindString(gm) == -1)
             {
-                GameModeConfig config;
-                gameModes.GetArray(i, config);
-
-                bool available;
-                if (adminVote) {
-                    available = (config.enabled == 1);
-                } else {
-                    available = GamemodeAvailable(config.name);
-                }
-
-                if (!available) continue;
-
-                if (groupExclude > 0 && g_PlayedGamemodes.FindString(config.name) != -1)
-                    continue;
-
-                if (g_NominatedGamemodes.FindString(config.name) == -1 && 
-                    voteGameModes.FindString(config.name) == -1 &&
-                    IsCurrentlyAvailableByTime(config.name))
-                {
-                    remainingGameModes.PushString(config.name);
-                }
-            }
-            if (bUseRandom && remainingGameModes.Length > 0) 
-            {
-                remainingGameModes.Sort(Sort_Random, Sort_String);
-            }
-            
-            int needed = 6 - voteGameModes.Length;
-            for (int i = 0; i < needed && i < remainingGameModes.Length; i++)
-            {
-                char gm[64];
-                remainingGameModes.GetString(i, gm, sizeof(gm));
                 voteGameModes.PushString(gm);
             }
-            delete remainingGameModes;
         }
+
+        delete nominatedItems;
+        delete otherItems;
     }
     
     g_bCurrentVoteAdmin = adminVote;
@@ -6817,24 +6845,24 @@ KeyValues GetSubGroupMapKv(const char[] gamemode, const char[] subgroup, const c
 
 stock void GetMapDisplayNameEx(const char[] gamemode, const char[] map, char[] display, int displayLen, const char[] subgroup = "")
 {
-    if (strlen(gamemode) > 0 && strlen(subgroup) > 0)
+    if (gamemode[0] != '\0')
     {
-        KeyValues subKv = GetSubGroupMapKv(gamemode, subgroup, map);
-        if (subKv != null)
+        if (subgroup[0] != '\0')
         {
-            char customDisplay[256];
-            subKv.GetString("display", customDisplay, sizeof(customDisplay), "");
-            delete subKv;
-            if (customDisplay[0] != '\0') 
+            KeyValues subKv = GetSubGroupMapKv(gamemode, subgroup, map);
+            if (subKv != null)
             {
-                strcopy(display, displayLen, customDisplay);
-                return;
+                char customDisplay[256];
+                subKv.GetString("display", customDisplay, sizeof(customDisplay), "");
+                delete subKv;
+                if (customDisplay[0] != '\0') 
+                {
+                    strcopy(display, displayLen, customDisplay);
+                    return;
+                }
             }
         }
-    }
 
-    if (gamemode[0] != '\0') 
-    {
         KeyValues kv = GetMapKv(gamemode, map);
         if (kv != null)
         {
@@ -6848,31 +6876,22 @@ stock void GetMapDisplayNameEx(const char[] gamemode, const char[] map, char[] d
             }
         }
     }
-
-    // Search an other subgroups of the same gamemode
-    if (gamemode[0] != '\0')
+    else
     {
-        int gamemodeIndex = FindGameModeIndex(gamemode);
-        if (gamemodeIndex != -1)
+        ArrayList gameModes = GetGameModesList();
+        for (int i = 0; i < gameModes.Length; i++)
         {
             GameModeConfig config;
-            ArrayList list = GetGameModesList();
-            list.GetArray(gamemodeIndex, config);
+            gameModes.GetArray(i, config);
 
-            for (int i = 0; i < config.subGroups.Length; i++)
+            if (config.maps.FindString(map) != -1)
             {
-                SubGroupConfig subConfig;
-                config.subGroups.GetArray(i, subConfig);
-
-                if (strlen(subgroup) > 0 && StrEqual(subConfig.name, subgroup))
-                    continue;
-
-                KeyValues subKv = GetSubGroupMapKv(gamemode, subConfig.name, map);
-                if (subKv != null)
+                KeyValues kv = GetMapKv(config.name, map);
+                if (kv != null)
                 {
                     char customDisplay[256];
-                    subKv.GetString("display", customDisplay, sizeof(customDisplay), "");
-                    delete subKv;
+                    kv.GetString("display", customDisplay, sizeof(customDisplay), "");
+                    delete kv;
                     if (customDisplay[0] != '\0') 
                     {
                         strcopy(display, displayLen, customDisplay);
@@ -6880,49 +6899,26 @@ stock void GetMapDisplayNameEx(const char[] gamemode, const char[] map, char[] d
                     }
                 }
             }
-        }
-    }
 
-    ArrayList gameModes = GetGameModesList();
-    for (int i = 0; i < gameModes.Length; i++)
-    {
-        GameModeConfig config;
-        gameModes.GetArray(i, config);
-
-        if (strlen(gamemode) > 0 && StrEqual(config.name, gamemode))
-            continue;
-
-        if (config.maps.FindString(map) != -1)
-        {
-            KeyValues kv = GetMapKv(config.name, map);
-            if (kv != null)
+            for (int j = 0; j < config.subGroups.Length; j++)
             {
-                char customDisplay[256];
-                kv.GetString("display", customDisplay, sizeof(customDisplay), "");
-                delete kv;
-                if (customDisplay[0] != '\0') 
-                {
-                    strcopy(display, displayLen, customDisplay);
-                    return;
-                }
-            }
-        }
+                SubGroupConfig subConfig;
+                config.subGroups.GetArray(j, subConfig);
 
-        for (int j = 0; j < config.subGroups.Length; j++)
-        {
-            SubGroupConfig subConfig;
-            config.subGroups.GetArray(j, subConfig);
-
-            KeyValues subKv = GetSubGroupMapKv(config.name, subConfig.name, map);
-            if (subKv != null)
-            {
-                char customDisplay[256];
-                subKv.GetString("display", customDisplay, sizeof(customDisplay), "");
-                delete subKv;
-                if (customDisplay[0] != '\0') 
+                if (subConfig.maps.FindString(map) != -1)
                 {
-                    strcopy(display, displayLen, customDisplay);
-                    return;
+                    KeyValues subKv = GetSubGroupMapKv(config.name, subConfig.name, map);
+                    if (subKv != null)
+                    {
+                        char customDisplay[256];
+                        subKv.GetString("display", customDisplay, sizeof(customDisplay), "");
+                        delete subKv;
+                        if (customDisplay[0] != '\0') 
+                        {
+                            strcopy(display, displayLen, customDisplay);
+                            return;
+                        }
+                    }
                 }
             }
         }
