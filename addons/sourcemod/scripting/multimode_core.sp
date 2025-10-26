@@ -14,7 +14,7 @@
 #include <multimode/base>
 #include <nativevotes>
 
-#define PLUGIN_VERSION "2.9.3"
+#define PLUGIN_VERSION "2.9.4"
 
 // Convar Section
 ConVar g_Cvar_CooldownEnabled;
@@ -66,12 +66,12 @@ ConVar g_Cvar_RtvRatio;
 ConVar g_Cvar_RtvType;
 ConVar g_Cvar_VoteAdminGroupExclude;
 ConVar g_Cvar_VoteAdminMapExclude;
-ConVar g_Cvar_VoteAdminRandom;
+ConVar g_Cvar_VoteAdminSorted;
 ConVar g_Cvar_VoteCloseSound;
 ConVar g_Cvar_VoteGroupExclude;
 ConVar g_Cvar_VoteMapExclude;
 ConVar g_Cvar_VoteOpenSound;
-ConVar g_Cvar_VoteRandom;
+ConVar g_Cvar_VoteSorted;
 ConVar g_Cvar_VoteSounds;
 ConVar g_Cvar_VoteTime;
 ConVar g_hCvarTimeLimit;
@@ -210,8 +210,8 @@ public void OnPluginStart()
 	g_Cvar_NativeVotes = CreateConVar("multimode_nativevotes", "0", "Enable/disable NativeVotes support for votes (1 = Enabled, 0 = Disabled)", _, true, 0.0, true, 1.0);
     
     g_Cvar_VoteTime = CreateConVar("multimode_vote_time", "20", "Vote duration in seconds");
-    g_Cvar_VoteRandom = CreateConVar("multimode_vote_random", "1", "When enabled, all voting items are randomly drawn. When disabled, the map cycle order is used as normal.", _, true, 0.0, true, 1.0);
-    g_Cvar_VoteAdminRandom = CreateConVar("multimode_voteadmin_random", "1", "When enabled, all admin vote items are randomly drawn. When disabled, the map cycle order is used as normal.", _, true, 0.0, true, 1.0);
+    g_Cvar_VoteSorted = CreateConVar("multimode_vote_sorted", "1", "Sorting mode for vote items: 0= Alphabetical, 1= Random, 2= Map Cycle Order", _, true, 0.0, true, 2.0);
+    g_Cvar_VoteAdminSorted = CreateConVar("multimode_voteadmin_sorted", "1", "Sorting mode for admin vote items: 0= Alphabetical, 1= Random, 2= Map Cycle Order", _, true, 0.0, true, 2.0);
     g_Cvar_VoteGroupExclude = CreateConVar("multimode_vote_groupexclude", "0", "Number of recently played gamemodes to exclude from normal votes (0= Disabled)");
     g_Cvar_VoteMapExclude = CreateConVar("multimode_vote_mapexclude", "2", "Number of recently played maps to exclude from normal votes (0= Disabled)");
     g_Cvar_VoteAdminGroupExclude = CreateConVar("multimode_voteadmin_groupexclude", "0", "Number of recently played gamemodes to exclude from admin votes (0= Disabled)");
@@ -5016,13 +5016,19 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
             }
         }
 
-        bool bUseRandom = adminVote ? g_Cvar_VoteAdminRandom.BoolValue : g_Cvar_VoteRandom.BoolValue;
+        int sortMode = adminVote ? g_Cvar_VoteAdminSorted.IntValue : g_Cvar_VoteSorted.IntValue;
 
-        if (bUseRandom)
+        if (sortMode == 0) // Alphabetical
+        {
+            nominatedItems.Sort(Sort_Ascending, Sort_String);
+            otherItems.Sort(Sort_Ascending, Sort_String);
+        }
+        else if (sortMode == 1) // Random
         {
             nominatedItems.Sort(Sort_Random, Sort_String);
             otherItems.Sort(Sort_Random, Sort_String);
         }
+        // Case 2 (Map Cycle Order) is default, no sort needed.
 
         for (int i = 0; i < nominatedItems.Length && voteGameModes.Length < 6; i++)
         {
@@ -5217,8 +5223,12 @@ void StartSubGroupVote(int client, const char[] gamemode, ArrayList runoffItems 
             allSubGroups.PushString(subConfig.name);
         }
 
-        bool bUseRandom = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminRandom.BoolValue : g_Cvar_VoteRandom.BoolValue;
-        if (bUseRandom)
+        int sortMode = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminSorted.IntValue : g_Cvar_VoteSorted.IntValue;
+        if (sortMode == 0) // Alphabetical
+        {
+            allSubGroups.Sort(Sort_Ascending, Sort_String);
+        }
+        else if (sortMode == 1) // Random
         {
             allSubGroups.Sort(Sort_Random, Sort_String);
         }
@@ -5793,12 +5803,17 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
             delete snapshot;
             delete uniqueMaps;
 
-            bool bUseRandom = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminRandom.BoolValue : g_Cvar_VoteRandom.BoolValue;
+            int sortMode = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminSorted.IntValue : g_Cvar_VoteSorted.IntValue;
 
-            if (bUseRandom) 
+            if (sortMode == 0) // Alphabetical
             {
-                 voteMaps.Sort(Sort_Random, Sort_String);
+                voteMaps.Sort(Sort_Ascending, Sort_String);
             }
+            else if (sortMode == 1) // Random
+            {
+                voteMaps.Sort(Sort_Random, Sort_String);
+            }
+            // Case 2 (Map Cycle Order) is default, no sort needed.
             
             int maxItems = 6;
             
@@ -5920,7 +5935,7 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
     else
     {
         voteMaps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
-        bool bUseRandom = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminRandom.BoolValue : g_Cvar_VoteRandom.BoolValue;
+        int sortMode = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminSorted.IntValue : g_Cvar_VoteSorted.IntValue;
         int mapExclude = g_bCurrentVoteAdmin ? 
             g_Cvar_VoteAdminMapExclude.IntValue : 
             g_Cvar_VoteMapExclude.IntValue;
@@ -5931,7 +5946,11 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
         if (g_NominatedMaps.GetValue(key, mapsNominated) && mapsNominated.Length > 0)
         {
             ArrayList nominateList = view_as<ArrayList>(CloneHandle(mapsNominated));
-            if (bUseRandom)
+            if (sortMode == 0) // Alphabetical
+            {
+                nominateList.Sort(Sort_Ascending, Sort_String);
+            }
+            else if (sortMode == 1) // Random
             {
                 nominateList.Sort(Sort_Random, Sort_String);
             }
@@ -5982,7 +6001,11 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
                 }
             }
 
-            if (bUseRandom)
+            if (sortMode == 0) // Alphabetical
+            {
+                availableMaps.Sort(Sort_Ascending, Sort_String);
+            }
+            else if (sortMode == 1) // Random
             {
                 availableMaps.Sort(Sort_Random, Sort_String);
             }
@@ -6159,8 +6182,12 @@ void StartSubGroupMapVote(int client, const char[] gamemode, const char[] subgro
 
     if (runoffItems == null)
     {
-        bool bUseRandom = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminRandom.BoolValue : g_Cvar_VoteRandom.BoolValue;
-        if (bUseRandom)
+        int sortMode = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminSorted.IntValue : g_Cvar_VoteSorted.IntValue;
+        if (sortMode == 0) // Alphabetical
+        {
+            voteMaps.Sort(Sort_Ascending, Sort_String);
+        }
+        else if (sortMode == 1) // Random
         {
             voteMaps.Sort(Sort_Random, Sort_String);
         }
