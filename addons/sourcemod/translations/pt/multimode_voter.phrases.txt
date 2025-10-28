@@ -307,33 +307,33 @@
 
     "Unnominate All Removed"
     {
-	    "pt"	"{red}[Nominate] {default}Todas as suas nomeações foram removidas."
+	"pt"	"{red}[Nominate] {default}Todas as suas nomeações foram removidas."
     }
 
     "Unnominate Can Nominate Again"
     {
-	    "pt"	"{green}[Nominate] {default}Você recuperou sua chance de nomear para este mapa."
+	"pt"	"{green}[Nominate] {default}Você recuperou sua chance de nomear para este mapa."
     }
 
     "Unnominate Clear All"
     {
-	    "pt"	"Limpar todas as nomeações."
+	"pt"	"Limpar todas as nomeações."
     }
 
     "Unnominate Menu Title"
     {
-	    "pt"	"Un-nominate Menu"
+	"pt"	"Un-nominate Menu"
     }
 
     "Unnominate None"
     {
-	    "pt"	"{green}[Nominate] {default}Você não tem nomeações para remover."
+	"pt"	"{green}[Nominate] {default}Você não tem nomeações para remover."
     }
 
     "Unnominate Single Removed"
     {
         "#format"   "{1:s},{2:s}"
-	    "pt"	"{red}[Nominate] {default}Sua nomeação para {darkred}'{1}' em '{2}' {default}foi removida."
+	"pt"	"{red}[Nominate] {default}Sua nomeação para {darkred}'{1}' em '{2}' {default}foi removida."
     }
 
     "Unnominate System Is Disabled"
