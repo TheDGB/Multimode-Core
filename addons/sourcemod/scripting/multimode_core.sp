@@ -14,7 +14,7 @@
 #include <multimode/base>
 #include <nativevotes>
 
-#define PLUGIN_VERSION "2.9.6ex"
+#define PLUGIN_VERSION "2.9.7ex"
 
 // Convar Section
 ConVar g_Cvar_CooldownEnabled;
