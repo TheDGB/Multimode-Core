@@ -1,0 +1,22 @@
+"Phrases"
+{
+    "Next Gamemode"
+    {
+        "da"    "{olive}[MultiMode] {default}Næste spiltilstand: {lightgreen}%s {default}| Kort: {lightgreen}%s"
+    }
+
+    "Current Gamemode"
+    {
+        "da"    "{olive}[MultiMode] {default}Nuværende spiltilstand: {lightgreen}%s {default}| Kort: {lightgreen}%s"
+    }
+
+    "Random Cycle Next Gamemode"
+    {
+        "da"    "{olive}[MultiMode] {default}Næste spiltilstand: {lightgreen}Tilfældig valg, venter på afstemning..."
+    }
+
+    "Unknown Next Gamemode"
+    {
+        "da"    "{olive}[MultiMode] {default}Næste spiltilstand: {red}Udefineret"
+    }
+}

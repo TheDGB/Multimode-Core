@@ -1,0 +1,353 @@
+"Phrases"
+{
+    "Admin Cancel No Vote"
+    {
+        "zho"   "{red}[管理員] {default}沒有正在進行的投票可供 {red}取消。"
+    }
+
+    "Admin Cancel Vote"
+    {
+        "zho"   "{red}[管理員] {default}%N {red}取消了 {default}目前投票。"
+    }
+
+    "Cancel Current Vote"
+    {
+        "zho"   "取消目前投票"
+    }
+
+    "Cooldown Hud"
+    {
+        "zho"   "另一次投票將在 %d 秒後進行..."
+    }
+
+    "Current MMC Version"
+    {
+        "zho"   "{green}[多模式] {default}目前多模式核心版本: {olive}%s"
+    }
+
+    "Error Changing Map"
+    {
+        "zho"   "{red}錯誤: {default}地圖更換失敗！"
+    }
+
+    "Extend Current Map"
+    {
+        "zho"   "延長目前地圖"
+    }
+
+    "Extend Map Normal Vote"
+    {
+        "zho"   "延長地圖"
+    }
+
+    "Force Gamemode"
+    {
+        "zho"   "強制遊戲模式:"
+    }
+
+    "Gamemode Vote Already"
+    {
+        "zho"   "{red}投票已激活或插件已禁用。"
+    }
+
+    "Map Voting Cooldown"
+    {
+        "zho"   "{green}[投票] {default}地圖投票將在 %d 秒後開始。"
+    }
+
+    "No Available SubGroups"
+    {
+        "zho"   "沒有可用的子群組可供提名"
+    }
+
+    "No Maps In SubGroup"
+    {
+        "zho"   "此子群組中沒有可用的地圖。"
+    }
+
+    "No Valid Maps In SubGroup"
+    {
+        "zho"   "在此子群組中未找到有效的地圖。"
+    }
+
+    "No Votes Recorded"
+    {
+        "zho"   "{red}投票失敗！沒有記錄到投票。"
+    }
+
+    "Nominate Disabled"
+    {
+        "zho"   "{green}[投票換圖] {default}提名系統目前已禁用！"
+    }
+
+    "Nominate Gamemode Group Menu Title"
+    {
+        "zho"   "提名遊戲模式:\n \n請記住，您在此提名一個遊戲模式和一張地圖，以顯示在下一次投票中。\n請注意，每張地圖您只有1次機會提名遊戲模式和地圖。\n \n"
+    }
+
+    "Nominate Gamemode Group Menu Title Non Once"
+    {
+        "zho"   "提名遊戲模式:"
+    }
+
+    "Nominate Gamemode Not Found"
+    {
+        "zho"   "{red}未找到遊戲模式！"
+    }
+
+    "Nominate Map Title"
+    {
+        "zho"   "為 %s 命名地圖:"
+    }
+
+    "Nominate Once Per Map"
+    {
+        "zho"   "{red}[提名] {default}每張地圖您只能 {red}提名一次。 {default}請等到下一張地圖。"
+    }
+
+    "Nominate SubGroup Map Title"
+    {
+        "zho"   "提名 - %s - %s - 選擇地圖"
+    }
+
+    "Nominate SubGroup Menu Title"
+    {
+        "zho"   "提名 - %s - 選擇子群組"
+    }
+
+    "Nominated Client"
+    {
+        "zho"   "{green}[提名] {default}您已提名: {olive}%s - %s"
+    }
+
+    "Nominated Server"
+    {
+        "zho"   "{green}[提名] {default}%s 已提名: {olive}%s - %s"
+    }
+
+    "None Show Gamemode Group"
+    {
+        "zho"   "{red}沒有可用的遊戲模式。"
+    }
+
+    "None Show Map Group"
+    {
+        "zho"   "{red}未找到遊戲模式！"
+    }
+
+    "Non Maps Items"
+    {
+        "zho"   "{red}此模式沒有可用的地圖！"
+    }
+
+    "Normal Vote Gamemode Group Title"
+    {
+        "zho"   "對遊戲模式進行投票:"
+    }
+
+    "RTV Already Voted"
+    {
+        "zho"   "{green}[投票換圖] {default}您已經投票更換地圖了！"
+    }
+
+    "RTV Available"
+    {
+        "zho"   "{green}[投票換圖] {default}RTV 現已可用！輸入 !rtv 進行投票。"
+    }
+
+    "RTV Available Again"
+    {
+        "zho"   "{green}[投票換圖] {default}RTV 系統再次可用！輸入 !rtv 再次投票。"
+    }
+
+    "RTV Available In"
+    {
+        "zho"   "{green}[投票換圖] {default}RTV 將在 {green}%d {default}秒後可用！"
+    }
+
+    "RTV Minimun Players"
+    {
+        "zho"   "{green}[投票換圖] {default}至少需要 %d 名玩家！"
+    }
+
+    "RTV Next Available"
+    {
+        "zho"   "{green}[投票換圖] {default}下一次 RTV 將在 {green}%d 秒後可用！"
+    }
+
+    "RTV System Disabled"
+    {
+        "zho"   "{green}[投票換圖] {default}投票系統目前已禁用！"
+    }
+
+    "RTV Wait"
+    {
+        "zho"   "{green}[投票換圖] {default}請等待 %d 秒以使用 RTV！"
+    }
+
+    "RTV Wait Again"
+    {
+        "zho"   "{green}[投票換圖] {default}請等待 %d 秒以再次投票！"
+    }
+
+    "Reload Gamemodes Successful"
+    {
+        "zho"   "{green}[多模式] {default}遊戲模式設定已成功重新載入！"
+    }
+
+    "Round Map Changing"
+    {
+        "zho"   "{green}[多模式] {default}回合成功，正在更換地圖為: {olive}%s"
+    }
+
+    "Run Off Cooldown Hud"
+    {
+        "zho"   "決勝投票將在 %d 秒後進行..."
+    }
+
+    "Run Off Voting Cooldown"
+    {
+        "zho"   "{green}[投票] {default}沒有選項達到獲勝所需的最低票數，決勝投票將在 %d 秒後進行..."
+    }
+
+    "Runoff Vote Failed (Limit)"
+    {
+        "zho"   "已達到決勝投票限制。投票已被取消。"
+    }
+
+    "Show Gamemode Admin Title"
+    {
+        "zho"   "為投票選擇遊戲模式:"
+    }
+
+    "Show Gamemode Group Title"
+    {
+        "zho"   "選擇一個遊戲模式:"
+    }
+
+    "Show Map Group Title"
+    {
+        "zho"   "為 %s 選擇一張地圖:"
+    }
+
+    "Start Map Vote Title"
+    {
+        "zho"   "為地圖投票:"
+    }
+
+    "Start Vote"
+    {
+        "zho"   "開始投票"
+    }
+
+    "SubGroup Map Vote Title"
+    {
+        "zho"   "為 %s - %s 選擇一張地圖:"
+    }
+
+    "SubGroup Not Found"
+    {
+        "zho"   "未找到子群組"
+    }
+
+    "SubGroup Vote Title"
+    {
+        "zho"   "為 %s 選擇一個子群組:"
+    }
+
+    "Timing Instant"
+    {
+        "zho"   "立即"
+    }
+
+    "Timing Instant Notify"
+    {
+        "zho"   "{green}[多模式] {default}地圖立即更換為: {olive}%s"
+    }
+
+    "Timing NextMap"
+    {
+        "zho"   "下一張地圖"
+    }
+
+    "Timing NextMap Notify"
+    {
+        "zho"   "{green}[多模式] {default}下一張地圖將是: {olive}%s"
+    }
+
+    "Timing NextRound"
+    {
+        "zho"   "下一回合"
+    }
+
+    "Timing NextRound Notify"
+    {
+        "zho"   "{green}[多模式] {default}地圖將在下一回合更換為: {olive}%s"
+    }
+
+    "Unnominate All Removed"
+    {
+        "zho"   "{red}[提名] {default}您的所有提名已被移除。"
+    }
+
+    "Unnominate Can Nominate Again"
+    {
+        "zho"   "{green}[提名] {default}您已重新獲得此地圖的提名機會。"
+    }
+
+    "Unnominate Clear All"
+    {
+        "zho"   "清除所有提名。"
+    }
+
+    "Unnominate Menu Title"
+    {
+        "zho"   "取消提名選單"
+    }
+
+    "Unnominate None"
+    {
+        "zho"   "{green}[提名] {default}您沒有可移除的提名。"
+    }
+
+    "Unnominate Single Removed"
+    {
+        "#format"   "{1:s},{2:s}"
+        "zho"   "{red}[提名] {default}您對 {darkred}'{1}' 在 '{2}' {default}中的提名已被移除。"
+    }
+
+    "Unnominate System Is Disabled"
+    {
+        "zho"   "{red}[提名] {default}取消提名系統目前已禁用！"
+    }
+
+    "Vote Already Active"
+    {
+        "zho"   "{red}投票已在進行中..."
+    }
+
+    "Vote Type Admin"
+    {
+        "zho"   "以管理員身份開始投票"
+    }
+
+    "Vote Type Menu Title"
+    {
+        "zho"   "選擇投票類型:"
+    }
+
+    "Vote Type Normal"
+    {
+        "zho"   "開始投票"
+    }
+
+    "Vote Type Separated"
+    {
+        "zho"   "開始單獨投票"
+    }
+
+    "Wants To Vote"
+    {
+        "zho"   "{green}%N 想要更換地圖 (%d/%d 需要)"
+    }
+}

@@ -1,0 +1,353 @@
+"Phrases"
+{
+    "Admin Cancel No Vote"
+    {
+        "da"    "{red}[Admin] {default}Ingen afstemning i gang at {red}annullere."
+    }
+
+    "Admin Cancel Vote"
+    {
+        "da"    "{red}[Admin] {default}%N {red}annullerede {default}den nuværende afstemning."
+    }
+
+    "Cancel Current Vote"
+    {
+        "da"    "Annuller nuværende afstemning"
+    }
+
+    "Cooldown Hud"
+    {
+        "da"    "En ny afstemning vil blive afholdt om %d sekunder..."
+    }
+
+    "Current MMC Version"
+    {
+        "da"    "{green}[Multimode] {default}Nuværende Multimode Core Version: {olive}%s"
+    }
+
+    "Error Changing Map"
+    {
+        "da"    "{red}FEJL: {default}Kortskifte mislykkedes!"
+    }
+
+    "Extend Current Map"
+    {
+        "da"    "Forlæng nuværende kort"
+    }
+
+    "Extend Map Normal Vote"
+    {
+        "da"    "Forlæng kort"
+    }
+
+    "Force Gamemode"
+    {
+        "da"    "Tving spiltilstand:"
+    }
+
+    "Gamemode Vote Already"
+    {
+        "da"    "{red}Afstemningen er allerede aktiv, eller pluginnet er deaktiveret."
+    }
+
+    "Map Voting Cooldown"
+    {
+        "da"    "{green}[Afstemning] {default}Kortafstemning begynder om %d sekunder."
+    }
+
+    "No Available SubGroups"
+    {
+        "da"    "Ingen tilgængelige undergrupper til nominering"
+    }
+
+    "No Maps In SubGroup"
+    {
+        "da"    "Ingen kort tilgængelige i denne undergruppe."
+    }
+
+    "No Valid Maps In SubGroup"
+    {
+        "da"    "Ingen gyldige kort fundet i denne undergruppe."
+    }
+
+    "No Votes Recorded"
+    {
+        "da"    "{red}Afstemning mislykkedes! Ingen stemmer registreret."
+    }
+
+    "Nominate Disabled"
+    {
+        "da"    "{green}[Rock The Vote] {default}Nomineringssystemet er i øjeblikket deaktiveret!"
+    }
+
+    "Nominate Gamemode Group Menu Title"
+    {
+        "da"    "Nominer spiltilstand:\n \nHusk, at du er her for at nominere en spiltilstand og et kort, der skal vises i næste afstemning. \nVær opmærksom på, at du kun har 1 gang til at nominere en spiltilstand og et kort for hvert kort.\n \n"
+    }
+
+    "Nominate Gamemode Group Menu Title Non Once"
+    {
+        "da"    "Nominer spiltilstand:"
+    }
+
+    "Nominate Gamemode Not Found"
+    {
+        "da"    "{red}Spiltilstand ikke fundet!"
+    }
+
+    "Nominate Map Title"
+    {
+        "da"    "Navngiv kort for %s:"
+    }
+
+    "Nominate Once Per Map"
+    {
+        "da"    "{red}[Nominate] {default}Du kan kun {red}nominere én gang {default}pr. kort. Vent til næste kort."
+    }
+
+    "Nominate SubGroup Map Title"
+    {
+        "da"    "Nominer - %s - %s - Vælg kort"
+    }
+
+    "Nominate SubGroup Menu Title"
+    {
+        "da"    "Nominer - %s - Vælg undergruppe"
+    }
+
+    "Nominated Client"
+    {
+        "da"    "{green}[Nominate] {default}Du har nomineret: {olive}%s - %s"
+    }
+
+    "Nominated Server"
+    {
+        "da"    "{green}[Nominate] {default}%s har nomineret: {olive}%s - %s"
+    }
+
+    "None Show Gamemode Group"
+    {
+        "da"    "{red}Ingen spiltilstande tilgængelige."
+    }
+
+    "None Show Map Group"
+    {
+        "da"    "{red}Spiltilstand ikke fundet!"
+    }
+
+    "Non Maps Items"
+    {
+        "da"    "{red}Ingen kort tilgængelige for denne tilstand!"
+    }
+
+    "Normal Vote Gamemode Group Title"
+    {
+        "da"    "Stem om spiltilstand:"
+    }
+
+    "RTV Already Voted"
+    {
+        "da"    "{green}[Rock The Vote] {default}Du har allerede stemt for at skifte kort!"
+    }
+
+    "RTV Available"
+    {
+        "da"    "{green}[Rock The Vote] {default}RTV er nu tilgængelig! Skriv !rtv for at stemme."
+    }
+
+    "RTV Available Again"
+    {
+        "da"    "{green}[Rock The Vote] {default}RTV-systemet er tilgængeligt igen! Skriv !rtv for at stemme igen."
+    }
+
+    "RTV Available In"
+    {
+        "da"    "{green}[Rock The Vote] {default}RTV vil være tilgængelig om {green}%d {default}sekunder!"
+    }
+
+    "RTV Minimun Players"
+    {
+        "da"    "{green}[Rock The Vote] {default}Minimum %d spillere krævet!"
+    }
+
+    "RTV Next Available"
+    {
+        "da"    "{green}[Rock The Vote] {default}Næste RTV tilgængelig om {green}%d sekunder!"
+    }
+
+    "RTV System Disabled"
+    {
+        "da"    "{green}[Rock The Vote] {default}Afstemningssystemet er i øjeblikket deaktiveret!"
+    }
+
+    "RTV Wait"
+    {
+        "da"    "{green}[Rock The Vote] {default}Vent venligst %d sekunder for at bruge RTV!"
+    }
+
+    "RTV Wait Again"
+    {
+        "da"    "{green}[Rock The Vote] {default}Vent venligst %d sekunder for at stemme igen!"
+    }
+
+    "Reload Gamemodes Successful"
+    {
+        "da"    "{green}[MultiMode] {default}Spiltilstandskonfiguration genindlæst succesfuldt!"
+    }
+
+    "Round Map Changing"
+    {
+        "da"    "{green}[MultiMode] {default}Runde succesfuld, skifter kort til: {olive}%s"
+    }
+
+    "Run Off Cooldown Hud"
+    {
+        "da"    "En omkamp vil blive afholdt om %d sekunder..."
+    }
+
+    "Run Off Voting Cooldown"
+    {
+        "da"    "{green}[Afstemning] {default}Ingen mulighed nåede minimumsstemmerne for at vinde, en omkamp vil blive afholdt om %d sekunder..."
+    }
+
+    "Runoff Vote Failed (Limit)"
+    {
+        "da"    "Grænsen for omkampsafstemninger er nået. Afstemningen er blevet annulleret."
+    }
+
+    "Show Gamemode Admin Title"
+    {
+        "da"    "Vælg spiltilstand til afstemning:"
+    }
+
+    "Show Gamemode Group Title"
+    {
+        "da"    "Vælg en spiltilstand:"
+    }
+
+    "Show Map Group Title"
+    {
+        "da"    "Vælg et kort for %s:"
+    }
+
+    "Start Map Vote Title"
+    {
+        "da"    "Stem på et kort:"
+    }
+
+    "Start Vote"
+    {
+        "da"    "Start afstemning"
+    }
+
+    "SubGroup Map Vote Title"
+    {
+        "da"    "Vælg et kort for %s - %s:"
+    }
+
+    "SubGroup Not Found"
+    {
+        "da"    "Undergruppe ikke fundet"
+    }
+
+    "SubGroup Vote Title"
+    {
+        "da"    "Vælg en undergruppe for %s:"
+    }
+
+    "Timing Instant"
+    {
+        "da"    "Øjeblikkelig"
+    }
+
+    "Timing Instant Notify"
+    {
+        "da"    "{green}[MultiMode] {default}Kortet skiftede øjeblikkeligt til: {olive}%s"
+    }
+
+    "Timing NextMap"
+    {
+        "da"    "Næste kort"
+    }
+
+    "Timing NextMap Notify"
+    {
+        "da"    "{green}[MultiMode] {default}Næste kort vil være: {olive}%s"
+    }
+
+    "Timing NextRound"
+    {
+        "da"    "Næste runde"
+    }
+
+    "Timing NextRound Notify"
+    {
+        "da"    "{green}[MultiMode] {default}Kortet skifter næste runde til: {olive}%s"
+    }
+
+    "Unnominate All Removed"
+    {
+        "da"    "{red}[Nominate] {default}Alle dine nomineringer er blevet fjernet."
+    }
+
+    "Unnominate Can Nominate Again"
+    {
+        "da"    "{green}[Nominate] {default}Du har genvundet din nomineringschance for dette kort."
+    }
+
+    "Unnominate Clear All"
+    {
+        "da"    "Ryd alle nomineringer."
+    }
+
+    "Unnominate Menu Title"
+    {
+        "da"    "Af-nomineringsmenu"
+    }
+
+    "Unnominate None"
+    {
+        "da"    "{green}[Nominate] {default}Du har ingen nomineringer at fjerne."
+    }
+
+    "Unnominate Single Removed"
+    {
+        "#format"   "{1:s},{2:s}"
+        "da"    "{red}[Nominate] {default}Din nominering for {darkred}'{1}' i '{2}' {default}er blevet fjernet."
+    }
+
+    "Unnominate System Is Disabled"
+    {
+        "da"    "{red}[Nominate] {default}Af-nomineringssystemet er i øjeblikket deaktiveret!"
+    }
+
+    "Vote Already Active"
+    {
+        "da"    "{red}Afstemning allerede i gang..."
+    }
+
+    "Vote Type Admin"
+    {
+        "da"    "Start afstemning som administrator"
+    }
+
+    "Vote Type Menu Title"
+    {
+        "da"    "Vælg afstemningstype:"
+    }
+
+    "Vote Type Normal"
+    {
+        "da"    "Start afstemning"
+    }
+
+    "Vote Type Separated"
+    {
+        "da"    "Start separat afstemning"
+    }
+
+    "Wants To Vote"
+    {
+        "da"    "{green}%N ønsker at skifte kort (%d/%d nødvendige)"
+    }
+}

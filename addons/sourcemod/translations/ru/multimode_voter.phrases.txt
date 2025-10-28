@@ -1,0 +1,353 @@
+"Phrases"
+{
+    "Admin Cancel No Vote"
+    {
+        "ru"    "{red}[Админ] {default}Нет активного голосования для {red}отмены."
+    }
+
+    "Admin Cancel Vote"
+    {
+        "ru"    "{red}[Админ] {default}%N {red}отменил {default}текущее голосование."
+    }
+
+    "Cancel Current Vote"
+    {
+        "ru"    "Отменить текущее голосование"
+    }
+
+    "Cooldown Hud"
+    {
+        "ru"    "Следующее голосование начнется через %d секунд..."
+    }
+
+    "Current MMC Version"
+    {
+        "ru"    "{green}[Multimode] {default}Текущая версия Multimode Core: {olive}%s"
+    }
+
+    "Error Changing Map"
+    {
+        "ru"    "{red}ОШИБКА: {default}Смена карты не удалась!"
+    }
+
+    "Extend Current Map"
+    {
+        "ru"    "Продлить текущую карту"
+    }
+
+    "Extend Map Normal Vote"
+    {
+        "ru"    "Продлить карту"
+    }
+
+    "Force Gamemode"
+    {
+        "ru"    "Принудительный игровой режим"
+    }
+
+    "Gamemode Vote Already"
+    {
+        "ru"    "{red}Голосование уже активно или плагин отключен."
+    }
+
+    "Map Voting Cooldown"
+    {
+        "ru"    "{green}[Голосование] {default}Голосование за карту начнется через %d секунд."
+    }
+
+    "No Available SubGroups"
+    {
+        "ru"    "Нет доступных подгрупп для номинации"
+    }
+
+    "No Maps In SubGroup"
+    {
+        "ru"    "В этой подгруппе нет доступных карт."
+    }
+
+    "No Valid Maps In SubGroup"
+    {
+        "ru"    "В этой подгруппе не найдено подходящих карт."
+    }
+
+    "No Votes Recorded"
+    {
+        "ru"    "{red}Голосование не удалось! Голоса не зарегистрированы."
+    }
+
+    "Nominate Disabled"
+    {
+        "ru"    "{green}[Rock The Vote] {default}Система номинаций в данный момент отключена!"
+    }
+
+    "Nominate Gamemode Group Menu Title"
+    {
+        "ru"    "Номинировать игровой режим:\n \nПомните, что вы здесь, чтобы номинировать игровой режим и карту для следующего голосования, \nИмейте в виду, что у вас есть только 1 возможность номинировать игровой режим и карту на каждой карте.\n \n"
+    }
+
+    "Nominate Gamemode Group Menu Title Non Once"
+    {
+        "ru"    "Номинировать игровой режим:"
+    }
+
+    "Nominate Gamemode Not Found"
+    {
+        "ru"    "{red}Игровой режим не найден!"
+    }
+
+    "Nominate Map Title"
+    {
+        "ru"    "Номинировать карту для %s:"
+    }
+
+    "Nominate Once Per Map"
+    {
+        "ru"    "{red}[Nominate] {default}Вы можете {red}номинировать только один раз {default}за карту. Подождите до следующей карты."
+    }
+
+    "Nominate SubGroup Map Title"
+    {
+        "ru"    "Номинировать - %s - %s - Выбрать карту"
+    }
+
+    "Nominate SubGroup Menu Title"
+    {
+        "ru"    "Номинировать - %s - Выбрать подгруппу"
+    }
+
+    "Nominated Client"
+    {
+        "ru"    "{green}[Nominate] {default}Вы номинировали: {olive}%s - %s"
+    }
+
+    "Nominated Server"
+    {
+        "ru"    "{green}[Nominate] {default}%s номинировал: {olive}%s - %s"
+    }
+
+    "None Show Gamemode Group"
+    {
+        "ru"    "{red}Нет доступных игровых режимов."
+    }
+
+    "None Show Map Group"
+    {
+        "ru"    "{red}Игровой режим не найден!"
+    }
+
+    "Non Maps Items"
+    {
+        "ru"    "{red}Нет доступных карт для этого режима!"
+    }
+
+    "Normal Vote Gamemode Group Title"
+    {
+        "ru"    "Голосовать за игровой режим:"
+    }
+
+    "RTV Already Voted"
+    {
+        "ru"    "{green}[Rock The Vote] {default}Вы уже проголосовали за смену карты!"
+    }
+
+    "RTV Available"
+    {
+        "ru"    "{green}[Rock The Vote] {default}Система RTV теперь доступна! Введите !rtv, чтобы проголосовать."
+    }
+
+    "RTV Available Again"
+    {
+        "ru"    "{green}[Rock The Vote] {default}Система RTV снова доступна! Введите !rtv, чтобы проголосовать снова."
+    }
+
+    "RTV Available In"
+    {
+        "ru"    "{green}[Rock The Vote] {default}RTV будет доступно через {green}%d {default}секунд!"
+    }
+
+    "RTV Minimun Players"
+    {
+        "ru"    "{green}[Rock The Vote] {default}Требуется минимум %d игроков!"
+    }
+
+    "RTV Next Available"
+    {
+        "ru"    "{green}[Rock The Vote] {default}Следующее RTV будет доступно через {green}%d секунд!"
+    }
+
+    "RTV System Disabled"
+    {
+        "ru"    "{green}[Rock The Vote] {default}Система голосования в данный момент отключена!"
+    }
+
+    "RTV Wait"
+    {
+        "ru"    "{green}[Rock The Vote] {default}Пожалуйста, подождите %d секунд, чтобы использовать RTV!"
+    }
+
+    "RTV Wait Again"
+    {
+        "ru"    "{green}[Rock The Vote] {default}Пожалуйста, подождите %d секунд, чтобы проголосовать снова!"
+    }
+
+    "Reload Gamemodes Successful"
+    {
+        "ru"    "{green}[MultiMode] {default}Конфигурация игровых режимов успешно перезагружена!"
+    }
+
+    "Round Map Changing"
+    {
+        "ru"    "{green}[MultiMode] {default}Раунд успешен, меняем карту на: {olive}%s"
+    }
+
+    "Run Off Cooldown Hud"
+    {
+        "ru"    "Дополнительное голосование начнется через %d секунд..."
+    }
+
+    "Run Off Voting Cooldown"
+    {
+        "ru"    "{green}[Голосование] {default}Ни один вариант не набрал минимального количества голосов для победы, дополнительное голосование начнется через %d секунд..."
+    }
+
+    "Runoff Vote Failed (Limit)"
+    {
+        "ru"    "Достигнут лимит дополнительных голосований. Голосование отменено."
+    }
+
+    "Show Gamemode Admin Title"
+    {
+        "ru"    "Выберите игровой режим для голосования:"
+    }
+
+    "Show Gamemode Group Title"
+    {
+        "ru"    "Выберите игровой режим:"
+    }
+
+    "Show Map Group Title"
+    {
+        "ru"    "Выберите карту для %s:"
+    }
+
+    "Start Map Vote Title"
+    {
+        "ru"    "Голосовать за карту:"
+    }
+
+    "Start Vote"
+    {
+        "ru"    "Начать голосование"
+    }
+
+    "SubGroup Map Vote Title"
+    {
+        "ru"    "Выберите карту для %s - %s:"
+    }
+
+    "SubGroup Not Found"
+    {
+        "ru"    "Подгруппа не найдена"
+    }
+
+    "SubGroup Vote Title"
+    {
+        "ru"    "Выберите подгруппу для %s:"
+    }
+
+    "Timing Instant"
+    {
+        "ru"    "Мгновенно"
+    }
+
+    "Timing Instant Notify"
+    {
+        "ru"    "{green}[MultiMode] {default}Карта мгновенно сменена на: {olive}%s"
+    }
+
+    "Timing NextMap"
+    {
+        "ru"    "Следующая карта"
+    }
+
+    "Timing NextMap Notify"
+    {
+        "ru"    "{green}[MultiMode] {default}Следующая карта будет: {olive}%s"
+    }
+
+    "Timing NextRound"
+    {
+        "ru"    "Следующий раунд"
+    }
+
+    "Timing NextRound Notify"
+    {
+        "ru"    "{green}[MultiMode] {default}Карта сменится в следующем раунде на: {olive}%s"
+    }
+
+    "Unnominate All Removed"
+    {
+        "ru"    "{red}[Nominate] {default}Все ваши номинации были удалены."
+    }
+
+    "Unnominate Can Nominate Again"
+    {
+        "ru"    "{green}[Nominate] {default}Вы восстановили свой шанс на номинацию для этой карты."
+    }
+
+    "Unnominate Clear All"
+    {
+        "ru"    "Очистить все номинации."
+    }
+
+    "Unnominate Menu Title"
+    {
+        "ru"    "Меню отмены номинации"
+    }
+
+    "Unnominate None"
+    {
+        "ru"    "{green}[Nominate] {default}У вас нет номинаций для удаления."
+    }
+
+    "Unnominate Single Removed"
+    {
+        "#format"   "{1:s},{2:s}"
+        "ru"    "{red}[Nominate] {default}Ваша номинация для {darkred}'{1}' в '{2}' {default}была удалена."
+    }
+
+    "Unnominate System Is Disabled"
+    {
+        "ru"    "{red}[Nominate] {default}Система отмены номинаций в данный момент отключена!"
+    }
+
+    "Vote Already Active"
+    {
+        "ru"    "{red}Голосование уже идет..."
+    }
+
+    "Vote Type Admin"
+    {
+        "ru"    "Начать голосование как администратор"
+    }
+
+    "Vote Type Menu Title"
+    {
+        "ru"    "Выберите тип голосования:"
+    }
+
+    "Vote Type Normal"
+    {
+        "ru"    "Начать голосование"
+    }
+
+    "Vote Type Separated"
+    {
+        "ru"    "Начать отдельное голосование"
+    }
+
+    "Wants To Vote"
+    {
+        "ru"    "{green}%N хочет сменить карту (%d/%d необходимо)"
+    }
+}

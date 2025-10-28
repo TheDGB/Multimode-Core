@@ -1,0 +1,353 @@
+"Phrases"
+{
+    "Admin Cancel No Vote"
+    {
+        "fr"    "{red}[Admin] {default}Aucun vote en cours à {red}annuler."
+    }
+
+    "Admin Cancel Vote"
+    {
+        "fr"    "{red}[Admin] {default}%N {red}a annulé {default}le vote en cours."
+    }
+
+    "Cancel Current Vote"
+    {
+        "fr"    "Annuler le vote en cours"
+    }
+
+    "Cooldown Hud"
+    {
+        "fr"    "Un autre vote aura lieu dans %d secondes..."
+    }
+
+    "Current MMC Version"
+    {
+        "fr"    "{green}[Multimode] {default}Version actuelle de Multimode Core : {olive}%s"
+    }
+
+    "Error Changing Map"
+    {
+        "fr"    "{red}ERREUR : {default}Le changement de carte a échoué !"
+    }
+
+    "Extend Current Map"
+    {
+        "fr"    "Prolonger la carte actuelle"
+    }
+
+    "Extend Map Normal Vote"
+    {
+        "fr"    "Prolonger la carte"
+    }
+
+    "Force Gamemode"
+    {
+        "fr"    "Forcer le mode de jeu :"
+    }
+
+    "Gamemode Vote Already"
+    {
+        "fr"    "{red}Le vote est déjà actif ou le plugin est désactivé."
+    }
+
+    "Map Voting Cooldown"
+    {
+        "fr"    "{green}[Vote] {default}Le vote pour la carte commencera dans %d secondes."
+    }
+
+    "No Available SubGroups"
+    {
+        "fr"    "Aucun sous-groupe disponible pour la nomination"
+    }
+
+    "No Maps In SubGroup"
+    {
+        "fr"    "Aucune carte disponible dans ce sous-groupe."
+    }
+
+    "No Valid Maps In SubGroup"
+    {
+        "fr"    "Aucune carte valide trouvée dans ce sous-groupe."
+    }
+
+    "No Votes Recorded"
+    {
+        "fr"    "{red}Le vote a échoué ! Aucun vote enregistré."
+    }
+
+    "Nominate Disabled"
+    {
+        "fr"    "{green}[Rock The Vote] {default}Le système de nomination est actuellement désactivé !"
+    }
+
+    "Nominate Gamemode Group Menu Title"
+    {
+        "fr"    "Nommer un mode de jeu :\n \nN'oubliez pas que vous êtes ici pour nommer un mode de jeu et une carte qui apparaîtront lors du prochain vote. \nSachez que vous ne pouvez nommer un mode de jeu et une carte qu'une seule fois par carte.\n \n"
+    }
+
+    "Nominate Gamemode Group Menu Title Non Once"
+    {
+        "fr"    "Nommer un mode de jeu :"
+    }
+
+    "Nominate Gamemode Not Found"
+    {
+        "fr"    "{red}Mode de jeu non trouvé !"
+    }
+
+    "Nominate Map Title"
+    {
+        "fr"    "Nommer la carte pour %s :"
+    }
+
+    "Nominate Once Per Map"
+    {
+        "fr"    "{red}[Nominate] {default}Vous ne pouvez {red}nommer qu'une seule fois {default}par carte. Attendez la prochaine carte."
+    }
+
+    "Nominate SubGroup Map Title"
+    {
+        "fr"    "Nommer - %s - %s - Sélectionner la carte"
+    }
+
+    "Nominate SubGroup Menu Title"
+    {
+        "fr"    "Nommer - %s - Sélectionner le sous-groupe"
+    }
+
+    "Nominated Client"
+    {
+        "fr"    "{green}[Nominate] {default}Vous avez nommé : {olive}%s - %s"
+    }
+
+    "Nominated Server"
+    {
+        "fr"    "{green}[Nominate] {default}%s a nommé : {olive}%s - %s"
+    }
+
+    "None Show Gamemode Group"
+    {
+        "fr"    "{red}Aucun mode de jeu disponible."
+    }
+
+    "None Show Map Group"
+    {
+        "fr"    "{red}Mode de jeu non trouvé !"
+    }
+
+    "Non Maps Items"
+    {
+        "fr"    "{red}Aucune carte disponible pour ce mode !"
+    }
+
+    "Normal Vote Gamemode Group Title"
+    {
+        "fr"    "Voter pour le mode de jeu :"
+    }
+
+    "RTV Already Voted"
+    {
+        "fr"    "{green}[Rock The Vote] {default}Vous avez déjà voté pour changer de carte !"
+    }
+
+    "RTV Available"
+    {
+        "fr"    "{green}[Rock The Vote] {default}Le RTV est maintenant disponible ! Tapez !rtv pour voter."
+    }
+
+    "RTV Available Again"
+    {
+        "fr"    "{green}[Rock The Vote] {default}Le système RTV est de nouveau disponible ! Tapez !rtv pour voter à nouveau."
+    }
+
+    "RTV Available In"
+    {
+        "fr"    "{green}[Rock The Vote] {default}Le RTV sera disponible dans {green}%d {default}secondes !"
+    }
+
+    "RTV Minimun Players"
+    {
+        "fr"    "{green}[Rock The Vote] {default}Minimum de %d joueurs requis !"
+    }
+
+    "RTV Next Available"
+    {
+        "fr"    "{green}[Rock The Vote] {default}Prochain RTV disponible dans {green}%d secondes !"
+    }
+
+    "RTV System Disabled"
+    {
+        "fr"    "{green}[Rock The Vote] {default}Le système de vote est actuellement désactivé !"
+    }
+
+    "RTV Wait"
+    {
+        "fr"    "{green}[Rock The Vote] {default}Veuillez attendre %d secondes pour utiliser le RTV !"
+    }
+
+    "RTV Wait Again"
+    {
+        "fr"    "{green}[Rock The Vote] {default}Veuillez attendre %d secondes pour voter à nouveau !"
+    }
+
+    "Reload Gamemodes Successful"
+    {
+        "fr"    "{green}[MultiMode] {default}Configuration des modes de jeu rechargée avec succès !"
+    }
+
+    "Round Map Changing"
+    {
+        "fr"    "{green}[MultiMode] {default}Round réussi, changement de carte vers : {olive}%s"
+    }
+
+    "Run Off Cooldown Hud"
+    {
+        "fr"    "Un vote de départage aura lieu dans %d secondes..."
+    }
+
+    "Run Off Voting Cooldown"
+    {
+        "fr"    "{green}[Vote] {default}Aucune option n'a atteint le minimum de votes pour gagner, un vote de départage aura lieu dans %d secondes..."
+    }
+
+    "Runoff Vote Failed (Limit)"
+    {
+        "fr"    "Limite de votes de départage atteinte. Le vote a été annulé."
+    }
+
+    "Show Gamemode Admin Title"
+    {
+        "fr"    "Choisissez le mode de jeu pour le vote :"
+    }
+
+    "Show Gamemode Group Title"
+    {
+        "fr"    "Choisissez un mode de jeu :"
+    }
+
+    "Show Map Group Title"
+    {
+        "fr"    "Choisissez une carte pour %s :"
+    }
+
+    "Start Map Vote Title"
+    {
+        "fr"    "Voter pour une carte :"
+    }
+
+    "Start Vote"
+    {
+        "fr"    "Démarrer le vote"
+    }
+
+    "SubGroup Map Vote Title"
+    {
+        "fr"    "Choisissez une carte pour %s - %s :"
+    }
+
+    "SubGroup Not Found"
+    {
+        "fr"    "Sous-groupe non trouvé"
+    }
+
+    "SubGroup Vote Title"
+    {
+        "fr"    "Choisissez un sous-groupe pour %s :"
+    }
+
+    "Timing Instant"
+    {
+        "fr"    "Instantané"
+    }
+
+    "Timing Instant Notify"
+    {
+        "fr"    "{green}[MultiMode] {default}La carte a été changée instantanément pour : {olive}%s"
+    }
+
+    "Timing NextMap"
+    {
+        "fr"    "Carte suivante"
+    }
+
+    "Timing NextMap Notify"
+    {
+        "fr"    "{green}[MultiMode] {default}La prochaine carte sera : {olive}%s"
+    }
+
+    "Timing NextRound"
+    {
+        "fr"    "Prochain round"
+    }
+
+    "Timing NextRound Notify"
+    {
+        "fr"    "{green}[MultiMode] {default}La carte changera au prochain round pour : {olive}%s"
+    }
+
+    "Unnominate All Removed"
+    {
+        "fr"    "{red}[Nominate] {default}Toutes vos nominations ont été supprimées."
+    }
+
+    "Unnominate Can Nominate Again"
+    {
+        "fr"    "{green}[Nominate] {default}Vous avez retrouvé votre chance de nommer pour cette carte."
+    }
+
+    "Unnominate Clear All"
+    {
+        "fr"    "Effacer toutes les nominations."
+    }
+
+    "Unnominate Menu Title"
+    {
+        "fr"    "Menu de dé-nomination"
+    }
+
+    "Unnominate None"
+    {
+        "fr"    "{green}[Nominate] {default}Vous n'avez aucune nomination à supprimer."
+    }
+
+    "Unnominate Single Removed"
+    {
+        "#format"   "{1:s},{2:s}"
+        "fr"    "{red}[Nominate] {default}Votre nomination pour {darkred}'{1}' dans '{2}' {default}a été supprimée."
+    }
+
+    "Unnominate System Is Disabled"
+    {
+        "fr"    "{red}[Nominate] {default}Le système de dé-nomination est actuellement désactivé !"
+    }
+
+    "Vote Already Active"
+    {
+        "fr"    "{red}Vote déjà en cours..."
+    }
+
+    "Vote Type Admin"
+    {
+        "fr"    "Démarrer le vote en tant qu'administrateur"
+    }
+
+    "Vote Type Menu Title"
+    {
+        "fr"    "Choisissez le type de vote :"
+    }
+
+    "Vote Type Normal"
+    {
+        "fr"    "Démarrer le vote"
+    }
+
+    "Vote Type Separated"
+    {
+        "fr"    "Démarrer un vote séparé"
+    }
+
+    "Wants To Vote"
+    {
+        "fr"    "{green}%N veut changer de carte (%d/%d nécessaires)"
+    }
+}

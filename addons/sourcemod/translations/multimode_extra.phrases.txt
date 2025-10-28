@@ -2,22 +2,21 @@
 {
     "Next Gamemode"
     {
-        "pt"    "{olive}[MultiMode] {default}Próximo gamemode: {lightgreen}%s {default}| Mapa: {lightgreen}%s"
         "en"    "{olive}[MultiMode] {default}Next gamemode: {lightgreen}%s {default}| Map: {lightgreen}%s"
     }
+
     "Current Gamemode"
     {
-        "pt"    "{olive}[MultiMode] {default}Gamemode atual: {lightgreen}%s {default}| Mapa: {lightgreen}%s"
         "en"    "{olive}[MultiMode] {default}Current gamemode: {lightgreen}%s {default}| Map: {lightgreen}%s"
     }
+
     "Random Cycle Next Gamemode"
     {
-        "pt"    "{olive}[MultiMode] {default}Próximo gamemode: {lightgreen}Seleção Aleatória, Esperando por Votação..."
         "en"    "{olive}[MultiMode] {default}Next gamemode: {lightgreen}Random Selection, Waiting for Voting..."
     }
+
     "Unknown Next Gamemode"
     {
-        "pt"    "{olive}[MultiMode] {default}Próximo gamemode: {red}Indefinido"
         "en"    "{olive}[MultiMode] {default}Next gamemode: {red}Undefined"
     }
 }

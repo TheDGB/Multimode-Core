@@ -1,0 +1,22 @@
+"Phrases"
+{
+    "Next Gamemode"
+    {
+        "es"    "{olive}[MultiMode] {default}Siguiente modo de juego: {lightgreen}%s {default}| Mapa: {lightgreen}%s"
+    }
+
+    "Current Gamemode"
+    {
+        "es"    "{olive}[MultiMode] {default}Modo de juego actual: {lightgreen}%s {default}| Mapa: {lightgreen}%s"
+    }
+
+    "Random Cycle Next Gamemode"
+    {
+        "es"    "{olive}[MultiMode] {default}Siguiente modo de juego: {lightgreen}Selección aleatoria, esperando votación..."
+    }
+
+    "Unknown Next Gamemode"
+    {
+        "es"    "{olive}[MultiMode] {default}Siguiente modo de juego: {red}Indefinido"
+    }
+}

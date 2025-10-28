@@ -1,0 +1,353 @@
+"Phrases"
+{
+    "Admin Cancel No Vote"
+    {
+        "chi"   "{red}[管理员] {default}没有正在进行的投票可供 {red}取消。"
+    }
+
+    "Admin Cancel Vote"
+    {
+        "chi"   "{red}[管理员] {default}%N {red}取消了 {default}当前投票。"
+    }
+
+    "Cancel Current Vote"
+    {
+        "chi"   "取消当前投票"
+    }
+
+    "Cooldown Hud"
+    {
+        "chi"   "另一次投票将在 %d 秒后进行..."
+    }
+
+    "Current MMC Version"
+    {
+        "chi"   "{green}[多模式] {default}当前多模式核心版本: {olive}%s"
+    }
+
+    "Error Changing Map"
+    {
+        "chi"   "{red}错误: {default}地图更换失败！"
+    }
+
+    "Extend Current Map"
+    {
+        "chi"   "延长当前地图"
+    }
+
+    "Extend Map Normal Vote"
+    {
+        "chi"   "延长地图"
+    }
+
+    "Force Gamemode"
+    {
+        "chi"   "强制游戏模式:"
+    }
+
+    "Gamemode Vote Already"
+    {
+        "chi"   "{red}投票已激活或插件已禁用。"
+    }
+
+    "Map Voting Cooldown"
+    {
+        "chi"   "{green}[投票] {default}地图投票将在 %d 秒后开始。"
+    }
+
+    "No Available SubGroups"
+    {
+        "chi"   "没有可用于提名的子组"
+    }
+
+    "No Maps In SubGroup"
+    {
+        "chi"   "此子组中没有可用的地图。"
+    }
+
+    "No Valid Maps In SubGroup"
+    {
+        "chi"   "在此子组中未找到有效地图。"
+    }
+
+    "No Votes Recorded"
+    {
+        "chi"   "{red}投票失败！没有记录到投票。"
+    }
+
+    "Nominate Disabled"
+    {
+        "chi"   "{green}[投票换图] {default}提名系统当前已禁用！"
+    }
+
+    "Nominate Gamemode Group Menu Title"
+    {
+        "chi"   "提名游戏模式:\n \n请记住，您在此提名一个游戏模式和一张地图，以显示在下一次投票中。\n请注意，每张地图您只有1次机会提名游戏模式和地图。\n \n"
+    }
+
+    "Nominate Gamemode Group Menu Title Non Once"
+    {
+        "chi"   "提名游戏模式:"
+    }
+
+    "Nominate Gamemode Not Found"
+    {
+        "chi"   "{red}未找到游戏模式！"
+    }
+
+    "Nominate Map Title"
+    {
+        "chi"   "为 %s 命名地图:"
+    }
+
+    "Nominate Once Per Map"
+    {
+        "chi"   "{red}[提名] {default}每张地图您只能 {red}提名一次。 {default}请等到下一张地图。"
+    }
+
+    "Nominate SubGroup Map Title"
+    {
+        "chi"   "提名 - %s - %s - 选择地图"
+    }
+
+    "Nominate SubGroup Menu Title"
+    {
+        "chi"   "提名 - %s - 选择子组"
+    }
+
+    "Nominated Client"
+    {
+        "chi"   "{green}[提名] {default}您已提名: {olive}%s - %s"
+    }
+
+    "Nominated Server"
+    {
+        "chi"   "{green}[提名] {default}%s 已提名: {olive}%s - %s"
+    }
+
+    "None Show Gamemode Group"
+    {
+        "chi"   "{red}没有可用的游戏模式。"
+    }
+
+    "None Show Map Group"
+    {
+        "chi"   "{red}未找到游戏模式！"
+    }
+
+    "Non Maps Items"
+    {
+        "chi"   "{red}此模式没有可用的地图！"
+    }
+
+    "Normal Vote Gamemode Group Title"
+    {
+        "chi"   "对游戏模式进行投票:"
+    }
+
+    "RTV Already Voted"
+    {
+        "chi"   "{green}[投票换图] {default}您已经投票更换地图了！"
+    }
+
+    "RTV Available"
+    {
+        "chi"   "{green}[投票换图] {default}RTV 现已可用！输入 !rtv 进行投票。"
+    }
+
+    "RTV Available Again"
+    {
+        "chi"   "{green}[投票换图] {default}RTV 系统再次可用！输入 !rtv 再次投票。"
+    }
+
+    "RTV Available In"
+    {
+        "chi"   "{green}[投票换图] {default}RTV 将在 {green}%d {default}秒后可用！"
+    }
+
+    "RTV Minimun Players"
+    {
+        "chi"   "{green}[投票换图] {default}至少需要 %d 名玩家！"
+    }
+
+    "RTV Next Available"
+    {
+        "chi"   "{green}[投票换图] {default}下一次 RTV 将在 {green}%d 秒后可用！"
+    }
+
+    "RTV System Disabled"
+    {
+        "chi"   "{green}[投票换图] {default}投票系统当前已禁用！"
+    }
+
+    "RTV Wait"
+    {
+        "chi"   "{green}[投票换图] {default}请等待 %d 秒以使用 RTV！"
+    }
+
+    "RTV Wait Again"
+    {
+        "chi"   "{green}[投票换图] {default}请等待 %d 秒以再次投票！"
+    }
+
+    "Reload Gamemodes Successful"
+    {
+        "chi"   "{green}[多模式] {default}游戏模式配置已成功重新加载！"
+    }
+
+    "Round Map Changing"
+    {
+        "chi"   "{green}[多模式] {default}回合成功，正在更换地图为: {olive}%s"
+    }
+
+    "Run Off Cooldown Hud"
+    {
+        "chi"   "决胜投票将在 %d 秒后进行..."
+    }
+
+    "Run Off Voting Cooldown"
+    {
+        "chi"   "{green}[投票] {default}没有选项达到获胜所需的最低票数，决胜投票将在 %d 秒后进行..."
+    }
+
+    "Runoff Vote Failed (Limit)"
+    {
+        "chi"   "已达到决胜投票限制。投票已被取消。"
+    }
+
+    "Show Gamemode Admin Title"
+    {
+        "chi"   "为投票选择游戏模式:"
+    }
+
+    "Show Gamemode Group Title"
+    {
+        "chi"   "选择一个游戏模式:"
+    }
+
+    "Show Map Group Title"
+    {
+        "chi"   "为 %s 选择一张地图:"
+    }
+
+    "Start Map Vote Title"
+    {
+        "chi"   "为地图投票:"
+    }
+
+    "Start Vote"
+    {
+        "chi"   "开始投票"
+    }
+
+    "SubGroup Map Vote Title"
+    {
+        "chi"   "为 %s - %s 选择一张地图:"
+    }
+
+    "SubGroup Not Found"
+    {
+        "chi"   "未找到子组"
+    }
+
+    "SubGroup Vote Title"
+    {
+        "chi"   "为 %s 选择一个子组:"
+    }
+
+    "Timing Instant"
+    {
+        "chi"   "立即"
+    }
+
+    "Timing Instant Notify"
+    {
+        "chi"   "{green}[多模式] {default}地图立即更换为: {olive}%s"
+    }
+
+    "Timing NextMap"
+    {
+        "chi"   "下一张地图"
+    }
+
+    "Timing NextMap Notify"
+    {
+        "chi"   "{green}[多模式] {default}下一张地图将是: {olive}%s"
+    }
+
+    "Timing NextRound"
+    {
+        "chi"   "下一回合"
+    }
+
+    "Timing NextRound Notify"
+    {
+        "chi"   "{green}[多模式] {default}地图将在下一回合更换为: {olive}%s"
+    }
+
+    "Unnominate All Removed"
+    {
+        "chi"   "{red}[提名] {default}您的所有提名已被移除。"
+    }
+
+    "Unnominate Can Nominate Again"
+    {
+        "chi"   "{green}[提名] {default}您已重新获得此地图的提名机会。"
+    }
+
+    "Unnominate Clear All"
+    {
+        "chi"   "清除所有提名。"
+    }
+
+    "Unnominate Menu Title"
+    {
+        "chi"   "取消提名菜单"
+    }
+
+    "Unnominate None"
+    {
+        "chi"   "{green}[提名] {default}您没有可移除的提名。"
+    }
+
+    "Unnominate Single Removed"
+    {
+        "#format"   "{1:s},{2:s}"
+        "chi"   "{red}[提名] {default}您对 {darkred}'{1}' 在 '{2}' {default}中的提名已被移除。"
+    }
+
+    "Unnominate System Is Disabled"
+    {
+        "chi"   "{red}[提名] {default}取消提名系统当前已禁用！"
+    }
+
+    "Vote Already Active"
+    {
+        "chi"   "{red}投票已在进行中..."
+    }
+
+    "Vote Type Admin"
+    {
+        "chi"   "以管理员身份开始投票"
+    }
+
+    "Vote Type Menu Title"
+    {
+        "chi"   "选择投票类型:"
+    }
+
+    "Vote Type Normal"
+    {
+        "chi"   "开始投票"
+    }
+
+    "Vote Type Separated"
+    {
+        "chi"   "开始单独投票"
+    }
+
+    "Wants To Vote"
+    {
+        "chi"   "{green}%N 想要更换地图 (%d/%d 需要)"
+    }
+}
