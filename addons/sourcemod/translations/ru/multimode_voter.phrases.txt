@@ -40,6 +40,11 @@
         "ru"    "Продлить карту"
     }
 
+    "Extend Time Title"
+    {
+        "ru"    "Продлить текущую карту:\nВыберите время для добавления:\n \n"
+    }
+
     "Force Gamemode"
     {
         "ru"    "Принудительный игровой режим"
@@ -240,6 +245,16 @@
         "ru"    "Начать голосование"
     }
 
+    "SubGroup Force Title"
+    {
+        "ru"    "Выберите подгруппу для: %s"
+    }
+
+    "SubGroup Map Selection Title"
+    {
+        "ru"    "Карты %s - %s\nВыберите карту:"
+    }
+
     "SubGroup Map Vote Title"
     {
         "ru"    "Выберите карту для %s - %s:"
@@ -283,6 +298,11 @@
     "Timing NextRound Notify"
     {
         "ru"    "{green}[MultiMode] {default}Карта сменится в следующем раунде на: {olive}%s"
+    }
+
+    "Timing Title"
+    {
+        "ru"    "Когда применить голосование?"
     }
 
     "Unnominate All Removed"

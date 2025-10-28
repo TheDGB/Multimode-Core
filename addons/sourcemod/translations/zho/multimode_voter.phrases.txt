@@ -40,6 +40,11 @@
         "zho"   "延長地圖"
     }
 
+    "Extend Time Title"
+    {
+        "zho"   "延長目前地圖時間：\n選擇要增加的時間：\n \n"
+    }
+
     "Force Gamemode"
     {
         "zho"   "強制遊戲模式:"
@@ -240,6 +245,16 @@
         "zho"   "開始投票"
     }
 
+    "SubGroup Force Title"
+    {
+        "zho"   "為 %s 選擇子群組："
+    }
+
+    "SubGroup Map Selection Title"
+    {
+        "zho"   "%s - %s 的地圖\n選擇一張地圖："
+    }
+
     "SubGroup Map Vote Title"
     {
         "zho"   "為 %s - %s 選擇一張地圖:"
@@ -283,6 +298,11 @@
     "Timing NextRound Notify"
     {
         "zho"   "{green}[多模式] {default}地圖將在下一回合更換為: {olive}%s"
+    }
+
+    "Timing Title"
+    {
+        "zho"   "何時應用投票？"
     }
 
     "Unnominate All Removed"

@@ -40,6 +40,11 @@
         "chi"   "延长地图"
     }
 
+    "Extend Time Title"
+    {
+        "chi"   "延长当前地图时间：\n选择要增加的时间：\n \n"
+    }
+
     "Force Gamemode"
     {
         "chi"   "强制游戏模式:"
@@ -240,6 +245,16 @@
         "chi"   "开始投票"
     }
 
+    "SubGroup Force Title"
+    {
+        "chi"   "为 %s 选择子组："
+    }
+
+    "SubGroup Map Selection Title"
+    {
+        "chi"   "%s - %s 的地图\n选择一张地图："
+    }
+
     "SubGroup Map Vote Title"
     {
         "chi"   "为 %s - %s 选择一张地图:"
@@ -283,6 +298,11 @@
     "Timing NextRound Notify"
     {
         "chi"   "{green}[多模式] {default}地图将在下一回合更换为: {olive}%s"
+    }
+
+    "Timing Title"
+    {
+        "chi"   "何时应用投票？"
     }
 
     "Unnominate All Removed"

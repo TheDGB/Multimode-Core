@@ -40,6 +40,11 @@
         "da"    "Forlæng kort"
     }
 
+    "Extend Time Title"
+    {
+        "da"    "Forlæng nuværende kort:\nVælg en tid at tilføje:\n \n"
+    }
+
     "Force Gamemode"
     {
         "da"    "Tving spiltilstand:"
@@ -240,6 +245,16 @@
         "da"    "Start afstemning"
     }
 
+    "SubGroup Force Title"
+    {
+        "da"    "Vælg undergruppe for: %s"
+    }
+
+    "SubGroup Map Selection Title"
+    {
+        "da"    "Kort over %s - %s\nVælg et kort:"
+    }
+
     "SubGroup Map Vote Title"
     {
         "da"    "Vælg et kort for %s - %s:"
@@ -283,6 +298,11 @@
     "Timing NextRound Notify"
     {
         "da"    "{green}[MultiMode] {default}Kortet skifter næste runde til: {olive}%s"
+    }
+
+    "Timing Title"
+    {
+        "da"    "Hvornår skal afstemningen anvendes?"
     }
 
     "Unnominate All Removed"

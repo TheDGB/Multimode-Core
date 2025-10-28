@@ -40,6 +40,11 @@
         "en"    "Extend Map"
     }
 
+    "Extend Time Title"
+    {
+        "en"    "Extend Current Map:\nSelect a time to add:\n \n"
+    }
+
     "Force Gamemode"
     {
         "en"    "Force Gamemode"
@@ -240,6 +245,16 @@
         "en"    "Start Vote"
     }
 
+    "SubGroup Force Title"
+    {
+        "en"    "Select Subgroup for: %s"
+    }
+
+    "SubGroup Map Selection Title"
+    {
+        "en"    "Maps of %s - %s\nSelect a map:"
+    }
+
     "SubGroup Map Vote Title"
     {
         "en"    "Choose a map for %s - %s:"
@@ -283,6 +298,11 @@
     "Timing NextRound Notify"
     {
         "en"    "{green}[MultiMode] {default}Map will change next round to: {olive}%s"
+    }
+
+    "Timing Title"
+    {
+        "en"    "When to apply voting?"
     }
 
     "Unnominate All Removed"

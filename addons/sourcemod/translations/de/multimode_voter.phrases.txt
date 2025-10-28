@@ -40,6 +40,11 @@
         "de"    "Karte verlängern"
     }
 
+    "Extend Time Title"
+    {
+        "de"    "Aktuelle Karte verlängern:\nWähle eine Zeit zum Hinzufügen:\n \n"
+    }
+
     "Force Gamemode"
     {
         "de"    "Spielmodus erzwingen:"
@@ -240,6 +245,16 @@
         "de"    "Abstimmung starten"
     }
 
+    "SubGroup Force Title"
+    {
+        "de"    "Untergruppe auswählen für: %s"
+    }
+
+    "SubGroup Map Selection Title"
+    {
+        "de"    "Karten von %s - %s\nWähle eine Karte:"
+    }
+
     "SubGroup Map Vote Title"
     {
         "de"    "Wähle eine Karte für %s - %s:"
@@ -283,6 +298,11 @@
     "Timing NextRound Notify"
     {
         "de"    "{green}[MultiMode] {default}Karte wird nächste Runde zu {olive}%s wechseln"
+    }
+
+    "Timing Title"
+    {
+        "de"    "Wann soll die Abstimmung angewendet werden?"
     }
 
     "Unnominate All Removed"
