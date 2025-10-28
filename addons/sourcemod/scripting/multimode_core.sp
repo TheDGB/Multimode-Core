@@ -1256,38 +1256,46 @@ void ProcessVoteLogic(VoteType voteType, int num_votes, int num_clients, ArrayLi
     
     delete winners;
 
-    if (needsRunoff && g_iRunoffVotesThisMap >= g_Cvar_RunoffVoteLimit.IntValue)
+    if (needsRunoff)
     {
-        WriteToLogFile("[Runoff] Runoff vote limit reached (%d).", g_iRunoffVotesThisMap);
-        if (g_Cvar_RunoffVoteFailed.BoolValue)
+        if (g_bIsRunoffVote || g_iRunoffVotesThisMap >= g_Cvar_RunoffVoteLimit.IntValue)
         {
-            CPrintToChatAll("%t", "Runoff Vote Failed (Limit)");
-            NativeMMC_OnVoteEnd("", "", "", VoteEnd_Failed);
-            g_bVoteActive = false;
-            return;
+            if (g_bIsRunoffVote) {
+                WriteToLogFile("[Runoff] A runoff vote has also failed (tie or threshold not met).");
+            } else {
+                WriteToLogFile("[Runoff] Runoff vote limit reached (%d).", g_iRunoffVotesThisMap);
+            }
+
+            if (g_Cvar_RunoffVoteFailed.BoolValue)
+            {
+                CPrintToChatAll("%t", "Runoff Vote Failed (Limit)");
+                NativeMMC_OnVoteEnd("", "", "", VoteEnd_Failed);
+                g_bVoteActive = false;
+                g_bIsRunoffVote = false;
+                return;
+            }
+            else
+            {
+                char winner[PLATFORM_MAX_PATH];
+                g_RunoffItems.GetString(0, winner, sizeof(winner));
+                WriteToLogFile("[Runoff] Force-picking first item '%s' due to failed runoff/limit.", winner);
+                
+                if (vote != null && g_Cvar_NativeVotes.BoolValue && LibraryExists("nativevotes"))
+                {
+                    strcopy(g_sCurrentWinner, sizeof(g_sCurrentWinner), winner);
+                    NativeVotes_DisplayPass(vote, g_sCurrentWinner);
+                }
+                
+                HandleWinner(winner, voteType);
+                return;
+            }
         }
         else
         {
-            char winner[PLATFORM_MAX_PATH];
-            g_RunoffItems.GetString(0, winner, sizeof(winner));
-            WriteToLogFile("[Runoff] Force-picking first item '%s' due to limit.", winner);
-            
-            if (vote != null && g_Cvar_NativeVotes.BoolValue && LibraryExists("nativevotes"))
-            {
-                strcopy(g_sCurrentWinner, sizeof(g_sCurrentWinner), winner);
-                NativeVotes_DisplayPass(vote, g_sCurrentWinner);
-            }
-            
-            HandleWinner(winner, voteType);
-            return;
+            g_iRunoffVotesThisMap++;
+            NativeMMC_OnVoteEnd(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, VoteEnd_Runoff);
+            StartCooldown(voteType, g_sVoteGameMode, g_sVoteSubGroup, g_iVoteInitiator, true);
         }
-    }
-
-    if (needsRunoff)
-    {
-        g_iRunoffVotesThisMap++;
-        NativeMMC_OnVoteEnd(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, VoteEnd_Runoff);
-        StartCooldown(voteType, g_sVoteGameMode, g_sVoteSubGroup, g_iVoteInitiator, true);
     }
     else
     {
