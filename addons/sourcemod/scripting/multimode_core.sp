@@ -14,7 +14,7 @@
 #include <multimode/base>
 #include <nativevotes>
 
-#define PLUGIN_VERSION "2.9.4"
+#define PLUGIN_VERSION "2.9.7ex"
 
 // Convar Section
 ConVar g_Cvar_CooldownEnabled;
@@ -2881,7 +2881,7 @@ public void AdminMenu_ExtendMap(TopMenu topmenu, TopMenuAction action, TopMenuOb
 void ShowExtendTimeMenu(int client)
 {
     Menu menu = new Menu(ExtendTimeMenuHandler);
-    menu.SetTitle("Extend Current Map:\nSelect a time to add:\n \n");
+    menu.SetTitle("%t", "Extend Time Title");
     
     menu.AddItem("1", "Increase 1 minute");
     menu.AddItem("2", "Increase 2 minutes");
@@ -3102,7 +3102,8 @@ void ShowTimingSelectionMenu(int client)
     GetClientCookie(client, g_hCookieVoteType, voteType, sizeof(voteType));
     
     Menu menu = new Menu(TimingSelectionMenuHandler);
-    menu.SetTitle("Quando aplicar a votação?");
+	FormatEx(buffer, sizeof(buffer), "%t", "Timing Title");
+    menu.SetTitle(buffer);
     
     FormatEx(buffer, sizeof(buffer), "%t", "Timing NextMap");
     menu.AddItem("nextmap", buffer);
@@ -4647,7 +4648,7 @@ void ShowMapMenu(int client, const char[] sGameMode, const char[] subgroup = "")
     
     if (strlen(subgroup) > 0)
     {
-        menu.SetTitle("Mapas de %s - %s\nSelecione um mapa:", sGameMode, subgroup);
+        menu.SetTitle("%t", "SubGroup Map Selection Title", sGameMode, subgroup);
     }
     else
     {
@@ -4724,7 +4725,7 @@ void ShowForceSubGroupMenu(int client, const char[] gamemode)
     list.GetArray(index, config);
 
     Menu menu = new Menu(ForceSubGroupMenuHandler);
-    menu.SetTitle("Selecionar Subgrupo para: %s", gamemode);
+    menu.SetTitle("%t", "SubGroup Force Title", gamemode);
 
     char currentGroup[64], currentSubgroup[64];
     SplitGamemodeString(g_sCurrentGameMode, currentGroup, sizeof(currentGroup), currentSubgroup, sizeof(currentSubgroup));
@@ -4786,7 +4787,8 @@ void ShowTimingMenu(int client, bool isForcing)
     char buffer[125];
     
     Menu menu = new Menu(isForcing ? ForceTimingMenuHandler : SeparatedTimingMenuHandler);
-    menu.SetTitle("Quando aplicar?");
+	FormatEx(buffer, sizeof(buffer), "%t", "Timing Title");
+    menu.SetTitle(buffer);
     
     FormatEx(buffer, sizeof(buffer), "%t", "Timing NextMap");
     menu.AddItem("nextmap", buffer);

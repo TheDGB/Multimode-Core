@@ -1,0 +1,22 @@
+"Phrases"
+{
+    "Next Gamemode"
+    {
+        "chi"    "{olive}[多模式] {default}下一个游戏模式: {lightgreen}%s {default}| 地图: {lightgreen}%s"
+    }
+
+    "Current Gamemode"
+    {
+        "chi"    "{olive}[多模式] {default}当前游戏模式: {lightgreen}%s {default}| 地图: {lightgreen}%s"
+    }
+
+    "Random Cycle Next Gamemode"
+    {
+        "chi"    "{olive}[多模式] {default}下一个游戏模式: {lightgreen}随机选择，等待投票..."
+    }
+
+    "Unknown Next Gamemode"
+    {
+        "chi"    "{olive}[多模式] {default}下一个游戏模式: {red}未定义"
+    }
+}

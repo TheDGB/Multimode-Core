@@ -1,0 +1,22 @@
+"Phrases"
+{
+    "Next Gamemode"
+    {
+        "ru"    "{olive}[MultiMode] {default}Следующий игровой режим: {lightgreen}%s {default}| Карта: {lightgreen}%s"
+    }
+
+    "Current Gamemode"
+    {
+        "ru"    "{olive}[MultiMode] {default}Текущий игровой режим: {lightgreen}%s {default}| Карта: {lightgreen}%s"
+    }
+
+    "Random Cycle Next Gamemode"
+    {
+        "ru"    "{olive}[MultiMode] {default}Следующий игровой режим: {lightgreen}Случайный выбор, ожидание голосования..."
+    }
+
+    "Unknown Next Gamemode"
+    {
+        "ru"    "{olive}[MultiMode] {default}Следующий игровой режим: {red}Не определён"
+    }
+}

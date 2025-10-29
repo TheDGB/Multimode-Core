@@ -1,0 +1,373 @@
+"Phrases"
+{
+    "Admin Cancel No Vote"
+    {
+        "de"    "{red}[Admin] {default}Keine laufende Abstimmung zum {red}Abbrechen."
+    }
+
+    "Admin Cancel Vote"
+    {
+        "de"    "{red}[Admin] {default}%N {red}hat die aktuelle Abstimmung abgebrochen."
+    }
+
+    "Cancel Current Vote"
+    {
+        "de"    "Aktuelle Abstimmung abbrechen"
+    }
+
+    "Cooldown Hud"
+    {
+        "de"    "Eine weitere Abstimmung wird in %d Sekunden durchgeführt..."
+    }
+
+    "Current MMC Version"
+    {
+        "de"    "{green}[Multimode] {default}Aktuelle Multimode Core Version: {olive}%s"
+    }
+
+    "Error Changing Map"
+    {
+        "de"    "{red}FEHLER: {default}Kartenwechsel fehlgeschlagen!"
+    }
+
+    "Extend Current Map"
+    {
+        "de"    "Aktuelle Karte verlängern"
+    }
+
+    "Extend Map Normal Vote"
+    {
+        "de"    "Karte verlängern"
+    }
+
+    "Extend Time Title"
+    {
+        "de"    "Aktuelle Karte verlängern:\nWähle eine Zeit zum Hinzufügen:\n \n"
+    }
+
+    "Force Gamemode"
+    {
+        "de"    "Spielmodus erzwingen:"
+    }
+
+    "Gamemode Vote Already"
+    {
+        "de"    "{red}Die Abstimmung ist bereits aktiv oder das Plugin ist deaktiviert."
+    }
+
+    "Map Voting Cooldown"
+    {
+        "de"    "{green}[Abstimmung] {default}Kartenabstimmung beginnt in %d Sekunden."
+    }
+
+    "No Available SubGroups"
+    {
+        "de"    "Keine verfügbaren Untergruppen für die Nominierung"
+    }
+
+    "No Maps In SubGroup"
+    {
+        "de"    "Keine Karten in dieser Untergruppe verfügbar."
+    }
+
+    "No Valid Maps In SubGroup"
+    {
+        "de"    "Keine gültigen Karten in dieser Untergruppe gefunden."
+    }
+
+    "No Votes Recorded"
+    {
+        "de"    "{red}Abstimmung fehlgeschlagen! Keine Stimmen registriert."
+    }
+
+    "Nominate Disabled"
+    {
+        "de"    "{green}[Rock The Vote] {default}Das Nominierungssystem ist derzeit deaktiviert!"
+    }
+
+    "Nominate Gamemode Group Menu Title"
+    {
+        "de"    "Spielmodus nominieren:\n \nDenk daran, dass du hier bist, um einen Spielmodus und eine Karte für die nächste Abstimmung zu nominieren. \nBeachte, dass du nur einmal pro Karte einen Spielmodus und eine Karte nominieren kannst.\n \n"
+    }
+
+    "Nominate Gamemode Group Menu Title Non Once"
+    {
+        "de"    "Spielmodus nominieren:"
+    }
+
+    "Nominate Gamemode Not Found"
+    {
+        "de"    "{red}Spielmodus nicht gefunden!"
+    }
+
+    "Nominate Map Title"
+    {
+        "de"    "Karte für %s benennen:"
+    }
+
+    "Nominate Once Per Map"
+    {
+        "de"    "{red}[Nominate] {default}Du kannst nur {red}einmal pro Karte nominieren. {default}Warte bis zur nächsten Karte."
+    }
+
+    "Nominate SubGroup Map Title"
+    {
+        "de"    "Nominieren - %s - %s - Karte auswählen"
+    }
+
+    "Nominate SubGroup Menu Title"
+    {
+        "de"    "Nominieren - %s - Untergruppe auswählen"
+    }
+
+    "Nominated Client"
+    {
+        "de"    "{green}[Nominate] {default}Du hast nominiert: {olive}%s - %s"
+    }
+
+    "Nominated Server"
+    {
+        "de"    "{green}[Nominate] {default}%s hat nominiert: {olive}%s - %s"
+    }
+
+    "None Show Gamemode Group"
+    {
+        "de"    "{red}Keine Spielmodi verfügbar."
+    }
+
+    "None Show Map Group"
+    {
+        "de"    "{red}Spielmodus nicht gefunden!"
+    }
+
+    "Non Maps Items"
+    {
+        "de"    "{red}Keine Karten für diesen Modus verfügbar!"
+    }
+
+    "Normal Vote Gamemode Group Title"
+    {
+        "de"    "Über Spielmodus abstimmen:"
+    }
+
+    "RTV Already Voted"
+    {
+        "de"    "{green}[Rock The Vote] {default}Du hast bereits für einen Kartenwechsel gestimmt!"
+    }
+
+    "RTV Available"
+    {
+        "de"    "{green}[Rock The Vote] {default}RTV ist jetzt verfügbar! Tippe !rtv, um abzustimmen."
+    }
+
+    "RTV Available Again"
+    {
+        "de"    "{green}[Rock The Vote] {default}Das RTV-System ist wieder verfügbar! Tippe !rtv, um erneut abzustimmen."
+    }
+
+    "RTV Available In"
+    {
+        "de"    "{green}[Rock The Vote] {default}RTV wird in {green}%d {default}Sekunden verfügbar sein!"
+    }
+
+    "RTV Minimun Players"
+    {
+        "de"    "{green}[Rock The Vote] {default}Mindestens %d Spieler erforderlich!"
+    }
+
+    "RTV Next Available"
+    {
+        "de"    "{green}[Rock The Vote] {default}Nächstes RTV in {green}%d Sekunden verfügbar!"
+    }
+
+    "RTV System Disabled"
+    {
+        "de"    "{green}[Rock The Vote] {default}Das Abstimmungssystem ist derzeit deaktiviert!"
+    }
+
+    "RTV Wait"
+    {
+        "de"    "{green}[Rock The Vote] {default}Bitte warte %d Sekunden, um RTV zu benutzen!"
+    }
+
+    "RTV Wait Again"
+    {
+        "de"    "{green}[Rock The Vote] {default}Bitte warte %d Sekunden, um erneut abzustimmen!"
+    }
+
+    "Reload Gamemodes Successful"
+    {
+        "de"    "{green}[MultiMode] {default}Spielmodus-Konfiguration erfolgreich neu geladen!"
+    }
+
+    "Round Map Changing"
+    {
+        "de"    "{green}[MultiMode] {default}Runde erfolgreich, Karte wird gewechselt zu: {olive}%s"
+    }
+
+    "Run Off Cooldown Hud"
+    {
+        "de"    "Eine Stichwahl wird in %d Sekunden durchgeführt..."
+    }
+
+    "Run Off Voting Cooldown"
+    {
+        "de"    "{green}[Abstimmung] {default}Keine Option hat die Mindeststimmen zum Sieg erreicht, eine Stichwahl wird in %d Sekunden durchgeführt..."
+    }
+
+    "Runoff Vote Failed (Limit)"
+    {
+        "de"    "Limit für Stichwahlen erreicht. Die Abstimmung wurde abgebrochen."
+    }
+
+    "Show Gamemode Admin Title"
+    {
+        "de"    "Wähle Spielmodus für die Abstimmung:"
+    }
+
+    "Show Gamemode Group Title"
+    {
+        "de"    "Wähle einen Spielmodus:"
+    }
+
+    "Show Map Group Title"
+    {
+        "de"    "Wähle eine Karte für %s:"
+    }
+
+    "Start Map Vote Title"
+    {
+        "de"    "Für eine Karte abstimmen:"
+    }
+
+    "Start Vote"
+    {
+        "de"    "Abstimmung starten"
+    }
+
+    "SubGroup Force Title"
+    {
+        "de"    "Untergruppe auswählen für: %s"
+    }
+
+    "SubGroup Map Selection Title"
+    {
+        "de"    "Karten von %s - %s\nWähle eine Karte:"
+    }
+
+    "SubGroup Map Vote Title"
+    {
+        "de"    "Wähle eine Karte für %s - %s:"
+    }
+
+    "SubGroup Not Found"
+    {
+        "de"    "Untergruppe nicht gefunden"
+    }
+
+    "SubGroup Vote Title"
+    {
+        "de"    "Wähle eine Untergruppe für %s:"
+    }
+
+    "Timing Instant"
+    {
+        "de"    "Sofort"
+    }
+
+    "Timing Instant Notify"
+    {
+        "de"    "{green}[MultiMode] {default}Karte sofort zu {olive}%s gewechselt"
+    }
+
+    "Timing NextMap"
+    {
+        "de"    "Nächste Karte"
+    }
+
+    "Timing NextMap Notify"
+    {
+        "de"    "{green}[MultiMode] {default}Nächste Karte wird sein: {olive}%s"
+    }
+
+    "Timing NextRound"
+    {
+        "de"    "Nächste Runde"
+    }
+
+    "Timing NextRound Notify"
+    {
+        "de"    "{green}[MultiMode] {default}Karte wird nächste Runde zu {olive}%s wechseln"
+    }
+
+    "Timing Title"
+    {
+        "de"    "Wann soll die Abstimmung angewendet werden?"
+    }
+
+    "Unnominate All Removed"
+    {
+        "de"    "{red}[Nominate] {default}Alle deine Nominierungen wurden entfernt."
+    }
+
+    "Unnominate Can Nominate Again"
+    {
+        "de"    "{green}[Nominate] {default}Du hast deine Nominierungschance für diese Karte zurückerhalten."
+    }
+
+    "Unnominate Clear All"
+    {
+        "de"    "Alle Nominierungen löschen."
+    }
+
+    "Unnominate Menu Title"
+    {
+        "de"    "Nominierung aufheben Menü"
+    }
+
+    "Unnominate None"
+    {
+        "de"    "{green}[Nominate] {default}Du hast keine Nominierungen zum Entfernen."
+    }
+
+    "Unnominate Single Removed"
+    {
+        "#format"   "{1:s},{2:s}"
+        "de"    "{red}[Nominate] {default}Deine Nominierung für {darkred}'{1}' in '{2}' {default}wurde entfernt."
+    }
+
+    "Unnominate System Is Disabled"
+    {
+        "de"    "{red}[Nominate] {default}Das System zur Aufhebung von Nominierungen ist derzeit deaktiviert!"
+    }
+
+    "Vote Already Active"
+    {
+        "de"    "{red}Abstimmung läuft bereits..."
+    }
+
+    "Vote Type Admin"
+    {
+        "de"    "Abstimmung als Admin starten"
+    }
+
+    "Vote Type Menu Title"
+    {
+        "de"    "Wähle die Art der Abstimmung:"
+    }
+
+    "Vote Type Normal"
+    {
+        "de"    "Abstimmung starten"
+    }
+
+    "Vote Type Separated"
+    {
+        "de"    "Separate Abstimmung starten"
+    }
+
+    "Wants To Vote"
+    {
+        "de"    "{green}%N möchte die Karte wechseln (%d/%d benötigt)"
+    }
+}

@@ -1,0 +1,373 @@
+"Phrases"
+{
+    "Admin Cancel No Vote"
+    {
+        "it"    "{red}[Admin] {default}Nessuna votazione in corso da {red}annullare."
+    }
+
+    "Admin Cancel Vote"
+    {
+        "it"    "{red}[Admin] {default}%N {red}ha annullato {default}la votazione corrente."
+    }
+
+    "Cancel Current Vote"
+    {
+        "it"    "Annulla votazione attuale"
+    }
+
+    "Cooldown Hud"
+    {
+        "it"    "Un'altra votazione si terrà tra %d secondi..."
+    }
+
+    "Current MMC Version"
+    {
+        "it"    "{green}[Multimode] {default}Versione attuale di Multimode Core: {olive}%s"
+    }
+
+    "Error Changing Map"
+    {
+        "it"    "{red}ERRORE: {default}Cambio mappa fallito!"
+    }
+
+    "Extend Current Map"
+    {
+        "it"    "Estendi mappa attuale"
+    }
+
+    "Extend Map Normal Vote"
+    {
+        "it"    "Estendi mappa"
+    }
+
+    "Extend Time Title"
+    {
+        "it"    "Estendi la mappa corrente:\nSeleziona un tempo da aggiungere:\n \n"
+    }
+
+    "Force Gamemode"
+    {
+        "it"    "Forza modalità di gioco:"
+    }
+
+    "Gamemode Vote Already"
+    {
+        "it"    "{red}La votazione è già attiva o il plugin è disabilitato."
+    }
+
+    "Map Voting Cooldown"
+    {
+        "it"    "{green}[Votazione] {default}La votazione della mappa inizierà tra %d secondi."
+    }
+
+    "No Available SubGroups"
+    {
+        "it"    "Nessun sottogruppo disponibile per la nomina"
+    }
+
+    "No Maps In SubGroup"
+    {
+        "it"    "Nessuna mappa disponibile in questo sottogruppo."
+    }
+
+    "No Valid Maps In SubGroup"
+    {
+        "it"    "Nessuna mappa valida trovata in questo sottogruppo."
+    }
+
+    "No Votes Recorded"
+    {
+        "it"    "{red}Votazione fallita! Nessun voto registrato."
+    }
+
+    "Nominate Disabled"
+    {
+        "it"    "{green}[Rock The Vote] {default}Il sistema di nomina è attualmente disabilitato!"
+    }
+
+    "Nominate Gamemode Group Menu Title"
+    {
+        "it"    "Nomina modalità di gioco:\n \nRicorda che sei qui per nominare una modalità di gioco e una mappa che appariranno nella prossima votazione. \nSii consapevole che hai solo 1 volta per nominare una modalità di gioco e una mappa per ogni mappa.\n \n"
+    }
+
+    "Nominate Gamemode Group Menu Title Non Once"
+    {
+        "it"    "Nomina modalità di gioco:"
+    }
+
+    "Nominate Gamemode Not Found"
+    {
+        "it"    "{red}Modalità di gioco non trovata!"
+    }
+
+    "Nominate Map Title"
+    {
+        "it"    "Nomina mappa per %s:"
+    }
+
+    "Nominate Once Per Map"
+    {
+        "it"    "{red}[Nominate] {default}Puoi {red}nominare solo una volta {default}per mappa. Aspetta la prossima mappa."
+    }
+
+    "Nominate SubGroup Map Title"
+    {
+        "it"    "Nomina - %s - %s - Seleziona mappa"
+    }
+
+    "Nominate SubGroup Menu Title"
+    {
+        "it"    "Nomina - %s - Seleziona sottogruppo"
+    }
+
+    "Nominated Client"
+    {
+        "it"    "{green}[Nominate] {default}Hai nominato: {olive}%s - %s"
+    }
+
+    "Nominated Server"
+    {
+        "it"    "{green}[Nominate] {default}%s ha nominato: {olive}%s - %s"
+    }
+
+    "None Show Gamemode Group"
+    {
+        "it"    "{red}Nessuna modalità di gioco disponibile."
+    }
+
+    "None Show Map Group"
+    {
+        "it"    "{red}Modalità di gioco non trovata!"
+    }
+
+    "Non Maps Items"
+    {
+        "it"    "{red}Nessuna mappa disponibile per questa modalità!"
+    }
+
+    "Normal Vote Gamemode Group Title"
+    {
+        "it"    "Vota la modalità di gioco:"
+    }
+
+    "RTV Already Voted"
+    {
+        "it"    "{green}[Rock The Vote] {default}Hai già votato per cambiare mappa!"
+    }
+
+    "RTV Available"
+    {
+        "it"    "{green}[Rock The Vote] {default}RTV è ora disponibile! Digita !rtv per votare."
+    }
+
+    "RTV Available Again"
+    {
+        "it"    "{green}[Rock The Vote] {default}Il sistema RTV è di nuovo disponibile! Digita !rtv per votare di nuovo."
+    }
+
+    "RTV Available In"
+    {
+        "it"    "{green}[Rock The Vote] {default}RTV sarà disponibile tra {green}%d {default}secondi!"
+    }
+
+    "RTV Minimun Players"
+    {
+        "it"    "{green}[Rock The Vote] {default}Minimo %d giocatori richiesti!"
+    }
+
+    "RTV Next Available"
+    {
+        "it"    "{green}[Rock The Vote] {default}Prossimo RTV disponibile tra {green}%d secondi!"
+    }
+
+    "RTV System Disabled"
+    {
+        "it"    "{green}[Rock The Vote] {default}Il sistema di votazione è attualmente disabilitato!"
+    }
+
+    "RTV Wait"
+    {
+        "it"    "{green}[Rock The Vote] {default}Attendi %d secondi per usare RTV!"
+    }
+
+    "RTV Wait Again"
+    {
+        "it"    "{green}[Rock The Vote] {default}Attendi %d secondi per votare di nuovo!"
+    }
+
+    "Reload Gamemodes Successful"
+    {
+        "it"    "{green}[MultiMode] {default}Configurazione modalità di gioco ricaricata con successo!"
+    }
+
+    "Round Map Changing"
+    {
+        "it"    "{green}[MultiMode] {default}Round riuscito, cambio mappa in: {olive}%s"
+    }
+
+    "Run Off Cooldown Hud"
+    {
+        "it"    "Un ballottaggio si terrà tra %d secondi..."
+    }
+
+    "Run Off Voting Cooldown"
+    {
+        "it"    "{green}[Votazione] {default}Nessuna opzione ha raggiunto i voti minimi per vincere, un ballottaggio si terrà tra %d secondi..."
+    }
+
+    "Runoff Vote Failed (Limit)"
+    {
+        "it"    "Limite di voti di ballottaggio raggiunto. La votazione è stata annullata."
+    }
+
+    "Show Gamemode Admin Title"
+    {
+        "it"    "Scegli la modalità di gioco per la votazione:"
+    }
+
+    "Show Gamemode Group Title"
+    {
+        "it"    "Scegli una modalità di gioco:"
+    }
+
+    "Show Map Group Title"
+    {
+        "it"    "Scegli una mappa per %s:"
+    }
+
+    "Start Map Vote Title"
+    {
+        "it"    "Vota per una mappa:"
+    }
+
+    "Start Vote"
+    {
+        "it"    "Inizia votazione"
+    }
+
+    "SubGroup Force Title"
+    {
+        "it"    "Seleziona sottogruppo per: %s"
+    }
+
+    "SubGroup Map Selection Title"
+    {
+        "it"    "Mappe di %s - %s\nSeleziona una mappa:"
+    }
+
+    "SubGroup Map Vote Title"
+    {
+        "it"    "Scegli una mappa per %s - %s:"
+    }
+
+    "SubGroup Not Found"
+    {
+        "it"    "Sottogruppo non trovato"
+    }
+
+    "SubGroup Vote Title"
+    {
+        "it"    "Scegli un sottogruppo per %s:"
+    }
+
+    "Timing Instant"
+    {
+        "it"    "Istantaneo"
+    }
+
+    "Timing Instant Notify"
+    {
+        "it"    "{green}[MultiMode] {default}Mappa cambiata istantaneamente in: {olive}%s"
+    }
+
+    "Timing NextMap"
+    {
+        "it"    "Prossima mappa"
+    }
+
+    "Timing NextMap Notify"
+    {
+        "it"    "{green}[MultiMode] {default}La prossima mappa sarà: {olive}%s"
+    }
+
+    "Timing NextRound"
+    {
+        "it"    "Prossimo round"
+    }
+
+    "Timing NextRound Notify"
+    {
+        "it"    "{green}[MultiMode] {default}La mappa cambierà al prossimo round in: {olive}%s"
+    }
+
+    "Timing Title"
+    {
+        "it"    "Quando applicare la votazione?"
+    }
+
+    "Unnominate All Removed"
+    {
+        "it"    "{red}[Nominate] {default}Tutte le tue nomine sono state rimosse."
+    }
+
+    "Unnominate Can Nominate Again"
+    {
+        "it"    "{green}[Nominate] {default}Hai riguadagnato la tua possibilità di nomina per questa mappa."
+    }
+
+    "Unnominate Clear All"
+    {
+        "it"    "Cancella tutte le nomine."
+    }
+
+    "Unnominate Menu Title"
+    {
+        "it"    "Menu di de-nomina"
+    }
+
+    "Unnominate None"
+    {
+        "it"    "{green}[Nominate] {default}Non hai nomine da rimuovere."
+    }
+
+    "Unnominate Single Removed"
+    {
+        "#format"   "{1:s},{2:s}"
+        "it"    "{red}[Nominate] {default}La tua nomina per {darkred}'{1}' in '{2}' {default}è stata rimossa."
+    }
+
+    "Unnominate System Is Disabled"
+    {
+        "it"    "{red}[Nominate] {default}Il sistema di de-nomina è attualmente disabilitato!"
+    }
+
+    "Vote Already Active"
+    {
+        "it"    "{red}Votazione già in corso..."
+    }
+
+    "Vote Type Admin"
+    {
+        "it"    "Inizia votazione come amministratore"
+    }
+
+    "Vote Type Menu Title"
+    {
+        "it"    "Scegli il tipo di votazione:"
+    }
+
+    "Vote Type Normal"
+    {
+        "it"    "Inizia votazione"
+    }
+
+    "Vote Type Separated"
+    {
+        "it"    "Inizia votazione separata"
+    }
+
+    "Wants To Vote"
+    {
+        "it"    "{green}%N vuole cambiare mappa (%d/%d necessari)"
+    }
+}
