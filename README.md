@@ -31,3 +31,5 @@ You can head over to our Multimode Core wiki for more information about the plug
 # **Enjoy the plugin!**
 
 [![](https://dcbadge.limes.pink/api/server/xftqrvZSAw)](https://discord.gg/xftqrvZSAw)
+
+[![](http://fastdl.optr.me:8090/embed/steamgroup.png)](https://steamcommunity.com/groups/optr-me)
