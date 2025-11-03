@@ -14,7 +14,7 @@
 #include <multimode/base>
 #include <nativevotes>
 
-#define PLUGIN_VERSION "2.9.7ex"
+#define PLUGIN_VERSION "2.9.8"
 
 // Convar Section
 ConVar g_Cvar_CooldownEnabled;
@@ -4625,7 +4625,7 @@ void ShowMapMenu(int client, const char[] sGameMode, const char[] subgroup = "")
         int subgroupIndex = FindSubGroupIndex(sGameMode, subgroup);
         if (subgroupIndex == -1)
         {
-            CPrintToChat(client, "Subgrupo não encontrado.");
+            CPrintToChat(client, "%t", "No Available SubGroups");
             return;
         }
 
@@ -4751,7 +4751,7 @@ void ShowForceSubGroupMenu(int client, const char[] gamemode)
 
     if (menu.ItemCount == 0)
     {
-        CPrintToChat(client, "Nenhum subgrupo disponível.");
+        CPrintToChat(client, "%t", "No Available SubGroups");
         delete menu;
         ShowGameModeMenu(client, true);
         return;
