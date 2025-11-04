@@ -14,7 +14,14 @@
 #include <multimode/base>
 #include <nativevotes>
 
-#define PLUGIN_VERSION "2.9.8"
+#define PLUGIN_VERSION "3.0.1"
+
+// Gesture Defines
+#define GESTURE_NOMINATED " (!)" // For nominated global gesture groups/maps
+#define GESTURE_CURRENT " (*)"   // For Current global gesture group/map
+#define GESTURE_VOTED " (#)"     // For Winning group/map global gesture from a previous vote
+#define GESTURE_SELECTEDNOMINATED " (Nominated)" // For selected nomination global gesture.
+#define GESTURE_EXCLUDED " (Excluded)" // For global exclusion gesture.
 
 // Convar Section
 ConVar g_Cvar_CooldownEnabled;
@@ -3139,7 +3146,7 @@ void StartSeparatedVote(int client)
         
 		bool isVoted = (g_bVoteCompleted && StrEqual(config.name, g_sVoteGameMode));
         char voteIndicator[6];
-        strcopy(voteIndicator, sizeof(voteIndicator), isVoted ? " (#)" : "");
+        strcopy(voteIndicator, sizeof(voteIndicator), isVoted ? GESTURE_VOTED : "");
         
         if (config.adminonly == 1) 
             Format(display, sizeof(display), "[ADMIN] %s%s", config.name, voteIndicator);
@@ -3615,39 +3622,47 @@ void ShowNominateGamemodeMenu(int client)
         GameModeConfig config;
         gameModes.GetArray(i, config);
 
-        if (!CanClientNominate(client, config.name, "", ""))
+        if (!CanClientNominate(client, config.name, "", "") || !GamemodeAvailable(config.name))
         {
             continue;
         }
 
-        if (g_Cvar_NominateSelectedGroupExclude.BoolValue &&
-            g_NominatedGamemodes.FindString(config.name) != -1)
-        {
-            continue;
-        }
-
-        if (g_Cvar_NominateGroupExclude.IntValue > 0 &&
-            g_PlayedGamemodes.FindString(config.name) != -1)
-        {
-            continue;
-        }
-
-        if (!GamemodeAvailable(config.name))
-        {
-            continue;
-        }
-
+        bool isExcluded = false;
         char display[128];
-        if (g_NominatedGamemodes.FindString(config.name) != -1)
+
+        bool recentlyPlayedExclude = (g_Cvar_NominateGroupExclude.IntValue > 0 && g_PlayedGamemodes.FindString(config.name) != -1);
+        bool selectedGroupExclude = (g_Cvar_NominateSelectedGroupExclude.BoolValue && g_NominatedGamemodes.FindString(config.name) != -1);
+
+        if (recentlyPlayedExclude || selectedGroupExclude)
         {
-            Format(display, sizeof(display), "%s (!)", config.name);
+            isExcluded = true;
         }
+
+        if (isExcluded)
+        {
+            if (selectedGroupExclude)
+            {
+                Format(display, sizeof(display), "%s%s", config.name, GESTURE_SELECTEDNOMINATED);
+            }
+            else
+            {
+                Format(display, sizeof(display), "%s%s", config.name, GESTURE_EXCLUDED);
+            }
+            menu.AddItem(config.name, display, ITEMDRAW_DISABLED);
+        }
+		
         else
         {
-            strcopy(display, sizeof(display), config.name);
+            if (g_NominatedGamemodes.FindString(config.name) != -1)
+            {
+                Format(display, sizeof(display), "%s%s", config.name, GESTURE_NOMINATED);
+            }
+            else
+            {
+                strcopy(display, sizeof(display), config.name);
+            }
+            menu.AddItem(config.name, display);
         }
-
-        menu.AddItem(config.name, display);
     }
 
     delete gameModes;
@@ -3701,22 +3716,51 @@ void ShowNominateSubGroupMenu(int client, const char[] gamemode)
         config.subGroups.GetArray(i, subConfig);
 
         if (!subConfig.enabled) continue;
-
-        if (!CanClientNominate(client, gamemode, subConfig.name, ""))
-        {
-            continue;
-        }
-
-        if (subConfig.adminonly == 1 && !CheckCommandAccess(client, "sm_admin", ADMFLAG_GENERIC, true))
-            continue;
-
+        if (!CanClientNominate(client, gamemode, subConfig.name, "")) continue;
+        if (subConfig.adminonly == 1 && !CheckCommandAccess(client, "sm_admin", ADMFLAG_GENERIC, true)) continue;
         int players = GetRealClientCount();
         if (subConfig.minplayers > 0 && players < subConfig.minplayers) continue;
         if (subConfig.maxplayers > 0 && players > subConfig.maxplayers) continue;
-        
         if (!IsCurrentlyAvailableByTime(gamemode, subConfig.name)) continue;
 
-        menu.AddItem(subConfig.name, subConfig.name);
+        bool isExcluded = false;
+        char display[128];
+        char fullSubgroupKey[128];
+        Format(fullSubgroupKey, sizeof(fullSubgroupKey), "%s/%s", gamemode, subConfig.name);
+
+        bool recentlyPlayedExclude = (g_Cvar_NominateGroupExclude.IntValue > 0 && g_PlayedGamemodes.FindString(fullSubgroupKey) != -1);
+        bool selectedGroupExclude = (g_Cvar_NominateSelectedGroupExclude.BoolValue && g_NominatedGamemodes.FindString(fullSubgroupKey) != -1);
+
+        if (recentlyPlayedExclude || selectedGroupExclude)
+        {
+            isExcluded = true;
+        }
+
+        if (isExcluded)
+        {
+            if (selectedGroupExclude)
+            {
+                Format(display, sizeof(display), "%s%s", subConfig.name, GESTURE_SELECTEDNOMINATED);
+            }
+            else
+            {
+                Format(display, sizeof(display), "%s%s", subConfig.name, GESTURE_EXCLUDED);
+            }
+            menu.AddItem(subConfig.name, display, ITEMDRAW_DISABLED);
+        }
+		
+        else
+        {
+            if (g_NominatedGamemodes.FindString(fullSubgroupKey) != -1)
+            {
+                Format(display, sizeof(display), "%s%s", subConfig.name, GESTURE_NOMINATED);
+            }
+            else
+            {
+                strcopy(display, sizeof(display), subConfig.name);
+            }
+            menu.AddItem(subConfig.name, display);
+        }
     }
 
     if (menu.ItemCount == 0)
@@ -3795,22 +3839,11 @@ void ShowNominateMapMenu(int client, const char[] gamemode, const char[] subgrou
         }
     }
 
-    ArrayList excludeMaps = null;
-    if (g_Cvar_NominateMapExclude.IntValue > 0)
-    {
-        g_PlayedMaps.GetValue(gamemode, excludeMaps);
-    }
-
     ArrayList filteredMaps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
     for (int i = 0; i < availableMaps.Length; i++)
     {
         char map[PLATFORM_MAX_PATH];
         availableMaps.GetString(i, map, sizeof(map));
-
-        if (excludeMaps != null && excludeMaps.FindString(map) != -1)
-        {
-            continue;
-        }
 
         if (!IsCurrentlyAvailableByTime(gamemode, subgroup, map))
         {
@@ -3842,7 +3875,6 @@ void ShowNominateMapMenu(int client, const char[] gamemode, const char[] subgrou
         menu.SetTitle("%t", "Nominate Map Title", config.name);
     }
 
-    ArrayList mapsNominated;
     char key[128];
     if (strlen(subgroup) > 0)
     {
@@ -3852,6 +3884,14 @@ void ShowNominateMapMenu(int client, const char[] gamemode, const char[] subgrou
     {
         strcopy(key, sizeof(key), gamemode);
     }
+    
+    ArrayList recentlyPlayedMaps;
+    if (g_Cvar_NominateMapExclude.IntValue > 0)
+    {
+        g_PlayedMaps.GetValue(key, recentlyPlayedMaps);
+    }
+
+    ArrayList mapsNominated;
     g_NominatedMaps.GetValue(key, mapsNominated);
 
     for (int i = 0; i < filteredMaps.Length; i++)
@@ -3863,22 +3903,39 @@ void ShowNominateMapMenu(int client, const char[] gamemode, const char[] subgrou
             continue;
         }
 
-        if (g_Cvar_NominateSelectedMapExclude.BoolValue && 
-            mapsNominated != null && 
-            mapsNominated.FindString(map) != -1)
-        {
-            continue;
-        }
-
+        bool isExcluded = false;
         char displayName[256];
         GetMapDisplayNameEx(gamemode, map, displayName, sizeof(displayName), subgroup);
 
-        if (mapsNominated != null && mapsNominated.FindString(map) != -1)
+        bool recentlyPlayedExclude = (recentlyPlayedMaps != null && recentlyPlayedMaps.FindString(map) != -1);
+        bool selectedMapExclude = (g_Cvar_NominateSelectedMapExclude.BoolValue && mapsNominated != null && mapsNominated.FindString(map) != -1);
+
+        if (recentlyPlayedExclude || selectedMapExclude)
         {
-            Format(displayName, sizeof(displayName), "%s (!)", displayName);
+            isExcluded = true;
         }
 
-        menu.AddItem(map, displayName);
+        if (isExcluded)
+        {
+            if (selectedMapExclude)
+            {
+                Format(displayName, sizeof(displayName), "%s%s", displayName, GESTURE_SELECTEDNOMINATED);
+            }
+            else
+            {
+                Format(displayName, sizeof(displayName), "%s%s", displayName, GESTURE_EXCLUDED);
+            }
+            menu.AddItem(map, displayName, ITEMDRAW_DISABLED);
+        }
+		
+        else
+        {
+            if (mapsNominated != null && mapsNominated.FindString(map) != -1)
+            {
+                Format(displayName, sizeof(displayName), "%s%s", displayName, GESTURE_NOMINATED);
+            }
+            menu.AddItem(map, displayName);
+        }
     }
 
     delete filteredMaps;
@@ -4569,12 +4626,12 @@ void ShowGameModeMenu(int client, bool forceMode)
 
         if (StrEqual(config.name, currentGroup))
         {
-            strcopy(prefix, sizeof(prefix), " (*)");
+            strcopy(prefix, sizeof(prefix), GESTURE_CURRENT);
         }
         
         bool isVoted = (g_bVoteCompleted && StrEqual(config.name, g_sVoteGameMode));
         char voteIndicator[6];
-        strcopy(voteIndicator, sizeof(voteIndicator), isVoted ? " (#)" : "");
+        strcopy(voteIndicator, sizeof(voteIndicator), isVoted ? GESTURE_VOTED : "");
         
         if (forceMode)
         {
@@ -4673,12 +4730,12 @@ void ShowMapMenu(int client, const char[] sGameMode, const char[] subgroup = "")
         char prefix[8] = "";
         if (StrEqual(map, currentMapName))
         {
-            strcopy(prefix, sizeof(prefix), " (*)");
+            strcopy(prefix, sizeof(prefix), GESTURE_CURRENT);
         }
 
         bool isMapVoted = (g_bVoteCompleted && StrEqual(map, g_sVoteMap) && StrEqual(sGameMode, g_sVoteGameMode));
         char voteIndicator[6];
-        strcopy(voteIndicator, sizeof(voteIndicator), isMapVoted ? " (#)" : "");
+        strcopy(voteIndicator, sizeof(voteIndicator), isMapVoted ? GESTURE_VOTED : "");
         
         Format(display, sizeof(display), "%s%s%s", display, voteIndicator, prefix);
         
@@ -4742,7 +4799,7 @@ void ShowForceSubGroupMenu(int client, const char[] gamemode)
 
         if (StrEqual(gamemode, currentGroup) && StrEqual(subConfig.name, currentSubgroup))
         {
-            strcopy(prefix, sizeof(prefix), " (*)");
+            strcopy(prefix, sizeof(prefix), GESTURE_CURRENT);
         }
 
         Format(display, sizeof(display), "%s%s", subConfig.name, prefix);
@@ -5088,7 +5145,7 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
                 
                 if (g_NominatedGamemodes.FindString(gm) != -1)
                 {
-                    Format(display, sizeof(display), "%s (!)", gm);
+                    Format(display, sizeof(display), "%s%s", gm, GESTURE_NOMINATED);
                 }
                 else
                 {
@@ -5155,8 +5212,8 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
         
         if (g_NominatedGamemodes.FindString(gm) != -1)
         {
-            if (isAdminMode) Format(display, sizeof(display), "[ADMIN] %s (!)", gm);
-            else Format(display, sizeof(display), "%s (!)", gm);
+            if (isAdminMode) Format(display, sizeof(display), "[ADMIN] %s%s", gm, GESTURE_NOMINATED);
+            else Format(display, sizeof(display), "%s%s", gm, GESTURE_NOMINATED);
         }
         else
         {
@@ -6050,7 +6107,7 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
 
                 if (mapsNominated != null && mapsNominated.FindString(map) != -1)
                 {
-                    Format(display, sizeof(display), "%s (!)", display);
+                    Format(display, sizeof(display), "%s%s", display, GESTURE_NOMINATED);
                 }
 
                 mapVote.AddItem(map, display);
@@ -6089,7 +6146,7 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
 
         if (mapsNominated != null && mapsNominated.FindString(map) != -1)
         {
-            Format(display, sizeof(display), "%s (!)", display);
+            Format(display, sizeof(display), "%s%s", display, GESTURE_NOMINATED);
         }
         voteMenu.AddItem(map, display);
     }
