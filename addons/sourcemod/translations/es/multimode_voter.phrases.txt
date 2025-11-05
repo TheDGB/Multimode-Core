@@ -45,6 +45,11 @@
         "es"    "Ampliar mapa actual:\nSeleccione una hora para agregar:\n \n"
     }
 
+    "End Vote Waiting For Next Round"
+    {
+        "es"    "[Multimode Core] Esperando el inicio de la próxima ronda para comenzar una nueva votación."
+    }
+
     "Force Gamemode"
     {
         "es"    "Forzar Modo de Juego"

@@ -45,6 +45,11 @@
         "de"    "Aktuelle Karte verlängern:\nWähle eine Zeit zum Hinzufügen:\n \n"
     }
 
+    "End Vote Waiting For Next Round"
+    {
+        "de"    "[Multimode Core] Warten auf den Beginn der nächsten Runde, um eine neue Abstimmung zu starten."
+    }
+
     "Force Gamemode"
     {
         "de"    "Spielmodus erzwingen:"

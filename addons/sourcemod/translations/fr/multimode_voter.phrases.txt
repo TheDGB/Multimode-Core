@@ -45,6 +45,11 @@
         "fr"    "Prolonger la carte actuelle :\nSélectionnez un temps à ajouter :\n \n"
     }
 
+    "End Vote Waiting For Next Round"
+    {
+        "fr"    "[Multimode Core] En attendant le début du prochain tour pour commencer un nouveau vote."
+    }
+
     "Force Gamemode"
     {
         "fr"    "Forcer le mode de jeu :"

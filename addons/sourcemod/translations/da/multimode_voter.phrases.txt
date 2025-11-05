@@ -45,6 +45,11 @@
         "da"    "Forlæng nuværende kort:\nVælg en tid at tilføje:\n \n"
     }
 
+    "End Vote Waiting For Next Round"
+    {
+        "da"    "[Multimode Core] Venter på næste runde for at starte den nye afstemning."
+    }
+
     "Force Gamemode"
     {
         "da"    "Tving spiltilstand:"

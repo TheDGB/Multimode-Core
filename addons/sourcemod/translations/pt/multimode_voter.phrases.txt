@@ -45,6 +45,11 @@
         "pt"    "Estender Mapa Atual:\nSelecione um tempo para adicionar:\n \n"
     }
 
+    "End Vote Waiting For Next Round"
+    {
+        "pt"    "[Multimode Core] Esperando o inicio da próxima rodada para começar uma nova votação."
+    }
+
     "Force Gamemode"
     {
         "pt"        "Forçar Gamemode"

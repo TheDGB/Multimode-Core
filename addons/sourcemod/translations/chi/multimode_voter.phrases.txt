@@ -45,6 +45,11 @@
         "chi"   "延长当前地图时间：\n选择要增加的时间：\n \n"
     }
 
+    "End Vote Waiting For Next Round"
+    {
+        "chi"   "[Multimode Core] 等待下一轮开始，以便进行新一轮投票。"
+    }
+
     "Force Gamemode"
     {
         "chi"   "强制游戏模式:"

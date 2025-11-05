@@ -14,7 +14,7 @@
 #include <multimode/base>
 #include <nativevotes>
 
-#define PLUGIN_VERSION "3.0.1"
+#define PLUGIN_VERSION "3.0.2"
 
 // Gesture Defines
 #define GESTURE_NOMINATED " (!)" // For nominated global gesture groups/maps
@@ -2187,6 +2187,7 @@ void PerformEndVote()
     if (g_Cvar_EndVoteOnRoundEnd.BoolValue)
     {
         g_bEndVotePending = true;
+        CPrintToChatAll("%t", "End Vote Waiting For Next Round");
         return;
     }
     

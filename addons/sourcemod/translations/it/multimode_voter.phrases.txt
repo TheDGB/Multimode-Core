@@ -45,6 +45,11 @@
         "it"    "Estendi la mappa corrente:\nSeleziona un tempo da aggiungere:\n \n"
     }
 
+    "End Vote Waiting For Next Round"
+    {
+        "it"    "[Multimode Core] In attesa dell'inizio del prossimo turno per dare inizio a una nuova votazione."
+    }
+
     "Force Gamemode"
     {
         "it"    "Forza modalità di gioco:"

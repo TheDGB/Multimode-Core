@@ -45,6 +45,11 @@
         "zho"   "延長目前地圖時間：\n選擇要增加的時間：\n \n"
     }
 
+    "End Vote Waiting For Next Round"
+    {
+        "zho"   "[Multimode Core] 等待下一輪開始，以啟動新一輪投票。"
+    }
+
     "Force Gamemode"
     {
         "zho"   "強制遊戲模式:"

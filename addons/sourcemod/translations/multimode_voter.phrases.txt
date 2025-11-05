@@ -45,6 +45,11 @@
         "en"    "Extend Current Map:\nSelect a time to add:\n \n"
     }
 
+    "End Vote Waiting For Next Round"
+    {
+        "en"    "[Multimode Core] Waiting for the next round to start a new vote."
+    }
+
     "Force Gamemode"
     {
         "en"    "Force Gamemode"
