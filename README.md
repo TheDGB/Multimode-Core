@@ -1,10 +1,10 @@
 <h1 align=center>Multimode Core</h1> 
 <div align=center>
 
-![GitHub last commit](https://img.shields.io/github/last-commit/TheDGB/Multimode-Core)
-![GitHub commit activity (branch)](https://img.shields.io/github/commit-activity/m/TheDGB/Multimode-Core/main)
-![GitHub repo size](https://img.shields.io/github/repo-size/TheDGB/Multimode-Core)
-![GitHub Repo stars](https://img.shields.io/github/stars/TheDGB/Multimode-Core)
+[![GitHub last commit](https://img.shields.io/github/last-commit/TheDGB/Multimode-Core)](https://github.com/TheDGB/Multimode-Core)
+[![GitHub commit activity (branch)](https://img.shields.io/github/commit-activity/m/TheDGB/Multimode-Core/main)](https://github.com/TheDGB/Multimode-Core)
+[![GitHub repo size](https://img.shields.io/github/repo-size/TheDGB/Multimode-Core)](https://github.com/TheDGB/Multimode-Core)
+[![GitHub Repo stars](https://img.shields.io/github/stars/TheDGB/Multimode-Core)](https://github.com/TheDGB/Multimode-Core)
 
 </div>
 
