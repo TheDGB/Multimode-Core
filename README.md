@@ -37,8 +37,9 @@ You can head over to our Multimode Core wiki for more information about the plug
 
 #### [Multimode Core Wiki](https://github.com/TheDGB/multimode_core/wiki)
 
-# **Enjoy the plugin!**
+<h1 align=center>Enjoy The Plugin!</h1> 
+<div align=center>
+  
+[![](https://dcbadge.limes.pink/api/server/xftqrvZSAw)](https://discord.gg/xftqrvZSAw) [![](http://fastdl.optr.me:8090/embed/steamgroup.png)](https://steamcommunity.com/groups/optr-me)
 
-[![](https://dcbadge.limes.pink/api/server/xftqrvZSAw)](https://discord.gg/xftqrvZSAw)
-
-[![](http://fastdl.optr.me:8090/embed/steamgroup.png)](https://steamcommunity.com/groups/optr-me)
+</div>
