@@ -40,6 +40,6 @@ You can head over to our Multimode Core wiki for more information about the plug
 <h1 align=center>Enjoy The Plugin!</h1> 
 <div align=center>
   
-[![](https://dcbadge.limes.pink/api/server/xftqrvZSAw)](https://discord.gg/xftqrvZSAw) [![](http://fastdl.optr.me:8090/embed/steamgroup.png)](https://steamcommunity.com/groups/optr-me)
+[![](https://dcbadge.limes.pink/api/server/xftqrvZSAw)](https://discord.gg/xftqrvZSAw) [![](http://fastdl.optr.me:8090/embed/steamgroup3.png)](https://steamcommunity.com/groups/optr-me)
 
 </div>
