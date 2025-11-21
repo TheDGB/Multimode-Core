@@ -197,13 +197,26 @@ forward void MultiMode_OnVoteEnd(const char[] group, const char[] subgroup, cons
  */
 
 /**
- * Registers a new Vote Manager.
+ * Registers a new Vote Manager
+ * Uses the same callback for all vote types (Group, SubGroup, Map).
  * 
  * @param name          Unique identifier for the manager (e.g., "core", "nativevotes").
- * @param startCb       Function to call when starting a vote.
+ * @param startCb       Function to call when starting ANY vote.
  * @param cancelCb      Function to call when cancelling a vote.
  */
 native void MultiMode_RegisterVoteManager(const char[] name, VoteStartCallback startCb, VoteCancelCallback cancelCb);
+
+/**
+ * Registers a new Vote Manager (Extended Version).
+ * Allows defining separate callbacks for Groups, SubGroups, and Maps.
+ * 
+ * @param name          Unique identifier for the manager.
+ * @param cbGroup       Callback specifically for Group votes.
+ * @param cbSubGroup    Callback specifically for SubGroup votes.
+ * @param cbMap         Callback specifically for Map votes.
+ * @param cbCancel      Function to call when cancelling a vote.
+ */
+native void MultiMode_RegisterVoteManagerEx(const char[] name, VoteStartCallback cbGroup, VoteStartCallback cbSubGroup, VoteStartCallback cbMap, VoteCancelCallback cbCancel);
 
 /**
  * Unregisters a Vote Manager.

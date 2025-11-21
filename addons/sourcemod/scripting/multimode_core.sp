@@ -24,7 +24,9 @@
 #define GESTURE_EXCLUDED " (Excluded)" // For global exclusion gesture.
 
 enum struct VoteManagerEntry {
-    Function start;
+    Function start_group;
+    Function start_subgroup;
+    Function start_map;
     Function cancel;
     Handle plugin;
 }
@@ -288,7 +290,13 @@ public void OnPluginStart()
 	
 	g_VoteManagers = new StringMap();
 	
-	MultiMode_RegisterVoteManager("core", Core_StartVote, Core_CancelVote);
+    VoteManagerEntry coreEntry;
+    coreEntry.start_group = Core_StartVote;
+    coreEntry.start_subgroup = Core_StartVote;
+    coreEntry.start_map = Core_StartVote;
+    coreEntry.cancel = Core_CancelVote;
+    coreEntry.plugin = GetMyHandle();
+    g_VoteManagers.SetArray("core", coreEntry, sizeof(coreEntry));
     
     g_hCookieVoteType = RegClientCookie("multimode_votetype", "Selected voting type", CookieAccess_Private);
     
@@ -297,7 +305,6 @@ public void OnPluginStart()
     LoadGameModesConfig();
     g_Countdowns = new StringMap();
     g_LastCountdownValues = new StringMap();
-	g_VoteManagersBackup = new StringMap();
     LoadCountdownConfig();
     
     ConVar nextmap = FindConVar("sm_nextmap");
@@ -383,6 +390,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("MultiMode_IsGroupNominated", NativeMMC_IsGroupNominated);
 	CreateNative("MultiMode_IsMapNominated", NativeMMC_IsMapNominated);
 	CreateNative("MultiMode_RegisterVoteManager", NativeMMC_RegisterVoteManager);
+	CreateNative("MultiMode_RegisterVoteManagerEx", NativeMMC_RegisterVoteManagerEx);
 	CreateNative("MultiMode_UnregisterVoteManager", NativeMMC_UnregisterVoteManager);
 	CreateNative("MultiMode_ReportVoteResults", NativeMMC_ReportVoteResults);
     
@@ -4115,9 +4123,39 @@ public int NativeMMC_RegisterVoteManager(Handle plugin, int numParams)
     char name[64];
     GetNativeString(1, name, sizeof(name));
     
+    Function startFn = GetNativeFunction(2);
+    Function cancelFn = GetNativeFunction(3);
+    
     VoteManagerEntry entry;
-    entry.start = GetNativeFunction(2);
-    entry.cancel = GetNativeFunction(3);
+	
+    entry.start_group = startFn;
+    entry.start_subgroup = startFn;
+    entry.start_map = startFn;
+    entry.cancel = cancelFn;
+    entry.plugin = plugin;
+    
+    VoteManagerEntry oldEntry;
+    if (g_VoteManagers.GetArray(name, oldEntry, sizeof(oldEntry)))
+    {
+        g_VoteManagersBackup.SetArray(name, oldEntry, sizeof(oldEntry));
+        WriteToLogFile("[Core] Vote Manager '%s' already exists, backing up the old one, ready to use.", name);
+    }
+    
+    g_VoteManagers.SetArray(name, entry, sizeof(entry));
+    WriteToLogFile("[Core] Registered Vote Manager: %s", name);
+    return 0;
+}
+
+public int NativeMMC_RegisterVoteManagerEx(Handle plugin, int numParams)
+{
+    char name[64];
+    GetNativeString(1, name, sizeof(name));
+    
+    VoteManagerEntry entry;
+    entry.start_group = GetNativeFunction(2);
+    entry.start_subgroup = GetNativeFunction(3);
+    entry.start_map = GetNativeFunction(4);
+    entry.cancel = GetNativeFunction(5);
     entry.plugin = plugin;
     
     VoteManagerEntry oldEntry;
@@ -4136,29 +4174,7 @@ public int NativeMMC_UnregisterVoteManager(Handle plugin, int numParams)
 {
     char name[64];
     GetNativeString(1, name, sizeof(name));
-    
-    VoteManagerEntry currentEntry;
-    if (g_VoteManagers.GetArray(name, currentEntry, sizeof(currentEntry)))
-    {
-        if (currentEntry.plugin == plugin)
-        {
-            g_VoteManagers.Remove(name);
-            WriteToLogFile("[Core] Unregistered Vote Manager: %s", name);
-            
-            // Verifica se existe um backup para restaurar
-            VoteManagerEntry backupEntry;
-            if (g_VoteManagersBackup.GetArray(name, backupEntry, sizeof(backupEntry)))
-            {
-                g_VoteManagers.SetArray(name, backupEntry, sizeof(backupEntry));
-                g_VoteManagersBackup.Remove(name);
-                WriteToLogFile("[Core] Restored backup Vote Manager for: %s", name);
-            }
-        }
-        else
-        {
-            WriteToLogFile("[Core] Plugin %x tried to unregister Vote Manager '%s' but it belongs to %x", plugin, name, currentEntry.plugin);
-        }
-    }
+    g_VoteManagers.Remove(name);
     return 0;
 }
 
@@ -6495,17 +6511,39 @@ void CallActiveVoteManager(int initiator, VoteType type, const char[] info, Arra
     Handle targetPlugin = entry.plugin;
     if (targetPlugin == GetMyHandle()) targetPlugin = INVALID_HANDLE;
 
-    ArrayList sharedItems = view_as<ArrayList>(CloneHandle(items, targetPlugin));
+    Function funcToCall = INVALID_FUNCTION;
     
-    Call_StartFunction(entry.plugin, entry.start);
-    Call_PushCell(initiator);
-    Call_PushCell(type);
-    Call_PushString(info);
-    Call_PushCell(sharedItems);
-    Call_PushCell(duration);
-    Call_PushCell(adminVote);
-    Call_PushCell(isRunoff);
-    Call_Finish();
+    switch(type)
+    {
+        case VOTE_TYPE_GROUP: 
+            funcToCall = entry.start_group;
+            
+        case VOTE_TYPE_SUBGROUP: 
+            funcToCall = entry.start_subgroup;
+            
+        case VOTE_TYPE_MAP, VOTE_TYPE_SUBGROUP_MAP: 
+            funcToCall = entry.start_map;
+    }
+
+    if (funcToCall != INVALID_FUNCTION)
+    {
+        ArrayList sharedItems = view_as<ArrayList>(CloneHandle(items, targetPlugin));
+        
+        Call_StartFunction(entry.plugin, funcToCall);
+        Call_PushCell(initiator);
+        Call_PushCell(type);
+        Call_PushString(info);
+        Call_PushCell(sharedItems);
+        Call_PushCell(duration);
+        Call_PushCell(adminVote);
+        Call_PushCell(isRunoff);
+        Call_Finish();
+    }
+    else
+    {
+        LogError("[Core] Invalid callback function for vote type %d in manager '%s'", type, managerName);
+        g_bVoteActive = false;
+    }
 }
 
 // //////////////////////
@@ -6800,11 +6838,6 @@ public void OnPluginEnd()
     if (g_LastCountdownValues != null)
     {
         delete g_LastCountdownValues;
-    }
-	
-    if (g_VoteManagersBackup != null)
-    {
-        delete g_VoteManagersBackup;
     }
 	
     if (g_OnVoteStartForward != null)
