@@ -121,6 +121,7 @@ StringMap g_LastCountdownValues;
 StringMap g_NominatedMaps;
 StringMap g_PlayedMaps;
 StringMap g_VoteManagers;
+StringMap g_VoteManagersBackup;
 
 // TimingMode Section
 TimingMode g_eCurrentVoteTiming;
@@ -296,6 +297,7 @@ public void OnPluginStart()
     LoadGameModesConfig();
     g_Countdowns = new StringMap();
     g_LastCountdownValues = new StringMap();
+	g_VoteManagersBackup = new StringMap();
     LoadCountdownConfig();
     
     ConVar nextmap = FindConVar("sm_nextmap");
@@ -4118,6 +4120,13 @@ public int NativeMMC_RegisterVoteManager(Handle plugin, int numParams)
     entry.cancel = GetNativeFunction(3);
     entry.plugin = plugin;
     
+    VoteManagerEntry oldEntry;
+    if (g_VoteManagers.GetArray(name, oldEntry, sizeof(oldEntry)))
+    {
+        g_VoteManagersBackup.SetArray(name, oldEntry, sizeof(oldEntry));
+        WriteToLogFile("[Core] Vote Manager '%s' already exists, backing up the old one, ready to use.", name);
+    }
+    
     g_VoteManagers.SetArray(name, entry, sizeof(entry));
     WriteToLogFile("[Core] Registered Vote Manager: %s", name);
     return 0;
@@ -4127,7 +4136,29 @@ public int NativeMMC_UnregisterVoteManager(Handle plugin, int numParams)
 {
     char name[64];
     GetNativeString(1, name, sizeof(name));
-    g_VoteManagers.Remove(name);
+    
+    VoteManagerEntry currentEntry;
+    if (g_VoteManagers.GetArray(name, currentEntry, sizeof(currentEntry)))
+    {
+        if (currentEntry.plugin == plugin)
+        {
+            g_VoteManagers.Remove(name);
+            WriteToLogFile("[Core] Unregistered Vote Manager: %s", name);
+            
+            // Verifica se existe um backup para restaurar
+            VoteManagerEntry backupEntry;
+            if (g_VoteManagersBackup.GetArray(name, backupEntry, sizeof(backupEntry)))
+            {
+                g_VoteManagers.SetArray(name, backupEntry, sizeof(backupEntry));
+                g_VoteManagersBackup.Remove(name);
+                WriteToLogFile("[Core] Restored backup Vote Manager for: %s", name);
+            }
+        }
+        else
+        {
+            WriteToLogFile("[Core] Plugin %x tried to unregister Vote Manager '%s' but it belongs to %x", plugin, name, currentEntry.plugin);
+        }
+    }
     return 0;
 }
 
@@ -6769,6 +6800,11 @@ public void OnPluginEnd()
     if (g_LastCountdownValues != null)
     {
         delete g_LastCountdownValues;
+    }
+	
+    if (g_VoteManagersBackup != null)
+    {
+        delete g_VoteManagersBackup;
     }
 	
     if (g_OnVoteStartForward != null)
