@@ -15,9 +15,14 @@
         "ru"    "Отменить текущее голосование"
     }
 
-    "Cooldown Hud"
+    "Cooldown Begin Hud"
     {
-        "ru"    "Следующее голосование начнется через %d секунд..."
+        "ru"    "Еще одно голосование состоится через %d секунд..."
+    }
+
+    "Cooldown Begin"
+    {
+        "ru"    "{green}[Голосование] {default}Следующее голосование начнется через %d секунд."
     }
 
     "Current MMC Version"
@@ -58,11 +63,6 @@
     "Gamemode Vote Already"
     {
         "ru"    "{red}Голосование уже активно или плагин отключен."
-    }
-
-    "Map Voting Cooldown"
-    {
-        "ru"    "{green}[Голосование] {default}Голосование за карту начнется через %d секунд."
     }
 
     "No Available SubGroups"
@@ -267,7 +267,7 @@
 
     "SubGroup Map Vote Title"
     {
-        "ru"    "Выберите карту для %s - %s:"
+        "ru"    "Выберите карту для %s:"
     }
 
     "SubGroup Not Found"

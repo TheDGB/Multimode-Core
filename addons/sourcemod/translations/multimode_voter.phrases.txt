@@ -15,9 +15,14 @@
         "en"    "Cancel Current Vote"
     }
 
-    "Cooldown Hud"
+    "Cooldown Begin Hud"
     {
         "en"    "Another vote will be taken in %d seconds..."
+    }
+
+    "Cooldown Begin"
+    {
+        "en"    "{green}[Voting] {default}Another vote will begin in %d seconds."
     }
 
     "Current MMC Version"
@@ -58,11 +63,6 @@
     "Gamemode Vote Already"
     {
         "en"    "{red}The vote is already active or the plugin is disabled."
-    }
-
-    "Map Voting Cooldown"
-    {
-        "en"    "{green}[Voting] {default}Map voting will begin in %d seconds."
     }
 
     "No Available SubGroups"
@@ -267,7 +267,7 @@
 
     "SubGroup Map Vote Title"
     {
-        "en"    "Choose a map for %s - %s:"
+        "en"    "Choose a map for %s:"
     }
 
     "SubGroup Not Found"

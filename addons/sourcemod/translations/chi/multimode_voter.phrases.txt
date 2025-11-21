@@ -15,9 +15,14 @@
         "chi"   "取消当前投票"
     }
 
-    "Cooldown Hud"
+    "Cooldown Begin Hud"
     {
-        "chi"   "另一次投票将在 %d 秒后进行..."
+        "chi"    "将在 %d 秒后进行另一轮投票..."
+    }
+
+    "Cooldown Begin"
+    {
+        "chi"    "{green}[投票] {default}新一轮投票将在 %d 秒后开始。"
     }
 
     "Current MMC Version"
@@ -58,11 +63,6 @@
     "Gamemode Vote Already"
     {
         "chi"   "{red}投票已激活或插件已禁用。"
-    }
-
-    "Map Voting Cooldown"
-    {
-        "chi"   "{green}[投票] {default}地图投票将在 %d 秒后开始。"
     }
 
     "No Available SubGroups"
@@ -267,7 +267,7 @@
 
     "SubGroup Map Vote Title"
     {
-        "chi"   "为 %s - %s 选择一张地图:"
+        "chi"   "为 %s 选择一张地图:"
     }
 
     "SubGroup Not Found"

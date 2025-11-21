@@ -15,9 +15,14 @@
         "zho"   "取消目前投票"
     }
 
-    "Cooldown Hud"
+    "Cooldown Begin Hud"
     {
-        "zho"   "另一次投票將在 %d 秒後進行..."
+        "zho"    "將於 %d 秒後進行另一輪投票..."
+    }
+
+    "Cooldown Begin"
+    {
+        "zho"    "{green}[投票] {default}另一輪投票將於 %d 秒後開始。"
     }
 
     "Current MMC Version"
@@ -58,11 +63,6 @@
     "Gamemode Vote Already"
     {
         "zho"   "{red}投票已激活或插件已禁用。"
-    }
-
-    "Map Voting Cooldown"
-    {
-        "zho"   "{green}[投票] {default}地圖投票將在 %d 秒後開始。"
     }
 
     "No Available SubGroups"
@@ -267,7 +267,7 @@
 
     "SubGroup Map Vote Title"
     {
-        "zho"   "為 %s - %s 選擇一張地圖:"
+        "zho"   "為 %s 選擇一張地圖:"
     }
 
     "SubGroup Not Found"

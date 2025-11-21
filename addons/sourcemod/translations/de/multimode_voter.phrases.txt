@@ -15,9 +15,14 @@
         "de"    "Aktuelle Abstimmung abbrechen"
     }
 
-    "Cooldown Hud"
+    "Cooldown Begin Hud"
     {
-        "de"    "Eine weitere Abstimmung wird in %d Sekunden durchgeführt..."
+        "de"    "In %d Sekunden wird erneut abgestimmt..."
+    }
+
+    "Cooldown Begin"
+    {
+        "de"    "{green}[Abstimmung] {default}Eine weitere Abstimmung beginnt in %d Sekunden."
     }
 
     "Current MMC Version"
@@ -58,11 +63,6 @@
     "Gamemode Vote Already"
     {
         "de"    "{red}Die Abstimmung ist bereits aktiv oder das Plugin ist deaktiviert."
-    }
-
-    "Map Voting Cooldown"
-    {
-        "de"    "{green}[Abstimmung] {default}Kartenabstimmung beginnt in %d Sekunden."
     }
 
     "No Available SubGroups"
@@ -267,7 +267,7 @@
 
     "SubGroup Map Vote Title"
     {
-        "de"    "Wähle eine Karte für %s - %s:"
+        "de"    "Wähle eine Karte für %s:"
     }
 
     "SubGroup Not Found"
