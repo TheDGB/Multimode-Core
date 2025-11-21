@@ -931,13 +931,26 @@ public void OnClientDisconnect(int client)
         KillTimer(g_hEndVoteTimer);
         g_hEndVoteTimer = INVALID_HANDLE;
     }
-
+	
+	// Thanks to kochergin-ve for helping on RTV Thresold.
+	
     int iPlayers = GetRealClientCount();
     float ratio = g_Cvar_RtvRatio.FloatValue;
     int minRequired = g_Cvar_RtvMinPlayers.IntValue;
-    int iRequired = RoundToCeil(float(iPlayers) * ratio);
-    if (iRequired < minRequired) {
+
+    int iRequired = RoundToNearest(float(iPlayers) * ratio);
+
+    if (iRequired < minRequired)
+    { 
         iRequired = minRequired;
+    }
+	
+    if (!g_bRtvDisabled && g_iRtvVotes > 0 && g_iRtvVotes >= iRequired)
+    {
+        CPrintToChatAll("%t", "RTV Threshold Reached", g_iRtvVotes, iRequired); 
+        WriteToLogFile("Threshold reached after player disconnect: %d/%d votes", g_iRtvVotes, iRequired); 
+        StartGameModeVote(0, false); 
+        ResetRTV();
     }
 	
 	g_sClientPendingSubGroup[client][0] = '\0';
@@ -3311,7 +3324,7 @@ public Action Command_RTV(int client, int args)
     int iPlayers = GetRealClientCount();
     float ratio = g_Cvar_RtvRatio.FloatValue;
     int minRequired = g_Cvar_RtvMinPlayers.IntValue;
-    int iRequired = RoundToCeil(float(iPlayers) * ratio);
+    int iRequired = RoundToNearest(float(iPlayers) * ratio);
     if (iRequired < minRequired) 
     {
         iRequired = minRequired;

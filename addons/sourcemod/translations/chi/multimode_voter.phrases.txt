@@ -200,6 +200,11 @@
         "chi"   "{green}[投票换图] {default}请等待 %d 秒以再次投票！"
     }
 
+    "RTV Threshold Reached"
+    {
+        "chi"    "{green}[投票换图] {default}RTV阈值已达！开始投票 {green}({1}/{2}票)"
+    }
+
     "Reload Gamemodes Successful"
     {
         "chi"   "{green}[多模式] {default}游戏模式配置已成功重新加载！"

@@ -195,6 +195,11 @@
         "de"    "{green}[Rock The Vote] {default}Bitte warte %d Sekunden, um RTV zu benutzen!"
     }
 
+    "RTV Threshold Reached"
+    {
+        "de"    "{green}[Rock The Vote] {default}RTV-Schwelle erreicht! Abstimmung beginnt {green}({1}/{2} Stimmen)"
+    }
+
     "RTV Wait Again"
     {
         "de"    "{green}[Rock The Vote] {default}Bitte warte %d Sekunden, um erneut abzustimmen!"

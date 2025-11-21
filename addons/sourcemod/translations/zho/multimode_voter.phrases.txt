@@ -200,6 +200,11 @@
         "zho"   "{green}[投票換圖] {default}請等待 %d 秒以再次投票！"
     }
 
+    "RTV Threshold Reached"
+    {
+        "zho"    "{green}[搖滾投票] {default}RTV 門檻達成！開始投票 {green}({1}/{2} 票)"
+    }
+
     "Reload Gamemodes Successful"
     {
         "zho"   "{green}[多模式] {default}遊戲模式設定已成功重新載入！"

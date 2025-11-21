@@ -200,6 +200,11 @@
         "es"    "{green}[Rock The Vote] {default}¡Por favor, espera %d segundos para votar de nuevo!"
     }
 
+    "RTV Threshold Reached"
+    {
+        "es"    "{green}[Rock The Vote] {default}¡Se ha alcanzado el umbral de RTV! Comenzando la votación {green}({1}/{2} votos)"
+    }
+
     "Reload Gamemodes Successful"
     {
         "es"    "{green}[MultiMode] {default}¡La configuración de los modos de juego se ha recargado con éxito!"

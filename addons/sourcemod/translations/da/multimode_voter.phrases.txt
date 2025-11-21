@@ -200,6 +200,11 @@
         "da"    "{green}[Rock The Vote] {default}Vent venligst %d sekunder for at stemme igen!"
     }
 
+    "RTV Threshold Reached"
+    {
+        "da"    "{green}[Rock The Vote] {default}RTV-tærsklen er nået! Afstemningen starter {green}({1}/{2} stemmer)"
+    }
+
     "Reload Gamemodes Successful"
     {
         "da"    "{green}[MultiMode] {default}Spiltilstandskonfiguration genindlæst succesfuldt!"
