@@ -197,6 +197,7 @@ public void OnPluginStart()
     // Reg Admin Commands
     RegAdminCmd("multimode_reload", Command_ReloadGamemodes, ADMFLAG_CONFIG, "Reloads gamemodes configuration");
     RegAdminCmd("multimode_setnextmap", Command_SetNextMap, ADMFLAG_CHANGEMAP, "Sets the next map. Usage: <map> <timing> [group] [subgroup]");
+	RegAdminCmd("multimode_listrvm", Command_ListVoteManagers, ADMFLAG_GENERIC, "List of all registered vote managers.");
     RegAdminCmd("sm_setnextmap", Command_SetNextMap, ADMFLAG_CHANGEMAP, "Sets the next map. Usage: <map> <timing> [group] [subgroup]");
     RegAdminCmd("sm_forcemode", Command_ForceMode, ADMFLAG_CHANGEMAP, "Force game mode and map");
     RegAdminCmd("sm_testvote", Command_VoteMenu, ADMFLAG_VOTE, "Start Voting Mode/Map Testing Voting");
@@ -224,7 +225,7 @@ public void OnPluginStart()
 	// Old native votes cvar.
 	// g_Cvar_NativeVotes = CreateConVar("multimode_nativevotes", "0", "Enable/disable NativeVotes support for votes (1 = Enabled, 0 = Disabled)", _, true, 0.0, true, 1.0);
 	
-    g_Cvar_VoteManager = CreateConVar("multimode_votemanager", "core", "The ID of the MM Vote Manager to use (e.g., 'core', 'nativevotes').");
+    g_Cvar_VoteManager = CreateConVar("multimode_votemanager", "core", "The ID of the MM Vote Manager to use.");
     
     g_Cvar_VoteTime = CreateConVar("multimode_vote_time", "20", "Vote duration in seconds");
     g_Cvar_VoteSorted = CreateConVar("multimode_vote_sorted", "1", "Sorting mode for vote items: 0= Alphabetical, 1= Random, 2= Map Cycle Order", _, true, 0.0, true, 2.0);
@@ -4343,6 +4344,39 @@ public Action Command_MultimodeVersion(int client, int args)
     return Plugin_Handled;
 }
 
+public Action Command_ListVoteManagers(int client, int args)
+{
+    int count = 0;
+    StringMapSnapshot snapshot = g_VoteManagers.Snapshot();
+    
+    for (int i = 0; i < snapshot.Length; i++)
+    {
+        char managerName[64];
+        snapshot.GetKey(i, managerName, sizeof(managerName));
+        
+        VoteManagerEntry entry;
+        if (g_VoteManagers.GetArray(managerName, entry, sizeof(entry)))
+        {
+            char pluginName[64];
+            GetPluginFilename(entry.plugin, pluginName, sizeof(pluginName));
+            
+            ReplyToCommand(client, "%d. %s (Plugin: %s)", ++count, managerName, pluginName);
+        }
+    }
+    
+    delete snapshot;
+    
+    if (count == 0)
+    {
+        ReplyToCommand(client, "No Vote Manager registered.");
+    }
+    else
+    {
+        ReplyToCommand(client, "Total: %d Vote Manager(s)", count);
+    }
+    
+    return Plugin_Handled;
+}
 
 void ShowGameModeMenu(int client, bool forceMode)
 {

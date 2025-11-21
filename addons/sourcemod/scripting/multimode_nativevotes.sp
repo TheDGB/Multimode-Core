@@ -15,11 +15,6 @@ bool g_bVoteActive = false;
 public void OnPluginStart()
 {
     LoadTranslations("multimode_voter.phrases");
-
-    if (LibraryExists("multimode_core"))
-    {
-        RegisterManager();
-    }
 }
 
 public void OnLibraryAdded(const char[] name)
@@ -32,7 +27,7 @@ public void OnLibraryAdded(const char[] name)
 
 void RegisterManager()
 {
-    MultiMode_RegisterVoteManager("nativevotes", NativeVotes_StartVote, NativeVotes_CancelVote);
+    MultiMode_RegisterVoteManager("core", NativeVotes_StartVote, NativeVotes_CancelVote);
 }
 
 public void NativeVotes_StartVote(int initiator, VoteType type, const char[] info, ArrayList items, int duration, bool adminVote, bool isRunoff)

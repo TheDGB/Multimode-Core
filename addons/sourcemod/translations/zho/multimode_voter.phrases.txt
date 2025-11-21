@@ -267,7 +267,7 @@
 
     "SubGroup Map Vote Title"
     {
-        "zho"   "為 %s - %s 選擇一張地圖:"
+        "zho"   "為 %s 選擇一張地圖:"
     }
 
     "SubGroup Not Found"

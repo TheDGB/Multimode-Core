@@ -267,7 +267,7 @@
 
     "SubGroup Map Vote Title"
     {
-        "chi"   "为 %s - %s 选择一张地图:"
+        "chi"   "为 %s 选择一张地图:"
     }
 
     "SubGroup Not Found"

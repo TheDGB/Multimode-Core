@@ -267,7 +267,7 @@
 
     "SubGroup Map Vote Title"
     {
-        "it"    "Scegli una mappa per %s - %s:"
+        "it"    "Scegli una mappa per %s:"
     }
 
     "SubGroup Not Found"

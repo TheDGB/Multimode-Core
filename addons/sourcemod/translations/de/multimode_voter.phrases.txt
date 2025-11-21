@@ -267,7 +267,7 @@
 
     "SubGroup Map Vote Title"
     {
-        "de"    "Wähle eine Karte für %s - %s:"
+        "de"    "Wähle eine Karte für %s:"
     }
 
     "SubGroup Not Found"
