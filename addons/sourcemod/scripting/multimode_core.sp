@@ -2220,11 +2220,11 @@ public Action Timer_UpdateCooldownHUD(Handle timer)
         {
             if (g_bIsRunoffCooldown)
             {
-                PrintCenterText(i, "%t", "Run Off Cooldown Hud", remaining);
+                PrintCenterText(i, "%t", "Run Off Cooldown Begin Hud", remaining);
             }
             else
             {
-                PrintCenterText(i, "%t", "Cooldown Hud", remaining);
+                PrintCenterText(i, "%t", "Cooldown Begin Hud", remaining);
             }
         }
     }
@@ -5963,7 +5963,7 @@ void StartCooldown(VoteType voteType = VOTE_TYPE_GROUP, const char[] gamemode = 
     }
     else
     {
-        CPrintToChatAll("%t", "Map Voting Cooldown", cooldownTime);
+        CPrintToChatAll("%t", "Cooldown Begin", cooldownTime);
     }
     
     CreateTimer(1.0, Timer_UpdateCooldownHUD, _, TIMER_REPEAT);

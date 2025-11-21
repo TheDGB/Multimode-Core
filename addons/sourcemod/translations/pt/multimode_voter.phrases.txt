@@ -15,19 +15,24 @@
         "pt"        "Cancelar Votação Atual"
     }
 
-    "Cooldown Hud"
+    "Cooldown Begin Hud"
     {
-        "pt"    "Outra votação será encaminhada em %d segundos..."
+        "pt"        "Outra votação será realizada em %d segundos..."
+    }
+
+    "Cooldown Begin"
+    {
+        "pt"        "{green}[Votação] {default}Outra votação começará em %d segundos."
     }
 
     "Current MMC Version"
     {
-        "pt"    "{green}[Multimode] {default}Versão atual do Multimode Core: {olive}%s"
+        "pt"        "{green}[Multimode] {default}Versão atual do Multimode Core: {olive}%s"
     }
 
     "Error Changing Map"
     {
-        "pt"    "{red}ERRO: {default}Falha na mudança de mapa!"
+        "pt"        "{red}ERRO: {default}Falha na mudança de mapa!"
     }
 
     "Extend Current Map"
@@ -58,11 +63,6 @@
     "Gamemode Vote Already"
     {
         "pt"    "{red}A votação já está ativa ou o plugin está desativado."
-    }
-
-    "Map Voting Cooldown"
-    {
-        "pt"    "{green}[Votação] {default}A votação de mapas começará em %d segundos."
     }
 
     "No Available SubGroups"

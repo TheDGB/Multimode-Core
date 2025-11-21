@@ -15,9 +15,14 @@
         "fr"    "Annuler le vote en cours"
     }
 
-    "Cooldown Hud"
+    "Cooldown Begin Hud"
     {
         "fr"    "Un autre vote aura lieu dans %d secondes..."
+    }
+
+    "Cooldown Begin"
+    {
+        "fr"    "{green}[Vote] {default}Un autre vote commencera dans %d secondes."
     }
 
     "Current MMC Version"
@@ -58,11 +63,6 @@
     "Gamemode Vote Already"
     {
         "fr"    "{red}Le vote est déjà actif ou le plugin est désactivé."
-    }
-
-    "Map Voting Cooldown"
-    {
-        "fr"    "{green}[Vote] {default}Le vote pour la carte commencera dans %d secondes."
     }
 
     "No Available SubGroups"

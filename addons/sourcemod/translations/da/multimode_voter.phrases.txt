@@ -15,9 +15,14 @@
         "da"    "Annuller nuværende afstemning"
     }
 
-    "Cooldown Hud"
+    "Cooldown Begin Hud"
     {
-        "da"    "En ny afstemning vil blive afholdt om %d sekunder..."
+        "da"    "Der vil blive afholdt endnu en afstemning om %d sekunder..."
+    }
+
+    "Cooldown Begin"
+    {
+        "da"    "{green}[Afstemning] {default}En ny afstemning begynder om %d sekunder."
     }
 
     "Current MMC Version"
@@ -58,11 +63,6 @@
     "Gamemode Vote Already"
     {
         "da"    "{red}Afstemningen er allerede aktiv, eller pluginnet er deaktiveret."
-    }
-
-    "Map Voting Cooldown"
-    {
-        "da"    "{green}[Afstemning] {default}Kortafstemning begynder om %d sekunder."
     }
 
     "No Available SubGroups"
