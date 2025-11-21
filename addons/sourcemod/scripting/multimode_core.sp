@@ -1170,6 +1170,63 @@ public void LoadGameModesConfig()
     g_kvGameModes.Rewind();
 }
 
+void CallActiveVoteManager(int initiator, VoteType type, const char[] info, ArrayList items, int duration, bool adminVote, bool isRunoff)
+{
+    char managerName[64];
+    g_Cvar_VoteManager.GetString(managerName, sizeof(managerName));
+    
+    VoteManagerEntry entry;
+    if (!g_VoteManagers.GetArray(managerName, entry, sizeof(entry)))
+    {
+        WriteToLogFile("[Core] Manager '%s' not found. Fallback to 'core'.", managerName);
+        if (!g_VoteManagers.GetArray("core", entry, sizeof(entry)))
+        {
+            LogError("FATAL: No vote managers registered!");
+            return;
+        }
+    }
+    
+    g_bVoteActive = true;
+    g_eCurrentNativeVoteType = type; 
+    
+    Handle targetPlugin = entry.plugin;
+    if (targetPlugin == GetMyHandle()) targetPlugin = INVALID_HANDLE;
+
+    Function funcToCall = INVALID_FUNCTION;
+    
+    switch(type)
+    {
+        case VOTE_TYPE_GROUP: 
+            funcToCall = entry.start_group;
+            
+        case VOTE_TYPE_SUBGROUP: 
+            funcToCall = entry.start_subgroup;
+            
+        case VOTE_TYPE_MAP, VOTE_TYPE_SUBGROUP_MAP: 
+            funcToCall = entry.start_map;
+    }
+
+    if (funcToCall != INVALID_FUNCTION)
+    {
+        ArrayList sharedItems = view_as<ArrayList>(CloneHandle(items, targetPlugin));
+        
+        Call_StartFunction(entry.plugin, funcToCall);
+        Call_PushCell(initiator);
+        Call_PushCell(type);
+        Call_PushString(info);
+        Call_PushCell(sharedItems);
+        Call_PushCell(duration);
+        Call_PushCell(adminVote);
+        Call_PushCell(isRunoff);
+        Call_Finish();
+    }
+    else
+    {
+        LogError("[Core] Invalid callback function for vote type %d in manager '%s'", type, managerName);
+        g_bVoteActive = false;
+    }
+}
+
 void ProcessVoteLogic(VoteType voteType, int num_votes, int num_clients, ArrayList results)
 {
     #pragma unused num_clients
@@ -6487,63 +6544,6 @@ bool HasSubGroups(const char[] gamemode)
     list.GetArray(index, config);
     
     return (config.subGroups != null && config.subGroups.Length > 0);
-}
-
-void CallActiveVoteManager(int initiator, VoteType type, const char[] info, ArrayList items, int duration, bool adminVote, bool isRunoff)
-{
-    char managerName[64];
-    g_Cvar_VoteManager.GetString(managerName, sizeof(managerName));
-    
-    VoteManagerEntry entry;
-    if (!g_VoteManagers.GetArray(managerName, entry, sizeof(entry)))
-    {
-        WriteToLogFile("[Core] Manager '%s' not found. Fallback to 'core'.", managerName);
-        if (!g_VoteManagers.GetArray("core", entry, sizeof(entry)))
-        {
-            LogError("FATAL: No vote managers registered!");
-            return;
-        }
-    }
-    
-    g_bVoteActive = true;
-    g_eCurrentNativeVoteType = type; 
-    
-    Handle targetPlugin = entry.plugin;
-    if (targetPlugin == GetMyHandle()) targetPlugin = INVALID_HANDLE;
-
-    Function funcToCall = INVALID_FUNCTION;
-    
-    switch(type)
-    {
-        case VOTE_TYPE_GROUP: 
-            funcToCall = entry.start_group;
-            
-        case VOTE_TYPE_SUBGROUP: 
-            funcToCall = entry.start_subgroup;
-            
-        case VOTE_TYPE_MAP, VOTE_TYPE_SUBGROUP_MAP: 
-            funcToCall = entry.start_map;
-    }
-
-    if (funcToCall != INVALID_FUNCTION)
-    {
-        ArrayList sharedItems = view_as<ArrayList>(CloneHandle(items, targetPlugin));
-        
-        Call_StartFunction(entry.plugin, funcToCall);
-        Call_PushCell(initiator);
-        Call_PushCell(type);
-        Call_PushString(info);
-        Call_PushCell(sharedItems);
-        Call_PushCell(duration);
-        Call_PushCell(adminVote);
-        Call_PushCell(isRunoff);
-        Call_Finish();
-    }
-    else
-    {
-        LogError("[Core] Invalid callback function for vote type %d in manager '%s'", type, managerName);
-        g_bVoteActive = false;
-    }
 }
 
 // //////////////////////
