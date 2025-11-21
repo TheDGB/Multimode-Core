@@ -4831,17 +4831,17 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
     NativeMMC_OnVoteStartEx(client, 0, runoffItems != null);
     
     ArrayList voteItems = new ArrayList(sizeof(VoteCandidate));
+	
+    if (GetVoteMethod() == 3)
+    {
+        StartMapVote(client, "");
+        return;
+    }
 
     ArrayList gameModes = GetGameModesList();
     if (gameModes.Length == 0)
     {
         CPrintToChat(client, "%t", "None Show Gamemode Group");
-        return;
-    }
-
-    if (GetVoteMethod() == 3)
-    {
-        StartMapVote(client, "");
         return;
     }
 
