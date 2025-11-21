@@ -5,30 +5,16 @@
 #include <sourcemod>
 #include <multimode>
 #include <nativevotes>
-#include <emitsoundany>
 
 #pragma semicolon 1
 #pragma newdecls required
 
 NativeVote g_hVote;
-
 bool g_bVoteActive = false;
-
-ConVar g_Cvar_VoteOpenSound;
-ConVar g_Cvar_VoteCloseSound;
-ConVar g_Cvar_RunoffVoteOpenSound;
-ConVar g_Cvar_RunoffVoteCloseSound;
-ConVar g_Cvar_VoteSounds;
 
 public void OnPluginStart()
 {
     LoadTranslations("multimode_voter.phrases");
-    
-    g_Cvar_VoteOpenSound = FindConVar("multimode_voteopensound");
-    g_Cvar_VoteCloseSound = FindConVar("multimode_voteclosesound");
-    g_Cvar_RunoffVoteOpenSound = FindConVar("multimode_runoff_voteopensound");
-    g_Cvar_RunoffVoteCloseSound = FindConVar("multimode_runoff_voteclosesound");
-    g_Cvar_VoteSounds = FindConVar("multimode_votesounds");
 
     if (LibraryExists("multimode_core"))
     {
@@ -78,7 +64,7 @@ public void NativeVotes_StartVote(int initiator, VoteType type, const char[] inf
         case VOTE_TYPE_GROUP: Format(title, sizeof(title), "%T", "Normal Vote Gamemode Group Title", LANG_SERVER);
         case VOTE_TYPE_SUBGROUP: Format(title, sizeof(title), "%T", "SubGroup Vote Title", LANG_SERVER, info);
         case VOTE_TYPE_MAP: Format(title, sizeof(title), "%T", "Start Map Vote Title", LANG_SERVER, info);
-        case VOTE_TYPE_SUBGROUP_MAP: Format(title, sizeof(title), "%T", "SubGroup Map Vote Selection Title", LANG_SERVER, info);
+        case VOTE_TYPE_SUBGROUP_MAP: Format(title, sizeof(title), "%T", "SubGroup Map Vote Title", LANG_SERVER, info);
     }
     g_hVote.SetTitle(title);
 
@@ -91,8 +77,6 @@ public void NativeVotes_StartVote(int initiator, VoteType type, const char[] inf
 
     g_hVote.DisplayVoteToAll(duration);
     g_bVoteActive = true;
-
-    PlayVoteSound(true, isRunoff);
     
     delete items;
 }
@@ -121,11 +105,23 @@ public int NativeVotes_Handler(NativeVote vote, MenuAction action, int param1, i
         case MenuAction_VoteCancel:
         {
             if (param1 == VoteCancel_NoVotes)
+            {
                 vote.DisplayFail(NativeVotesFail_NotEnoughVotes);
-            else
-                vote.DisplayFail(NativeVotesFail_Generic);
+                g_bVoteActive = false;
                 
-            PlayVoteSound(false, false);
+                ArrayList emptyResults = new ArrayList(sizeof(VoteCandidate));
+                MultiMode_ReportVoteResults(emptyResults, 0, 0);
+                delete emptyResults;
+            }
+            else
+            {
+                vote.DisplayFail(NativeVotesFail_Generic);
+                g_bVoteActive = false;
+                
+                ArrayList emptyResults = new ArrayList(sizeof(VoteCandidate));
+                MultiMode_ReportVoteResults(emptyResults, 0, 0);
+                delete emptyResults;
+            }
         }
     }
     return 0;
@@ -166,26 +162,5 @@ public void NativeVotes_ResultHandler(NativeVote vote, int num_votes, int num_cl
     LogMessage("[MultiMode NativeVotes] Vote Finished. Reporting %d items to Core.", results.Length);
     MultiMode_ReportVoteResults(results, num_votes, num_clients);
     
-    PlayVoteSound(false, false);
-    
     delete results;
-}
-
-void PlayVoteSound(bool open, bool isRunoff)
-{
-    if (g_Cvar_VoteSounds == null || !g_Cvar_VoteSounds.BoolValue) return;
-
-    char sound[PLATFORM_MAX_PATH];
-    ConVar source = null;
-
-    if (open)
-        source = isRunoff ? g_Cvar_RunoffVoteOpenSound : g_Cvar_VoteOpenSound;
-    else
-        source = isRunoff ? g_Cvar_RunoffVoteCloseSound : g_Cvar_VoteCloseSound;
-
-    if (source != null)
-    {
-        source.GetString(sound, sizeof(sound));
-        if (sound[0] != '\0') EmitSoundToAllAny(sound);
-    }
 }

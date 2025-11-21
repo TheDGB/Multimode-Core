@@ -5584,7 +5584,38 @@ public void Core_CancelVote()
 
 public int Core_VoteHandler(Menu menu, MenuAction action, int param1, int param2)
 {
-    if (action == MenuAction_End) delete menu;
+    switch (action)
+    {
+        case MenuAction_End:
+        {
+            if (g_bVoteActive)
+            {
+                g_bVoteActive = false;
+                NativeMMC_OnVoteEnd("", "", "", VoteEnd_Cancelled);
+                
+                g_bIsRunoffVote = false;
+                g_RunoffItems.Clear();
+            }
+            delete menu;
+        }
+        
+        case MenuAction_VoteCancel:
+        {
+            if (param1 == VoteCancel_NoVotes)
+            {
+                ArrayList emptyResults = new ArrayList(sizeof(VoteCandidate));
+                MultiMode_ReportVoteResults(emptyResults, 0, 0);
+                delete emptyResults;
+            }
+            else
+            {
+                g_bVoteActive = false;
+                NativeMMC_OnVoteEnd("", "", "", VoteEnd_Cancelled);
+                g_bIsRunoffVote = false;
+                g_RunoffItems.Clear();
+            }
+        }
+    }
     return 0;
 }
 
