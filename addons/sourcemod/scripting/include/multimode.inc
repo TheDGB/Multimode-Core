@@ -5,6 +5,35 @@
 
 #include <multimode/base>
 
+
+/**
+ * Callback signature for starting a vote.
+ * IMPORTANT: The 'items' ArrayList is CLONED for the receiving plugin.
+ * The receiver MUST delete/close 'items' when finished to prevent memory leaks.
+ * 
+ * @param initiator     Client index who started the vote (0 for server).
+ * @param type          The type of vote (Group, Map, etc.).
+ * @param info          Context info (e.g., Gamemode Name for map votes).
+ * @param items         ArrayList of VoteCandidate structs. (OWNERSHIP TRANSFERRED)
+ * @param duration      Duration of the vote in seconds.
+ * @param adminVote     True if this is an admin-forced vote.
+ * @param isRunoff      True if this is a runoff vote.
+ */
+typedef VoteStartCallback = function void (
+    int initiator,
+    VoteType type,
+    const char[] info,
+    ArrayList items, 
+    int duration,
+    bool adminVote,
+    bool isRunoff
+);
+
+/**
+ * Callback signature for cancelling a vote.
+ */
+typedef VoteCancelCallback = function void ();
+
 /**
  * Starts a gamemode/map vote.
  * 
@@ -154,6 +183,45 @@ forward void MultiMode_OnVoteStartEx(int initiator, int voteType, bool isRunoff)
  * @param reason        The reason the vote ended (e.g., VoteEnd_Winner, VoteEnd_Runoff, VoteEnd_Extend, VoteEnd_Cancelled, VoteEnd_Failed).
  */
 forward void MultiMode_OnVoteEnd(const char[] group, const char[] subgroup, const char[] map, VoteEndReason reason);
+
+/**
+ * Callback signature for starting a vote.
+ * 
+ * @param initiator     Client index who started the vote (0 for server).
+ * @param type          The type of vote (Group, Map, etc.).
+ * @param items         ArrayList of VoteCandidate structs containing {info, name(display)}. 
+ *                      The manager should clone this if it needs to keep it after the call.
+ * @param duration      Duration of the vote in seconds.
+ * @param adminVote     True if this is an admin-forced vote.
+ * @param isRunoff      True if this is a runoff vote.
+ */
+
+/**
+ * Registers a new Vote Manager.
+ * 
+ * @param name          Unique identifier for the manager (e.g., "core", "nativevotes").
+ * @param startCb       Function to call when starting a vote.
+ * @param cancelCb      Function to call when cancelling a vote.
+ */
+native void MultiMode_RegisterVoteManager(const char[] name, VoteStartCallback startCb, VoteCancelCallback cancelCb);
+
+/**
+ * Unregisters a Vote Manager.
+ * 
+ * @param name          Unique identifier of the manager.
+ */
+native void MultiMode_UnregisterVoteManager(const char[] name);
+
+/**
+ * Reports the results of a vote back to the Core.
+ * The Manager must call this when a vote finishes.
+ * 
+ * @param results       ArrayList of VoteCandidate structs with 'votes' populated.
+ * @param totalVotes    Total number of votes cast.
+ * @param totalClients  Total number of eligible voters.
+ */
+native void MultiMode_ReportVoteResults(ArrayList results, int totalVotes, int totalClients);
+
 
 /**
  * Called when a new gamemode is set via force command or other non-vote mechanism.
