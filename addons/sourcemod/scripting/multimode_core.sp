@@ -305,6 +305,7 @@ public void OnPluginStart()
     LoadGameModesConfig();
     g_Countdowns = new StringMap();
     g_LastCountdownValues = new StringMap();
+	g_VoteManagersBackup = new StringMap();
     LoadCountdownConfig();
     
     ConVar nextmap = FindConVar("sm_nextmap");
@@ -1172,6 +1173,13 @@ public void LoadGameModesConfig()
 
 void CallActiveVoteManager(int initiator, VoteType type, const char[] info, ArrayList items, int duration, bool adminVote, bool isRunoff)
 {
+    if (g_VoteManagers == null)
+    {
+        LogError("[Core] g_VoteManagers is null in CallActiveVoteManager!");
+        delete items;
+        return;
+    }
+    
     char managerName[64];
     g_Cvar_VoteManager.GetString(managerName, sizeof(managerName));
     
@@ -1182,10 +1190,38 @@ void CallActiveVoteManager(int initiator, VoteType type, const char[] info, Arra
         if (!g_VoteManagers.GetArray("core", entry, sizeof(entry)))
         {
             LogError("FATAL: No vote managers registered!");
+            delete items;
             return;
         }
     }
     
+    if (entry.plugin != GetMyHandle() && !IsValidHandle(entry.plugin))
+    {
+        WriteToLogFile("[Core] Vote Manager '%s' has an invalid plugin handle. Attempting restore...", managerName);
+        
+        VoteManagerEntry backupEntry;
+        if (g_VoteManagersBackup.GetArray(managerName, backupEntry, sizeof(backupEntry)))
+        {
+            g_VoteManagers.SetArray(managerName, backupEntry, sizeof(backupEntry));
+            entry = backupEntry; // Switch to backup
+            WriteToLogFile("[Core] Restored backup manager for '%s'.", managerName);
+        }
+        else
+        {
+            if (g_VoteManagers.GetArray("core", entry, sizeof(entry)))
+            {
+                WriteToLogFile("[Core] Backup not found. Forced fallback to internal 'core'.");
+            }
+            else
+            {
+                LogError("[Core] FATAL: Vote Manager '%s' is invalid and no backup exists.", managerName);
+                delete items;
+                g_bVoteActive = false;
+                return;
+            }
+        }
+    }
+
     g_bVoteActive = true;
     g_eCurrentNativeVoteType = type; 
     
@@ -3146,7 +3182,7 @@ void StartRtvCooldown()
 public Action Command_Nominate(int client, int args)
 {
     if(!g_Cvar_Enabled.BoolValue || !g_Cvar_NominateEnabled.BoolValue || g_bVoteActive || g_bCooldownActive || g_bRtvDisabled) 
-	{
+    {
         CReplyToCommand(client, "%t", "Nominate Disabled");
         return Plugin_Handled;
     }
@@ -3157,6 +3193,13 @@ public Action Command_Nominate(int client, int args)
     if (g_Cvar_NominateOneChance.BoolValue && g_bHasNominated[client])
     {
         CPrintToChat(client, "%t", "Nominate Once Per Map");
+        return Plugin_Handled;
+    }
+
+    // Check Method 3...
+    if (g_Cvar_Method.IntValue == 3)
+    {
+        ShowAllMapsNominateMenu(client);
         return Plugin_Handled;
     }
 
@@ -3645,7 +3688,7 @@ void ShowNominateMapMenu(int client, const char[] gamemode, const char[] subgrou
     }
     else
     {
-        menu.SetTitle("%t", "Nominate Map Title", config.name);
+        menu.SetTitle("%t %s", "Nominate Map Title", config.name);
     }
 
     char key[128];
@@ -3734,6 +3777,131 @@ public int NominateMapMenuHandler(Menu menu, MenuAction action, int client, int 
         else
         {
             ShowNominateGamemodeMenu(client);
+        }
+    }
+    else if (action == MenuAction_End)
+    {
+        delete menu;
+    }
+    return 0;
+}
+
+void ShowAllMapsNominateMenu(int client)
+{
+    ArrayList gameModes = GetGameModesList();
+    ArrayList allMaps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
+    StringMap uniqueMaps = new StringMap();
+    
+    for (int i = 0; i < gameModes.Length; i++)
+    {
+        GameModeConfig config;
+        gameModes.GetArray(i, config);
+        
+        if (!GamemodeAvailable(config.name)) continue;
+
+        for (int j = 0; j < config.maps.Length; j++)
+        {
+            char map[PLATFORM_MAX_PATH];
+            config.maps.GetString(j, map, sizeof(map));
+            
+            if (!uniqueMaps.ContainsKey(map) && IsCurrentlyAvailableByTime(config.name, "", map) && CanClientNominate(client, config.name, "", map))
+            {
+                allMaps.PushString(map);
+                uniqueMaps.SetValue(map, true);
+            }
+        }
+
+        for (int j = 0; j < config.subGroups.Length; j++)
+        {
+            SubGroupConfig subConfig;
+            config.subGroups.GetArray(j, subConfig);
+            
+            if (!subConfig.enabled) continue;
+            
+            int players = GetRealClientCount();
+            if (subConfig.minplayers > 0 && players < subConfig.minplayers) continue;
+            if (subConfig.maxplayers > 0 && players > subConfig.maxplayers) continue;
+            
+            for (int k = 0; k < subConfig.maps.Length; k++)
+            {
+                char map[PLATFORM_MAX_PATH];
+                subConfig.maps.GetString(k, map, sizeof(map));
+                
+                if (!uniqueMaps.ContainsKey(map) && IsCurrentlyAvailableByTime(config.name, subConfig.name, map) && CanClientNominate(client, config.name, subConfig.name, map))
+                {
+                    allMaps.PushString(map);
+                    uniqueMaps.SetValue(map, true);
+                }
+            }
+        }
+    }
+    
+    delete uniqueMaps;
+
+    int sortMode = g_Cvar_NominateSorted.IntValue;
+    if (sortMode == 0) // Alphabetical
+    {
+        SortADTArray(allMaps, Sort_Ascending, Sort_String);
+    }
+    else if (sortMode == 1) // Random
+    {
+        SortADTArray(allMaps, Sort_Random, Sort_String);
+    }
+
+    Menu menu = new Menu(AllMapsNominateMenuHandler);
+    menu.SetTitle("%t %s", "Nominate Map Title", "All Maps");
+
+    for (int i = 0; i < allMaps.Length; i++)
+    {
+        char map[PLATFORM_MAX_PATH];
+        allMaps.GetString(i, map, sizeof(map));
+        
+        char display[256];
+        GetMapDisplayNameEx("", map, display, sizeof(display));
+        
+        bool isNominated = false;
+        StringMapSnapshot snapshot = g_NominatedMaps.Snapshot();
+        for (int j = 0; j < snapshot.Length; j++)
+        {
+             char key[128];
+             snapshot.GetKey(j, key, sizeof(key));
+             ArrayList nominatedMaps;
+             g_NominatedMaps.GetValue(key, nominatedMaps);
+             if (nominatedMaps.FindString(map) != -1) {
+                 isNominated = true;
+                 break;
+             }
+        }
+        delete snapshot;
+
+        if (isNominated)
+        {
+             Format(display, sizeof(display), "%s%s", display, GESTURE_NOMINATED);
+        }
+
+        menu.AddItem(map, display);
+    }
+
+    delete allMaps;
+    menu.ExitButton = true;
+    menu.Display(client, MENU_TIME_FOREVER);
+}
+
+public int AllMapsNominateMenuHandler(Menu menu, MenuAction action, int client, int param2)
+{
+    if (action == MenuAction_Select)
+    {
+        char map[PLATFORM_MAX_PATH];
+        menu.GetItem(param2, map, sizeof(map));
+        
+        char group[64], subgroup[64];
+        if (FindConfigForMap(map, group, sizeof(group), subgroup, sizeof(subgroup)))
+        {
+            RegisterNomination(client, group, subgroup, map);
+        }
+        else
+        {
+            CPrintToChat(client, "%t", "Nominate Gamemode Not Found");
         }
     }
     else if (action == MenuAction_End)
@@ -4182,18 +4350,33 @@ public int NativeMMC_RegisterVoteManager(Handle plugin, int numParams)
     
     Function startFn = GetNativeFunction(2);
     Function cancelFn = GetNativeFunction(3);
+
+    if (startFn == INVALID_FUNCTION || cancelFn == INVALID_FUNCTION)
+    {
+        LogError("[Core] Invalid functions provided for vote manager '%s'", name);
+        return 0;
+    }
     
     VoteManagerEntry entry;
-	
     entry.start_group = startFn;
     entry.start_subgroup = startFn;
     entry.start_map = startFn;
     entry.cancel = cancelFn;
     entry.plugin = plugin;
     
+    if (g_VoteManagers == null)
+    {
+        g_VoteManagers = new StringMap();
+        WriteToLogFile("[Core] g_VoteManagers was null, created new instance");
+    }
+    
     VoteManagerEntry oldEntry;
     if (g_VoteManagers.GetArray(name, oldEntry, sizeof(oldEntry)))
     {
+        if (g_VoteManagersBackup == null)
+        {
+            g_VoteManagersBackup = new StringMap();
+        }
         g_VoteManagersBackup.SetArray(name, oldEntry, sizeof(oldEntry));
         WriteToLogFile("[Core] Vote Manager '%s' already exists, backing up the old one, ready to use.", name);
     }
@@ -4231,7 +4414,20 @@ public int NativeMMC_UnregisterVoteManager(Handle plugin, int numParams)
 {
     char name[64];
     GetNativeString(1, name, sizeof(name));
-    g_VoteManagers.Remove(name);
+    
+    VoteManagerEntry backupEntry;
+    if (g_VoteManagersBackup.GetArray(name, backupEntry, sizeof(backupEntry)))
+    {
+        g_VoteManagers.SetArray(name, backupEntry, sizeof(backupEntry));
+        g_VoteManagersBackup.Remove(name); // Remove from backup since it's active now
+        WriteToLogFile("[Core] Unregistered Vote Manager '%s'. Restored backup manager.", name);
+    }
+    else
+    {
+        g_VoteManagers.Remove(name);
+        WriteToLogFile("[Core] Unregistered Vote Manager '%s'. No backup found.", name);
+    }
+    
     return 0;
 }
 
@@ -5224,66 +5420,8 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
         {
             voteMaps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
             StringMap uniqueMaps = new StringMap();
-
             ArrayList gameModes = GetGameModesList();
-            for (int i = 0; i < gameModes.Length; i++)
-            {
-                GameModeConfig config;
-                gameModes.GetArray(i, config);
-
-                bool groupAvailable;
-                if (g_bCurrentVoteAdmin) {
-                    groupAvailable = GamemodeAvailableAdminVote(config.name);
-                } else {
-                    groupAvailable = GamemodeAvailable(config.name);
-                }
-
-                if (!groupAvailable) {
-                    continue;
-                }
-
-                for (int j = 0; j < config.maps.Length; j++)
-                {
-                    char map[PLATFORM_MAX_PATH];
-                    config.maps.GetString(j, map, sizeof(map));
-                    
-                    if (!uniqueMaps.ContainsKey(map) && 
-                        IsCurrentlyAvailableByTime(config.name, "", map))
-                    {
-                        voteMaps.PushString(map);
-                        uniqueMaps.SetValue(map, true);
-                    }
-                }
-
-                for (int k = 0; k < config.subGroups.Length; k++)
-                {
-                    SubGroupConfig subConfig;
-                    config.subGroups.GetArray(k, subConfig);
-                    
-                    if (!subConfig.enabled) continue;
-                    
-                    if (subConfig.adminonly == 1 && !g_bCurrentVoteAdmin)
-                        continue;
-
-                    int players = GetRealClientCount();
-                    if (subConfig.minplayers > 0 && players < subConfig.minplayers) continue;
-                    if (subConfig.maxplayers > 0 && players > subConfig.maxplayers) continue;
-
-                    for (int j = 0; j < subConfig.maps.Length; j++)
-                    {
-                        char map[PLATFORM_MAX_PATH];
-                        subConfig.maps.GetString(j, map, sizeof(map));
-                        
-                        if (!uniqueMaps.ContainsKey(map) && 
-                            IsCurrentlyAvailableByTime(config.name, subConfig.name, map))
-                        {
-                            voteMaps.PushString(map);
-                            uniqueMaps.SetValue(map, true);
-                        }
-                    }
-                }
-            }
-
+            
             StringMapSnapshot snapshot = g_NominatedMaps.Snapshot();
             for (int i = 0; i < snapshot.Length; i++)
             {
@@ -5292,12 +5430,7 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
 
                 char groupName[64];
                 SplitGamemodeString(group, groupName, sizeof(groupName), "", 0);
-                int groupIndex = FindGameModeIndex(groupName);
-                if (groupIndex == -1) continue;
-
-                GameModeConfig config;
-                gameModes.GetArray(groupIndex, config);
-
+                
                 bool groupAvailable;
                 if (g_bCurrentVoteAdmin) {
                     groupAvailable = GamemodeAvailableAdminVote(groupName);
@@ -5322,8 +5455,7 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
                         strcopy(subgroup, sizeof(subgroup), parts[1]);
                     }
                     
-                    if (!uniqueMaps.ContainsKey(map) && 
-                        IsCurrentlyAvailableByTime(groupName, subgroup, map))
+                    if (!uniqueMaps.ContainsKey(map) && IsCurrentlyAvailableByTime(groupName, subgroup, map))
                     {
                         voteMaps.PushString(map);
                         uniqueMaps.SetValue(map, true);
@@ -5331,10 +5463,75 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
                 }
             }
             delete snapshot;
+
+            ArrayList fillMaps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
+            
+            for (int i = 0; i < gameModes.Length; i++)
+            {
+                GameModeConfig config;
+                gameModes.GetArray(i, config);
+
+                bool groupAvailable;
+                if (g_bCurrentVoteAdmin) {
+                    groupAvailable = GamemodeAvailableAdminVote(config.name);
+                } else {
+                    groupAvailable = GamemodeAvailable(config.name);
+                }
+
+                if (!groupAvailable) continue;
+
+                for (int j = 0; j < config.maps.Length; j++)
+                {
+                    char map[PLATFORM_MAX_PATH];
+                    config.maps.GetString(j, map, sizeof(map));
+                    
+                    if (!uniqueMaps.ContainsKey(map) && IsCurrentlyAvailableByTime(config.name, "", map))
+                    {
+                        fillMaps.PushString(map);
+                        uniqueMaps.SetValue(map, true);
+                    }
+                }
+
+                for (int k = 0; k < config.subGroups.Length; k++)
+                {
+                    SubGroupConfig subConfig;
+                    config.subGroups.GetArray(k, subConfig);
+                    
+                    if (!subConfig.enabled) continue;
+                    if (subConfig.adminonly == 1 && !g_bCurrentVoteAdmin) continue;
+
+                    int players = GetRealClientCount();
+                    if (subConfig.minplayers > 0 && players < subConfig.minplayers) continue;
+                    if (subConfig.maxplayers > 0 && players > subConfig.maxplayers) continue;
+
+                    for (int j = 0; j < subConfig.maps.Length; j++)
+                    {
+                        char map[PLATFORM_MAX_PATH];
+                        subConfig.maps.GetString(j, map, sizeof(map));
+                        
+                        if (!uniqueMaps.ContainsKey(map) && IsCurrentlyAvailableByTime(config.name, subConfig.name, map))
+                        {
+                            fillMaps.PushString(map);
+                            uniqueMaps.SetValue(map, true);
+                        }
+                    }
+                }
+            }
             delete uniqueMaps;
 
-            int sortMode = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminSorted.IntValue : g_Cvar_VoteSorted.IntValue;
+            fillMaps.Sort(Sort_Random, Sort_String);
+            
+            int maxItems = 6;
+            while (voteMaps.Length < maxItems && fillMaps.Length > 0)
+            {
+                char map[PLATFORM_MAX_PATH];
+                fillMaps.GetString(0, map, sizeof(map));
+                voteMaps.PushString(map);
+                fillMaps.Erase(0);
+            }
+            delete fillMaps;
 
+            int sortMode = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminSorted.IntValue : g_Cvar_VoteSorted.IntValue;
             if (sortMode == 0) // Alphabetical
             {
                 voteMaps.Sort(Sort_Ascending, Sort_String);
@@ -5342,12 +5539,6 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
             else if (sortMode == 1) // Random
             {
                 voteMaps.Sort(Sort_Random, Sort_String);
-            }
-            
-            int maxItems = 6;
-            if (voteMaps.Length > maxItems)
-            {
-                voteMaps.Resize(maxItems);
             }
         }
 
@@ -5365,6 +5556,26 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
             char map[PLATFORM_MAX_PATH], display[256];
             voteMaps.GetString(i, map, sizeof(map));
             GetMapDisplayNameEx("", map, display, sizeof(display));
+
+            bool isNominated = false;
+            StringMapSnapshot snapshot = g_NominatedMaps.Snapshot();
+            for (int j = 0; j < snapshot.Length; j++)
+            {
+                 char key[128];
+                 snapshot.GetKey(j, key, sizeof(key));
+                 ArrayList nominatedMaps;
+                 g_NominatedMaps.GetValue(key, nominatedMaps);
+                 if (nominatedMaps.FindString(map) != -1) {
+                     isNominated = true;
+                     break;
+                 }
+            }
+            delete snapshot;
+
+            if (isNominated)
+            {
+                Format(display, sizeof(display), "%s%s", display, GESTURE_NOMINATED);
+            }
             
             VoteCandidate item;
             strcopy(item.info, sizeof(item.info), map);
@@ -6311,6 +6522,38 @@ int FindGameModeForMap(const char[] map)
         }
     }
     return -1;
+}
+
+bool FindConfigForMap(const char[] map, char[] group, int groupLen, char[] subgroup, int subgroupLen)
+{
+    ArrayList gameModes = GetGameModesList();
+    for (int i = 0; i < gameModes.Length; i++)
+    {
+        GameModeConfig config;
+        gameModes.GetArray(i, config);
+        
+        if (!GamemodeAvailable(config.name)) continue;
+        
+        if (config.maps.FindString(map) != -1)
+        {
+            strcopy(group, groupLen, config.name);
+            subgroup[0] = '\0';
+            return true;
+        }
+        
+        for (int j = 0; j < config.subGroups.Length; j++)
+        {
+            SubGroupConfig subConfig;
+            config.subGroups.GetArray(j, subConfig);
+            if (subConfig.maps.FindString(map) != -1)
+            {
+                strcopy(group, groupLen, config.name);
+                strcopy(subgroup, subgroupLen, subConfig.name);
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 float GetRemainingTime(int timerIndex)
