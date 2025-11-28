@@ -5996,17 +5996,11 @@ public void Core_VoteResultHandler(Menu menu, int num_votes, int num_clients, co
         menu.GetItem(item_info[i][VOTEINFO_ITEM_INDEX], res.info, sizeof(res.info));
         results.PushArray(res);
     }
-    
-    if (g_Cvar_VoteSounds.BoolValue)
-    {
-        char sound[PLATFORM_MAX_PATH];
-        g_Cvar_VoteCloseSound.GetString(sound, sizeof(sound));
-        if (sound[0] != '\0') EmitSoundToAllAny(sound);
-    }
-
+	
     ProcessVoteLogic(g_eCurrentNativeVoteType, num_votes, num_clients, results);
     delete results;
 }
+
 
 // //////////////////////////////////////////////
 // //                                          //

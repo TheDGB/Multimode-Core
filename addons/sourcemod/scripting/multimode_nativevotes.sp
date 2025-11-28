@@ -3,6 +3,7 @@
 ******************************************************************************/
 
 #include <sourcemod>
+#include <emitsoundany>
 #include <multimode>
 #include <nativevotes>
 
@@ -12,9 +13,20 @@
 NativeVote g_hVote;
 bool g_bVoteActive = false;
 
+ConVar g_CvVoteSounds;
+ConVar g_CvVoteOpenSound;
+ConVar g_CvRunoffVoteOpenSound;
+
 public void OnPluginStart()
 {
     LoadTranslations("multimode_voter.phrases");
+}
+
+public void OnAllPluginsLoaded()
+{
+    g_CvVoteSounds = FindConVar("multimode_votesounds");
+    g_CvVoteOpenSound = FindConVar("multimode_voteopensound");
+    g_CvRunoffVoteOpenSound = FindConVar("multimode_runoff_voteopensound");
 }
 
 public void OnLibraryAdded(const char[] name)
@@ -22,6 +34,10 @@ public void OnLibraryAdded(const char[] name)
     if (StrEqual(name, "multimode_core"))
     {
         RegisterManager();
+
+        g_CvVoteSounds = FindConVar("multimode_votesounds");
+        g_CvVoteOpenSound = FindConVar("multimode_voteopensound");
+        g_CvRunoffVoteOpenSound = FindConVar("multimode_runoff_voteopensound");
     }
 }
 
@@ -37,6 +53,25 @@ public void NativeVotes_StartVote(int initiator, VoteType type, const char[] inf
         LogError("NativeVotes library not found! Cannot start vote.");
         delete items; 
         return;
+    }
+
+    if (g_CvVoteSounds != null && g_CvVoteSounds.BoolValue)
+    {
+        char sound[PLATFORM_MAX_PATH];
+        if (isRunoff && g_CvRunoffVoteOpenSound != null)
+        {
+            g_CvRunoffVoteOpenSound.GetString(sound, sizeof(sound));
+        }
+        else if (g_CvVoteOpenSound != null)
+        {
+            g_CvVoteOpenSound.GetString(sound, sizeof(sound));
+        }
+
+        if (sound[0] != '\0')
+        {
+            PrecacheSound(sound, true);
+            EmitSoundToAllAny(sound);
+        }
     }
 
     LogMessage("[MultiMode NativeVotes] Starting Vote. Type: %d, Items: %d", type, items.Length);
@@ -155,6 +190,7 @@ public void NativeVotes_ResultHandler(NativeVote vote, int num_votes, int num_cl
     }
     
     LogMessage("[MultiMode NativeVotes] Vote Finished. Reporting %d items to Core.", results.Length);
+    
     MultiMode_ReportVoteResults(results, num_votes, num_clients);
     
     delete results;
