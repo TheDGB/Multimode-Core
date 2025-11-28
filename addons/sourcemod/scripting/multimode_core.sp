@@ -3849,7 +3849,9 @@ void ShowAllMapsNominateMenu(int client)
     }
 
     Menu menu = new Menu(AllMapsNominateMenuHandler);
-    menu.SetTitle("%t %s", "Nominate Map Title", "All Maps");
+    char menuTitle[128];
+    Format(menuTitle, sizeof(menuTitle), "%t", "Nominate Map Title", "All Maps");
+    menu.SetTitle(menuTitle);
 
     for (int i = 0; i < allMaps.Length; i++)
     {
