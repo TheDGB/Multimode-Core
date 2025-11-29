@@ -763,8 +763,17 @@ public void OnMapStart()
     g_bVoteCompleted = false;
 	g_bEndVoteTriggered = false;
     g_bRtvInitialDelay = true;
-    delete g_hRtvCooldownTimer;
-    delete g_hRtvFirstDelayTimer;
+	
+    if (g_hRtvCooldownTimer != INVALID_HANDLE && g_hRtvCooldownTimer != null)
+    {
+        KillTimer(g_hRtvCooldownTimer);
+        g_hRtvCooldownTimer = INVALID_HANDLE;
+    }
+    if (g_hRtvFirstDelayTimer != INVALID_HANDLE && g_hRtvFirstDelayTimer != null)
+    {
+        KillTimer(g_hRtvFirstDelayTimer);
+        g_hRtvFirstDelayTimer = INVALID_HANDLE;
+    }
 
     g_bCooldownActive = false;
     g_iCooldownEndTime = 0;
@@ -940,6 +949,12 @@ public void OnClientDisconnect(int client)
     }
 	
     if (GetRealClientCount() == 0 && g_hEndVoteTimer != INVALID_HANDLE)
+    {
+        KillTimer(g_hEndVoteTimer);
+        g_hEndVoteTimer = INVALID_HANDLE;
+    }
+	
+    if (g_hEndVoteTimer != INVALID_HANDLE && g_hEndVoteTimer != null)
     {
         KillTimer(g_hEndVoteTimer);
         g_hEndVoteTimer = INVALID_HANDLE;
@@ -2324,7 +2339,7 @@ public Action Timer_UpdateCooldownHUD(Handle timer)
         {
             if (g_bIsRunoffCooldown)
             {
-                PrintCenterText(i, "%t", "Run Off Cooldown Begin Hud", remaining);
+                PrintCenterText(i, "%t", "Run Off Cooldown Hud", remaining);
             }
             else
             {
@@ -3157,6 +3172,15 @@ void ResetRTV()
     for(int i = 1; i <= MaxClients; i++) {
         g_bRtvVoted[i] = false;
     }
+    
+    for (int i = 0; i < sizeof(g_hRtvTimers); i++)
+    {
+        if (g_hRtvTimers[i] != INVALID_HANDLE && g_hRtvTimers[i] != null)
+        {
+            KillTimer(g_hRtvTimers[i]);
+            g_hRtvTimers[i] = INVALID_HANDLE;
+        }
+    }
 }
 
 void StartRtvCooldown()
@@ -3166,7 +3190,14 @@ void StartRtvCooldown()
         g_bRtvCooldown = true;
         g_fRtvTimerStart[1] = GetEngineTime();
         g_fRtvTimerDuration[1] = fDelay;
+		
+        if (g_hRtvTimers[1] != INVALID_HANDLE && g_hRtvTimers[1] != null)
+        {
+            KillTimer(g_hRtvTimers[1]);
+        }
+		
         g_hRtvTimers[1] = CreateTimer(fDelay, Timer_ResetCooldown, _, TIMER_FLAG_NO_MAPCHANGE);
+		
         CPrintToChatAll("%t", "RTV Next Available", RoundFloat(fDelay));
     }
 }
@@ -5100,9 +5131,9 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
         return;
     }
 
-    if (g_hRtvTimers[1] != INVALID_HANDLE)
+    if (g_hRtvTimers[1] != INVALID_HANDLE && g_hRtvTimers[1] != null)
     {
-        CloseHandle(g_hRtvTimers[1]);
+        KillTimer(g_hRtvTimers[1]);
         g_hRtvTimers[1] = INVALID_HANDLE;
     }
 
