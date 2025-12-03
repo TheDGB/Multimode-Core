@@ -6720,29 +6720,35 @@ float GetRemainingTime(int timerIndex)
 
 void WriteToLogFile(const char[] format, any ...)
 {
-    if (g_Cvar_Logs.BoolValue)
+    if (!g_Cvar_Logs.BoolValue)
+        return;
+
+    char buffer[512];
+    VFormat(buffer, sizeof(buffer), format, 2);
+
+    char dateStr[32];
+    FormatTime(dateStr, sizeof(dateStr), "%Y%m%d");
+
+    char logPath[PLATFORM_MAX_PATH];
+    BuildPath(Path_SM, logPath, sizeof(logPath), "logs/MMC_%s.txt", dateStr);
+
+    File file = OpenFile(logPath, "a+");
+    if (file != null)
     {
-        char buffer[512];
-        VFormat(buffer, sizeof(buffer), format, 2);
+        char timeStr[64];
+        FormatTime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S");
 
-        char logPath[PLATFORM_MAX_PATH];
-        BuildPath(Path_SM, logPath, sizeof(logPath), "logs/multimode_logs.txt");
+        file.WriteLine("[%s] %s", timeStr, buffer);
+        LogMessage("%s", buffer);
 
-        File file = OpenFile(logPath, "a+");
-        if (file != null)
-        {
-            char timeStr[64];
-            FormatTime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S");
-            file.WriteLine("[%s] %s", timeStr, buffer);
-            LogMessage("%s", buffer);
-            delete file;
-        }
-        else
-        {
-            WriteToLogFile("Failed to write to log file: %s", logPath);
-        }
+        delete file;
+    }
+    else
+    {
+        LogError("Failed to write to log file: %s", logPath);
     }
 }
+
 
 bool GamemodeAvailable(const char[] gamemode)
 {
