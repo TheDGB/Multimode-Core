@@ -14,7 +14,7 @@
 #include <multimode/base>
 #include <multimode>
 
-#define PLUGIN_VERSION "3.0.6-BetaVoteManagerSupport"
+#define PLUGIN_VERSION "3.2.5"
 
 // Gesture Defines
 #define GESTURE_NOMINATED " (!)" // For nominated global gesture groups/maps
@@ -1010,7 +1010,12 @@ public void LoadGameModesConfig()
     }
 
     ArrayList gameModes = GetGameModesList();
-    gameModes.Clear();
+    if (gameModes != null) {
+        gameModes.Clear();
+    } else {
+        LogError("GameModes list handle was invalid during config load.");
+        return; 
+    }
     
     if (g_kvGameModes.GotoFirstSubKey(false))
     {
@@ -1275,6 +1280,7 @@ void CallActiveVoteManager(int initiator, VoteType type, const char[] info, Arra
     {
         LogError("[Core] Invalid callback function for vote type %d in manager '%s'", type, managerName);
         g_bVoteActive = false;
+        delete items; // Prevent leak if call fails
     }
 }
 
@@ -1360,12 +1366,18 @@ void ProcessVoteLogic(VoteType voteType, int num_votes, int num_clients, ArrayLi
     {
         needsRunoff = true;
         WriteToLogFile("[Runoff] Runoff triggered due to a tie between %d items with %d votes each.", winners.Length, maxVotes);
-        g_RunoffItems.Clear();
-        for(int i = 0; i < winners.Length; i++)
-        {
-            char winner[PLATFORM_MAX_PATH];
-            winners.GetString(i, winner, sizeof(winner));
-            g_RunoffItems.PushString(winner);
+        
+        if (g_RunoffItems != null) {
+            g_RunoffItems.Clear();
+            for(int i = 0; i < winners.Length; i++)
+            {
+                char winner[PLATFORM_MAX_PATH];
+                winners.GetString(i, winner, sizeof(winner));
+                g_RunoffItems.PushString(winner);
+            }
+        } else {
+            LogError("[Core] g_RunoffItems is null during ProcessVoteLogic! Runoff cancelled.");
+            needsRunoff = false;
         }
     }
     else if (winners.Length == 1 && threshold > 0.0 && num_votes > 0 && (float(maxVotes) / float(num_votes)) < threshold)
@@ -1375,16 +1387,21 @@ void ProcessVoteLogic(VoteType voteType, int num_votes, int num_clients, ArrayLi
         
         results.SortCustom(SortByVotes);
         
-        g_RunoffItems.Clear();
-        int limit = g_Cvar_RunoffInVoteLimit.IntValue;
-        for (int i = 0; i < results.Length && g_RunoffItems.Length < limit; i++)
-        {
-            VoteCandidate candidate;
-            results.GetArray(i, candidate);
-            if (candidate.votes > 0)
+        if (g_RunoffItems != null) {
+            g_RunoffItems.Clear();
+            int limit = g_Cvar_RunoffInVoteLimit.IntValue;
+            for (int i = 0; i < results.Length && g_RunoffItems.Length < limit; i++)
             {
-                g_RunoffItems.PushString(candidate.info);
+                VoteCandidate candidate;
+                results.GetArray(i, candidate);
+                if (candidate.votes > 0)
+                {
+                    g_RunoffItems.PushString(candidate.info);
+                }
             }
+        } else {
+             LogError("[Core] g_RunoffItems is null during ProcessVoteLogic! Runoff cancelled.");
+             needsRunoff = false;
         }
     }
     
@@ -1411,10 +1428,14 @@ void ProcessVoteLogic(VoteType voteType, int num_votes, int num_clients, ArrayLi
             else
             {
                 char winner[PLATFORM_MAX_PATH];
-                g_RunoffItems.GetString(0, winner, sizeof(winner));
-                WriteToLogFile("[Runoff] Force-picking first item '%s' due to failed runoff/limit.", winner);
-                
-                HandleWinner(winner, voteType);
+                if (g_RunoffItems != null && g_RunoffItems.Length > 0) {
+                     g_RunoffItems.GetString(0, winner, sizeof(winner));
+                     WriteToLogFile("[Runoff] Force-picking first item '%s' due to failed runoff/limit.", winner);
+                     HandleWinner(winner, voteType);
+                } else {
+                     LogError("[Core] g_RunoffItems is empty or null during force pick fallback.");
+                     g_bVoteActive = false;
+                }
                 return;
             }
         }
@@ -1617,6 +1638,14 @@ void HandleWinner(const char[] winner, VoteType voteType)
 
 void StartPendingRunoffVote()
 {
+    if (g_RunoffItems == null) {
+        LogError("[Core] g_RunoffItems is null in StartPendingRunoffVote. Cancelling runoff.");
+        g_bVoteActive = false;
+        g_bIsRunoffVote = false;
+        NativeMMC_OnVoteEnd("", "", "", VoteEnd_Failed);
+        return;
+    }
+
     // The type of vote to start is stored in g_ePendingVoteType
     // The items for the vote are in g_RunoffItems
     switch (g_ePendingVoteType)
@@ -4208,6 +4237,7 @@ public int NativeMMC_StopVote(Handle plugin, int numParams)
             }
         }
         g_bIsRunoffVote = false;
+        if(g_RunoffItems != null) g_RunoffItems.Clear();
         NativeMMC_OnVoteEnd("", "", "", VoteEnd_Cancelled);
     }
     
@@ -5106,6 +5136,14 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
 {
     g_bIsRunoffVote = (runoffItems != null);
     WriteToLogFile("[MultiMode Core] Stabilized Voting (Gamemode)");
+    
+    if (runoffItems != null && runoffItems.Length == 0)
+    {
+        LogError("[Core] StartGameModeVote called with empty runoffItems! Aborting vote.");
+        g_bIsRunoffVote = false;
+        NativeMMC_OnVoteEnd("", "", "", VoteEnd_Failed);
+        return;
+    }
 
     if (!g_Cvar_Enabled.BoolValue || g_bVoteActive || g_bCooldownActive)
     {
@@ -5117,17 +5155,24 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
     NativeMMC_OnVoteStartEx(client, 0, runoffItems != null);
     
     ArrayList voteItems = new ArrayList(sizeof(VoteCandidate));
+    if (voteItems == null)
+    {
+        LogError("Failed to allocate voteItems ArrayList in StartGameModeVote. Handle limit reached?");
+        return;
+    }
 	
     if (GetVoteMethod() == 3)
     {
         StartMapVote(client, "");
+        delete voteItems;
         return;
     }
 
     ArrayList gameModes = GetGameModesList();
-    if (gameModes.Length == 0)
+    if (gameModes == null || gameModes.Length == 0)
     {
         CPrintToChat(client, "%t", "None Show Gamemode Group");
+        delete voteItems;
         return;
     }
 
@@ -5163,27 +5208,29 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
 
         int groupExclude = adminVote ? g_Cvar_VoteAdminGroupExclude.IntValue : g_Cvar_VoteGroupExclude.IntValue;
 
-        for (int i = 0; i < g_NominatedGamemodes.Length; i++)
-        {
-            char nominatedGM[128];
-            g_NominatedGamemodes.GetString(i, nominatedGM, sizeof(nominatedGM));
+        if (g_NominatedGamemodes != null) {
+            for (int i = 0; i < g_NominatedGamemodes.Length; i++)
+            {
+                char nominatedGM[128];
+                g_NominatedGamemodes.GetString(i, nominatedGM, sizeof(nominatedGM));
 
-            if (groupExclude > 0 && g_PlayedGamemodes.FindString(nominatedGM) != -1)
-                continue;
+                if (groupExclude > 0 && g_PlayedGamemodes != null && g_PlayedGamemodes.FindString(nominatedGM) != -1)
+                    continue;
 
-            char groupName[64];
-            SplitGamemodeString(nominatedGM, groupName, sizeof(groupName), "", 0);
-            int index = FindGameModeIndex(groupName);
-            if (index == -1)
-                continue;
+                char groupName[64];
+                SplitGamemodeString(nominatedGM, groupName, sizeof(groupName), "", 0);
+                int index = FindGameModeIndex(groupName);
+                if (index == -1)
+                    continue;
 
-            GameModeConfig config;
-            gameModes.GetArray(index, config);
+                GameModeConfig config;
+                gameModes.GetArray(index, config);
 
-            bool available = adminVote ? GamemodeAvailableAdminVote(config.name) : GamemodeAvailable(config.name);
+                bool available = adminVote ? GamemodeAvailableAdminVote(config.name) : GamemodeAvailable(config.name);
 
-            if (available && nominatedItems.FindString(nominatedGM) == -1 && IsCurrentlyAvailableByTime(groupName))
-                nominatedItems.PushString(nominatedGM);
+                if (available && nominatedItems.FindString(nominatedGM) == -1 && IsCurrentlyAvailableByTime(groupName))
+                    nominatedItems.PushString(nominatedGM);
+            }
         }
 
         for (int i = 0; i < gameModes.Length; i++)
@@ -5195,10 +5242,10 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
             if (!available)
                 continue;
 
-            if (groupExclude > 0 && g_PlayedGamemodes.FindString(config.name) != -1)
+            if (groupExclude > 0 && g_PlayedGamemodes != null && g_PlayedGamemodes.FindString(config.name) != -1)
                 continue;
 
-            if (g_NominatedGamemodes.FindString(config.name) == -1 && IsCurrentlyAvailableByTime(config.name))
+            if (g_NominatedGamemodes != null && g_NominatedGamemodes.FindString(config.name) == -1 && IsCurrentlyAvailableByTime(config.name))
                 otherItems.PushString(config.name);
         }
 
@@ -5251,23 +5298,28 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
         }
     }
 
-    for (int i = 0; i < voteSourceList.Length; i++)
-    {
-        char gm[128];
-        voteSourceList.GetString(i, gm, sizeof(gm));
+    if (runoffItems != null || voteSourceList != null) {
+        int count = (runoffItems != null) ? runoffItems.Length : voteSourceList.Length;
+        if (voteSourceList != null) {
+            for (int i = 0; i < count; i++)
+            {
+                char gm[128];
+                voteSourceList.GetString(i, gm, sizeof(gm));
 
-        char display[128];
+                char display[128];
 
-        if (g_NominatedGamemodes.FindString(gm) != -1)
-            Format(display, sizeof(display), "%s%s", gm, GESTURE_NOMINATED);
-        else
-            strcopy(display, sizeof(display), gm);
+                if (g_NominatedGamemodes != null && g_NominatedGamemodes.FindString(gm) != -1)
+                    Format(display, sizeof(display), "%s%s", gm, GESTURE_NOMINATED);
+                else
+                    strcopy(display, sizeof(display), gm);
 
-        VoteCandidate item;
-        strcopy(item.info, sizeof(item.info), gm);
-        strcopy(item.name, sizeof(item.name), display);
+                VoteCandidate item;
+                strcopy(item.info, sizeof(item.info), gm);
+                strcopy(item.name, sizeof(item.name), display);
 
-        voteItems.PushArray(item);
+                voteItems.PushArray(item);
+            }
+        }
     }
 
     CallActiveVoteManager(client, VOTE_TYPE_GROUP, "", voteItems, g_Cvar_VoteTime.IntValue, adminVote, runoffItems != null);
@@ -5989,10 +6041,14 @@ public int Core_VoteHandler(Menu menu, MenuAction action, int param1, int param2
             if (g_bVoteActive)
             {
                 g_bVoteActive = false;
-                NativeMMC_OnVoteEnd("", "", "", VoteEnd_Cancelled);
                 
-                g_bIsRunoffVote = false;
-                g_RunoffItems.Clear();
+                // If g_bCooldownActive is true, it means we transitioned to Runoff or Winner Cooldown.
+                if (!g_bCooldownActive)
+                {
+                    NativeMMC_OnVoteEnd("", "", "", VoteEnd_Cancelled);
+                    g_bIsRunoffVote = false;
+                    if(g_RunoffItems != null) g_RunoffItems.Clear();
+                }
             }
             delete menu;
         }
@@ -6010,7 +6066,7 @@ public int Core_VoteHandler(Menu menu, MenuAction action, int param1, int param2
                 g_bVoteActive = false;
                 NativeMMC_OnVoteEnd("", "", "", VoteEnd_Cancelled);
                 g_bIsRunoffVote = false;
-                g_RunoffItems.Clear();
+                if(g_RunoffItems != null) g_RunoffItems.Clear();
             }
         }
     }
@@ -6031,7 +6087,6 @@ public void Core_VoteResultHandler(Menu menu, int num_votes, int num_clients, co
     ProcessVoteLogic(g_eCurrentNativeVoteType, num_votes, num_clients, results);
     delete results;
 }
-
 
 // //////////////////////////////////////////////
 // //                                          //
