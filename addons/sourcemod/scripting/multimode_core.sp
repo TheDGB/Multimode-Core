@@ -14,7 +14,7 @@
 #include <multimode/base>
 #include <multimode>
 
-#define PLUGIN_VERSION "3.2.5"
+#define PLUGIN_VERSION "3.2.6"
 
 // Gesture Defines
 #define GESTURE_NOMINATED " (!)" // For nominated global gesture groups/maps
@@ -6610,6 +6610,24 @@ void GetRandomGameMode(char[] buffer, int maxlength)
 int FindGameModeForMap(const char[] map)
 {
     ArrayList gameModes = GetGameModesList();
+    
+    if (strlen(g_sCurrentGameMode) > 0)
+    {
+        char currentGroup[64], currentSubGroup[64];
+        SplitGamemodeString(g_sCurrentGameMode, currentGroup, sizeof(currentGroup), currentSubGroup, sizeof(currentSubGroup));
+
+        int index = FindGameModeIndex(currentGroup);
+        if (index != -1)
+        {
+            GameModeConfig config;
+            gameModes.GetArray(index, config);
+            if (config.maps.FindString(map) != -1)
+            {
+                return index;
+            }
+        }
+    }
+
     for (int i = 0; i < gameModes.Length; i++)
     {
         GameModeConfig config;
@@ -6625,6 +6643,42 @@ int FindGameModeForMap(const char[] map)
 bool FindConfigForMap(const char[] map, char[] group, int groupLen, char[] subgroup, int subgroupLen)
 {
     ArrayList gameModes = GetGameModesList();
+
+    if (strlen(g_sCurrentGameMode) > 0)
+    {
+        char currentGroup[64], currentSubGroup[64];
+        SplitGamemodeString(g_sCurrentGameMode, currentGroup, sizeof(currentGroup), currentSubGroup, sizeof(currentSubGroup));
+
+        int i = FindGameModeIndex(currentGroup);
+        if (i != -1)
+        {
+            GameModeConfig config;
+            gameModes.GetArray(i, config);
+            
+            if (GamemodeAvailable(config.name))
+            {
+                if (config.maps.FindString(map) != -1)
+                {
+                    strcopy(group, groupLen, config.name);
+                    subgroup[0] = '\0';
+                    return true;
+                }
+                
+                for (int j = 0; j < config.subGroups.Length; j++)
+                {
+                    SubGroupConfig subConfig;
+                    config.subGroups.GetArray(j, subConfig);
+                    if (subConfig.maps.FindString(map) != -1)
+                    {
+                        strcopy(group, groupLen, config.name);
+                        strcopy(subgroup, subgroupLen, subConfig.name);
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
     for (int i = 0; i < gameModes.Length; i++)
     {
         GameModeConfig config;
