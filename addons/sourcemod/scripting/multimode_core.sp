@@ -14,7 +14,7 @@
 #include <multimode/base>
 #include <multimode>
 
-#define PLUGIN_VERSION "3.2.7"
+#define PLUGIN_VERSION "3.2.9"
 
 // Gesture Defines
 #define GESTURE_NOMINATED " (!)" // For nominated global gesture groups/maps
@@ -50,9 +50,9 @@ ConVar g_Cvar_ExtendFragStep;
 ConVar g_Cvar_ExtendRoundStep;
 ConVar g_Cvar_ExtendSteps;
 ConVar g_Cvar_ExtendVote;
+ConVar g_Cvar_ExtendVotePosition;
 ConVar g_Cvar_ExtendVoteAdmin;
 ConVar g_Cvar_Logs;
-ConVar g_Cvar_MenuStyle;
 ConVar g_Cvar_MapCycleFile;
 ConVar g_Cvar_Method;
 ConVar g_Cvar_NominateEnabled;
@@ -282,6 +282,7 @@ public void OnPluginStart()
     
     g_Cvar_Extend = CreateConVar("multimode_extend", "1", "Enables/disables the extend option to extend the map");
     g_Cvar_ExtendVote = CreateConVar("multimode_extendvote", "1", "Shows the option to extend in normal votes");
+	g_Cvar_ExtendVotePosition = CreateConVar("multimode_extendvote_position", "2", "Position of the Extend Map option in vote menus. 1 = Classic (Always at the top with the voting items.), 2 = Modern (separated at the top)", _, true, 1.0, true, 2.0);
     g_Cvar_ExtendVoteAdmin = CreateConVar("multimode_extendvoteadmin", "1", "Show extend option in admin votes");
     g_Cvar_ExtendEveryTime = CreateConVar("multimode_extendeverytime", "0", "Allow extending the map multiple times in consecutive votes. 0 = only once per map.", _, true, 0.0, true, 1.0);
 	
@@ -295,8 +296,6 @@ public void OnPluginStart()
     g_Cvar_Method = CreateConVar("multimode_method", "1", "Voting method: 1=Groups then maps, 2=Only groups (random map), 3=Only maps (all groups)", _, true, 1.0, true, 3.0);
     
     g_Cvar_Logs = CreateConVar("multimode_logs", "1", "Enables and disables Multimode Core logs, when enabled, a new file will be created in sourcemod/logs/multimode_logs.txt and server messages in server console.");
-	
-	g_Cvar_MenuStyle = CreateConVar("multimode_menustyle", "2", "Selects the menu layout style used by MultiMode. 1 = Classic (old) layout, 2 = Modern (new) layout", _, true, 1.0, true, 2.0);
 
     g_PlayedGamemodes = new ArrayList(ByteCountToCells(128));
     g_PlayedMaps = new StringMap();
@@ -6051,121 +6050,110 @@ public void Core_StartVote(int initiator, VoteType type, const char[] info, Arra
         if (sound[0] != '\0') EmitSoundToAllAny(sound);
     }
     
-    int menuStyle = g_Cvar_MenuStyle.IntValue;
+    int extendPosition = g_Cvar_ExtendVotePosition.IntValue;
     
-    if (menuStyle == 1)
+    bool hasExtendItem = false;
+    int extendIndex = -1;
+    VoteCandidate extendItem;
+    
+    for(int i = 0; i < items.Length; i++)
     {
-        for(int i = 0; i < items.Length; i++)
+        VoteCandidate item;
+        items.GetArray(i, item);
+        if (StrEqual(item.info, "Extend Map"))
         {
-            VoteCandidate item;
-            items.GetArray(i, item);
-            menu.AddItem(item.info, item.name);
+            hasExtendItem = true;
+            extendIndex = i;
+            extendItem = item;
+            break;
         }
     }
-    else if (menuStyle == 2)
+    
+    if (hasExtendItem)
     {
-        bool hasExtendItem = false;
-        int extendIndex = -1;
-        VoteCandidate extendItem;
-        
-        for(int i = 0; i < items.Length; i++)
+        if (extendPosition == 1)
         {
-            VoteCandidate item;
-            items.GetArray(i, item);
-            if (StrEqual(item.info, "Extend Map"))
-            {
-                hasExtendItem = true;
-                extendIndex = i;
-                extendItem = item;
-                break;
-            }
+            menu.AddItem(extendItem.info, extendItem.name);
         }
-        
-        if (hasExtendItem)
+        else if (extendPosition == 2)
         {
             menu.AddItem(extendItem.info, extendItem.name);
             menu.AddItem("", "", ITEMDRAW_SPACER);
         }
-        
-        for(int i = 0; i < items.Length; i++)
-        {
-            if (hasExtendItem && i == extendIndex)
-                continue;
-                
-            VoteCandidate item;
-            items.GetArray(i, item);
+    }
+
+    for(int i = 0; i < items.Length; i++)
+    {
+        if (hasExtendItem && i == extendIndex) continue;
             
-            if (StrContains(item.name, GESTURE_NOMINATED) == -1 && 
-                StrContains(item.name, GESTURE_CURRENT) == -1 &&
-                StrContains(item.name, GESTURE_VOTED) == -1)
+        VoteCandidate item;
+        items.GetArray(i, item);
+        
+        if (StrContains(item.name, GESTURE_NOMINATED) == -1 && 
+            StrContains(item.name, GESTURE_CURRENT) == -1 &&
+            StrContains(item.name, GESTURE_VOTED) == -1)
+        {
+            bool isNominated = false;
+            
+            if (type == VOTE_TYPE_GROUP || type == VOTE_TYPE_SUBGROUP)
             {
-                bool isNominated = false;
-                
-                if (type == VOTE_TYPE_GROUP || type == VOTE_TYPE_SUBGROUP)
+                if (g_NominatedGamemodes != null && g_NominatedGamemodes.FindString(item.info) != -1)
                 {
-                    if (g_NominatedGamemodes != null && g_NominatedGamemodes.FindString(item.info) != -1)
+                    isNominated = true;
+                }
+            }
+            else if (type == VOTE_TYPE_MAP || type == VOTE_TYPE_SUBGROUP_MAP)
+            {
+                if (GetVoteMethod() == 3 && strlen(g_sVoteGameMode) == 0)
+                {
+                    StringMapSnapshot snapshot = g_NominatedMaps.Snapshot();
+                    for (int j = 0; j < snapshot.Length; j++)
+                    {
+                        char key[128];
+                        snapshot.GetKey(j, key, sizeof(key));
+                        ArrayList nominatedMaps;
+                        if (g_NominatedMaps.GetValue(key, nominatedMaps) && nominatedMaps.FindString(item.info) != -1)
+                        {
+                            isNominated = true;
+                            break;
+                        }
+                    }
+                    delete snapshot;
+                }
+                else
+                {
+                    char key[128];
+                    if (type == VOTE_TYPE_SUBGROUP_MAP && strlen(g_sVoteSubGroup) > 0)
+                    {
+                        Format(key, sizeof(key), "%s/%s", g_sVoteGameMode, g_sVoteSubGroup);
+                    }
+                    else
+                    {
+                        strcopy(key, sizeof(key), g_sVoteGameMode);
+                    }
+                    
+                    ArrayList mapsNominated;
+                    if (g_NominatedMaps.GetValue(key, mapsNominated) && mapsNominated.FindString(item.info) != -1)
                     {
                         isNominated = true;
                     }
                 }
-                else if (type == VOTE_TYPE_MAP || type == VOTE_TYPE_SUBGROUP_MAP)
-                {
-                    if (GetVoteMethod() == 3 && strlen(g_sVoteGameMode) == 0)
-                    {
-                        StringMapSnapshot snapshot = g_NominatedMaps.Snapshot();
-                        for (int j = 0; j < snapshot.Length; j++)
-                        {
-                            char key[128];
-                            snapshot.GetKey(j, key, sizeof(key));
-                            ArrayList nominatedMaps;
-                            if (g_NominatedMaps.GetValue(key, nominatedMaps) && nominatedMaps.FindString(item.info) != -1)
-                            {
-                                isNominated = true;
-                                break;
-                            }
-                        }
-                        delete snapshot;
-                    }
-                    else
-                    {
-                        char key[128];
-                        if (type == VOTE_TYPE_SUBGROUP_MAP && strlen(g_sVoteSubGroup) > 0)
-                        {
-                            Format(key, sizeof(key), "%s/%s", g_sVoteGameMode, g_sVoteSubGroup);
-                        }
-                        else
-                        {
-                            strcopy(key, sizeof(key), g_sVoteGameMode);
-                        }
-                        
-                        ArrayList mapsNominated;
-                        if (g_NominatedMaps.GetValue(key, mapsNominated) && mapsNominated.FindString(item.info) != -1)
-                        {
-                            isNominated = true;
-                        }
-                    }
-                }
-                
-                if (isNominated)
-                {
-                    char displayName[256];
-                    Format(displayName, sizeof(displayName), "%s%s", item.name, GESTURE_NOMINATED);
-                    menu.AddItem(item.info, displayName);
-                }
-                else
-                {
-                    menu.AddItem(item.info, item.name);
-                }
+            }
+            
+            if (isNominated)
+            {
+                char displayName[256];
+                Format(displayName, sizeof(displayName), "%s%s", item.name, GESTURE_NOMINATED);
+                menu.AddItem(item.info, displayName);
             }
             else
             {
                 menu.AddItem(item.info, item.name);
             }
         }
-        
-        if (items.Length > 0)
+        else
         {
-            menu.AddItem("", "", ITEMDRAW_SPACER);
+            menu.AddItem(item.info, item.name);
         }
     }
     
