@@ -247,8 +247,8 @@ public void OnPluginStart()
     g_Cvar_VoteAdminSorted = CreateConVar("multimode_voteadmin_sorted", "1", "Sorting mode for admin vote items: 0= Alphabetical, 1= Random, 2= Map Cycle Order", _, true, 0.0, true, 2.0);
     g_Cvar_VoteAdminGroupExclude = CreateConVar("multimode_voteadmin_groupexclude", "0", "Number of recently played gamemodes to exclude from admin votes (0= Disabled)");
     g_Cvar_VoteAdminMapExclude = CreateConVar("multimode_voteadmin_mapexclude", "2", "Number of recently played maps to exclude from admin votes (0= Disabled)");
-    g_Cvar_VoteAdminGroupInVoteLimit = CreateConVar("multimode_voteadmin_group_invotelimit", "9", "Default group limit for admin voting.");
-    g_Cvar_VoteAdminDefaultInVoteLimit = CreateConVar("multimode_voteadmin_default_invotelimit", "9", "Default limit of items (maps/subgroups) in admin voting if not defined in the config.");
+    g_Cvar_VoteAdminGroupInVoteLimit = CreateConVar("multimode_voteadmin_group_invotelimit", "6", "Default group limit for admin voting.");
+    g_Cvar_VoteAdminDefaultInVoteLimit = CreateConVar("multimode_voteadmin_default_invotelimit", "6", "Default limit of items (maps/subgroups) in admin voting if not defined in the config.");
 	
     g_Cvar_Runoff = CreateConVar("multimode_runoff", "1", "Enable runoff system, voting for ties or if no option reaches the threshold.", _, true, 0.0, true, 1.0);
     g_Cvar_RunoffVoteOpenSound = CreateConVar("multimode_runoff_voteopensound", "votemap/vtst.wav", "Sound played when starting a runoff vote.");
