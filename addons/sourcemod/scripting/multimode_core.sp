@@ -52,6 +52,7 @@ ConVar g_Cvar_ExtendSteps;
 ConVar g_Cvar_ExtendVote;
 ConVar g_Cvar_ExtendVoteAdmin;
 ConVar g_Cvar_Logs;
+ConVar g_Cvar_MenuStyle;
 ConVar g_Cvar_MapCycleFile;
 ConVar g_Cvar_Method;
 ConVar g_Cvar_NominateEnabled;
@@ -78,14 +79,19 @@ ConVar g_Cvar_RtvFirstDelay;
 ConVar g_Cvar_RtvMinPlayers;
 ConVar g_Cvar_RtvRatio;
 ConVar g_Cvar_RtvType;
+ConVar g_Cvar_VoteAdminTime;
 ConVar g_Cvar_VoteAdminGroupExclude;
 ConVar g_Cvar_VoteAdminMapExclude;
+ConVar g_Cvar_VoteAdminGroupInVoteLimit;
+ConVar g_Cvar_VoteAdminDefaultInVoteLimit;
 ConVar g_Cvar_VoteAdminSorted;
 ConVar g_Cvar_VoteCloseSound;
 ConVar g_Cvar_VoteGroupExclude;
 ConVar g_Cvar_VoteMapExclude;
 ConVar g_Cvar_VoteOpenSound;
 ConVar g_Cvar_VoteSorted;
+ConVar g_Cvar_VoteGroupInVoteLimit;
+ConVar g_Cvar_VoteDefaultInVoteLimit;
 ConVar g_Cvar_VoteSounds;
 ConVar g_Cvar_VoteTime;
 ConVar g_Cvar_VoteManager;
@@ -232,11 +238,17 @@ public void OnPluginStart()
     
     g_Cvar_VoteTime = CreateConVar("multimode_vote_time", "20", "Vote duration in seconds");
     g_Cvar_VoteSorted = CreateConVar("multimode_vote_sorted", "1", "Sorting mode for vote items: 0= Alphabetical, 1= Random, 2= Map Cycle Order", _, true, 0.0, true, 2.0);
-    g_Cvar_VoteAdminSorted = CreateConVar("multimode_voteadmin_sorted", "1", "Sorting mode for admin vote items: 0= Alphabetical, 1= Random, 2= Map Cycle Order", _, true, 0.0, true, 2.0);
     g_Cvar_VoteGroupExclude = CreateConVar("multimode_vote_groupexclude", "0", "Number of recently played gamemodes to exclude from normal votes (0= Disabled)");
     g_Cvar_VoteMapExclude = CreateConVar("multimode_vote_mapexclude", "2", "Number of recently played maps to exclude from normal votes (0= Disabled)");
+	g_Cvar_VoteGroupInVoteLimit = CreateConVar("multimode_vote_group_invotelimit", "6", "Standard group limit in normal voting.");
+	g_Cvar_VoteDefaultInVoteLimit = CreateConVar("multimode_vote_default_invotelimit", "6", "Default limit of items (maps/subgroups) if not defined in the config.");
+	
+	g_Cvar_VoteAdminTime = CreateConVar("multimode_voteadmin_time", "20", "Voting duration in seconds for admin votes.");
+    g_Cvar_VoteAdminSorted = CreateConVar("multimode_voteadmin_sorted", "1", "Sorting mode for admin vote items: 0= Alphabetical, 1= Random, 2= Map Cycle Order", _, true, 0.0, true, 2.0);
     g_Cvar_VoteAdminGroupExclude = CreateConVar("multimode_voteadmin_groupexclude", "0", "Number of recently played gamemodes to exclude from admin votes (0= Disabled)");
     g_Cvar_VoteAdminMapExclude = CreateConVar("multimode_voteadmin_mapexclude", "2", "Number of recently played maps to exclude from admin votes (0= Disabled)");
+    g_Cvar_VoteAdminGroupInVoteLimit = CreateConVar("multimode_voteadmin_group_invotelimit", "9", "Default group limit for admin voting.");
+    g_Cvar_VoteAdminDefaultInVoteLimit = CreateConVar("multimode_voteadmin_default_invotelimit", "9", "Default limit of items (maps/subgroups) in admin voting if not defined in the config.");
 	
     g_Cvar_Runoff = CreateConVar("multimode_runoff", "1", "Enable runoff system, voting for ties or if no option reaches the threshold.", _, true, 0.0, true, 1.0);
     g_Cvar_RunoffVoteOpenSound = CreateConVar("multimode_runoff_voteopensound", "votemap/vtst.wav", "Sound played when starting a runoff vote.");
@@ -283,6 +295,8 @@ public void OnPluginStart()
     g_Cvar_Method = CreateConVar("multimode_method", "1", "Voting method: 1=Groups then maps, 2=Only groups (random map), 3=Only maps (all groups)", _, true, 1.0, true, 3.0);
     
     g_Cvar_Logs = CreateConVar("multimode_logs", "1", "Enables and disables Multimode Core logs, when enabled, a new file will be created in sourcemod/logs/multimode_logs.txt and server messages in server console.");
+	
+	g_Cvar_MenuStyle = CreateConVar("multimode_menustyle", "2", "Selects the menu layout style used by MultiMode. 1 = Classic (old) layout, 2 = Modern (new) layout", _, true, 1.0, true, 2.0);
 
     g_PlayedGamemodes = new ArrayList(ByteCountToCells(128));
     g_PlayedMaps = new StringMap();
@@ -1049,7 +1063,7 @@ public void LoadGameModesConfig()
             config.maps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
             if (g_kvGameModes.JumpToKey("maps"))
             {
-                config.maps_invote = g_kvGameModes.GetNum("maps_invote", 6);
+                config.maps_invote = g_kvGameModes.GetNum("maps_invote", -1);
                 
                 if (g_kvGameModes.GotoFirstSubKey(false))
                 {
@@ -1097,7 +1111,7 @@ public void LoadGameModesConfig()
             config.subGroups = new ArrayList(sizeof(SubGroupConfig));
             if (g_kvGameModes.JumpToKey("subgroup"))
             {
-                config.subgroups_invote = g_kvGameModes.GetNum("subgroups_invote", 6);
+                config.subgroups_invote = g_kvGameModes.GetNum("subgroups_invote", -1);
                 
                 if (g_kvGameModes.GotoFirstSubKey(false))
                 {
@@ -1118,7 +1132,7 @@ public void LoadGameModesConfig()
                         subConfig.adminonly = g_kvGameModes.GetNum("adminonly", 0);
                         subConfig.minplayers = g_kvGameModes.GetNum("minplayers", 0);
                         subConfig.maxplayers = g_kvGameModes.GetNum("maxplayers", 0);
-                        subConfig.maps_invote = g_kvGameModes.GetNum("maps_invote", 6);
+                        subConfig.maps_invote = g_kvGameModes.GetNum("maps_invote", -1);
 
                         g_kvGameModes.GetString("mintime", time_buffer, sizeof(time_buffer), "-1");
                         subConfig.mintime = StringToInt(time_buffer);
@@ -3484,11 +3498,11 @@ void ShowNominateGamemodeMenu(int client)
     }
 
     int sortMode = g_Cvar_NominateSorted.IntValue;
-    if (sortMode == 0)
+    if (sortMode == 0) // Alphabetical
     {
         SortADTArray(gameModes, Sort_Ascending, Sort_String);
     }
-    else if (sortMode == 1)
+    else if (sortMode == 1) // Random
     {
         SortADTArray(gameModes, Sort_Random, Sort_String);
     }
@@ -3731,11 +3745,11 @@ void ShowNominateMapMenu(int client, const char[] gamemode, const char[] subgrou
     delete availableMaps;
 
     int sortMode = g_Cvar_NominateSorted.IntValue;
-    if (sortMode == 0)
+    if (sortMode == 0) // Alphabetical
     {
         SortADTArray(filteredMaps, Sort_Ascending, Sort_String);
     }
-    else if (sortMode == 1)
+    else if (sortMode == 1) // Random
     {
         SortADTArray(filteredMaps, Sort_Random, Sort_String);
     }
@@ -5251,25 +5265,27 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
 
         int sortMode = adminVote ? g_Cvar_VoteAdminSorted.IntValue : g_Cvar_VoteSorted.IntValue;
 
-        if (sortMode == 0)
+        if (sortMode == 0) // Alphabetical
         {
             nominatedItems.Sort(Sort_Ascending, Sort_String);
             otherItems.Sort(Sort_Ascending, Sort_String);
         }
-        else if (sortMode == 1)
+        else if (sortMode == 1) // Random
         {
             nominatedItems.Sort(Sort_Random, Sort_String);
             otherItems.Sort(Sort_Random, Sort_String);
         }
 
-        for (int i = 0; i < nominatedItems.Length && voteSourceList.Length < 6; i++)
+        int limit = adminVote ? g_Cvar_VoteAdminGroupInVoteLimit.IntValue : g_Cvar_VoteGroupInVoteLimit.IntValue;
+
+        for (int i = 0; i < nominatedItems.Length && voteSourceList.Length < limit; i++)
         {
             char gm[128];
             nominatedItems.GetString(i, gm, sizeof(gm));
             voteSourceList.PushString(gm);
         }
 
-        for (int i = 0; i < otherItems.Length && voteSourceList.Length < 6; i++)
+        for (int i = 0; i < otherItems.Length && voteSourceList.Length < limit; i++)
         {
             char gm[64];
             otherItems.GetString(i, gm, sizeof(gm));
@@ -5322,7 +5338,9 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
         }
     }
 
-    CallActiveVoteManager(client, VOTE_TYPE_GROUP, "", voteItems, g_Cvar_VoteTime.IntValue, adminVote, runoffItems != null);
+    int duration = adminVote ? g_Cvar_VoteAdminTime.IntValue : g_Cvar_VoteTime.IntValue;
+
+    CallActiveVoteManager(client, VOTE_TYPE_GROUP, "", voteItems, duration, adminVote, runoffItems != null);
 
     if (runoffItems == null)
         delete voteSourceList;
@@ -5407,6 +5425,11 @@ void StartSubGroupVote(int client, const char[] gamemode, ArrayList runoffItems 
         }
 
         int limit = config.subgroups_invote;
+        if (limit <= 0)
+        {
+            limit = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminDefaultInVoteLimit.IntValue : g_Cvar_VoteDefaultInVoteLimit.IntValue;
+        }
+
         int count = allSubGroups.Length < limit ? allSubGroups.Length : limit;
 
         for (int i = 0; i < count; i++)
@@ -5430,7 +5453,8 @@ void StartSubGroupVote(int client, const char[] gamemode, ArrayList runoffItems 
     }
 
     strcopy(g_sVoteGameMode, sizeof(g_sVoteGameMode), gamemode);
-    CallActiveVoteManager(client, VOTE_TYPE_SUBGROUP, gamemode, voteItems, g_Cvar_VoteTime.IntValue, g_bCurrentVoteAdmin, runoffItems != null);
+    int duration = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminTime.IntValue : g_Cvar_VoteTime.IntValue;
+    CallActiveVoteManager(client, VOTE_TYPE_SUBGROUP, gamemode, voteItems, duration, g_bCurrentVoteAdmin, runoffItems != null);
     delete voteItems;
 }
 
@@ -5500,7 +5524,8 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
         
         if (runoffItems != null)
         {
-            for(int i = 0; i < runoffItems.Length; i++) {
+            for (int i = 0; i < runoffItems.Length; i++)
+            {
                 char buffer[PLATFORM_MAX_PATH];
                 runoffItems.GetString(i, buffer, sizeof(buffer));
                 finalVoteList.PushString(buffer);
@@ -5600,8 +5625,8 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
             delete uniqueMaps;
 
             poolRandoms.Sort(Sort_Random, Sort_String);
-            
-            int maxItems = 6;
+
+            int maxItems = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminDefaultInVoteLimit.IntValue : g_Cvar_VoteDefaultInVoteLimit.IntValue;
             int slotsNeeded = maxItems - listNominations.Length;
             
             for (int i = 0; i < slotsNeeded && i < poolRandoms.Length; i++)
@@ -5662,14 +5687,15 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
             StringMapSnapshot snapshot = g_NominatedMaps.Snapshot();
             for (int j = 0; j < snapshot.Length; j++)
             {
-                 char key[128];
-                 snapshot.GetKey(j, key, sizeof(key));
-                 ArrayList nominatedMaps;
-                 g_NominatedMaps.GetValue(key, nominatedMaps);
-                 if (nominatedMaps.FindString(map) != -1) {
-                     isNominated = true;
-                     break;
-                 }
+                char key[128];
+                snapshot.GetKey(j, key, sizeof(key));
+                ArrayList nominatedMaps;
+                g_NominatedMaps.GetValue(key, nominatedMaps);
+                if (nominatedMaps.FindString(map) != -1)
+                {
+                    isNominated = true;
+                    break;
+                }
             }
             delete snapshot;
 
@@ -5687,7 +5713,10 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
         if (runoffItems == null) delete finalVoteList;
 
         g_sSelectedGameMode = "";
-        CallActiveVoteManager(client, VOTE_TYPE_MAP, "", voteItems, g_Cvar_VoteTime.IntValue, g_bCurrentVoteAdmin, runoffItems != null);
+        
+        int duration = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminTime.IntValue : g_Cvar_VoteTime.IntValue;
+        
+        CallActiveVoteManager(client, VOTE_TYPE_MAP, "", voteItems, duration, g_bCurrentVoteAdmin, runoffItems != null);
         delete voteItems;
         return;
     }
@@ -5728,9 +5757,13 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
     {
         voteMaps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
         int sortMode = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminSorted.IntValue : g_Cvar_VoteSorted.IntValue;
-        int mapExclude = g_bCurrentVoteAdmin ? 
-            g_Cvar_VoteAdminMapExclude.IntValue : 
-            g_Cvar_VoteMapExclude.IntValue;
+        int mapExclude = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminMapExclude.IntValue : g_Cvar_VoteMapExclude.IntValue;
+
+        int limit = config.maps_invote;
+        if (limit <= 0)
+        {
+            limit = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminDefaultInVoteLimit.IntValue : g_Cvar_VoteDefaultInVoteLimit.IntValue;
+        }
 
         char key[128];
         strcopy(key, sizeof(key), sGameMode);
@@ -5755,8 +5788,7 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
                 if (mapExclude > 0) 
                 {
                     ArrayList playedMaps;
-                    if (g_PlayedMaps.GetValue(key, playedMaps) && 
-                        playedMaps.FindString(map) != -1)
+                    if (g_PlayedMaps.GetValue(key, playedMaps) && playedMaps.FindString(map) != -1)
                     {
                         continue;
                     }
@@ -5767,13 +5799,13 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
                     voteMaps.PushString(map);
                 }
 
-                if(voteMaps.Length >= config.maps_invote)
+                if (voteMaps.Length >= limit)
                     break;
             }
             delete nominateList;
         }
 
-        int needed = config.maps_invote - voteMaps.Length;
+        int needed = limit - voteMaps.Length;
         if (needed > 0)
         {
             ArrayList availableMaps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
@@ -5801,6 +5833,7 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
             {
                 availableMaps.Sort(Sort_Random, Sort_String);
             }
+
             int count = (availableMaps.Length < needed) ? availableMaps.Length : needed;
             for (int i = 0; i < count; i++)
             {
@@ -5833,7 +5866,8 @@ void StartMapVote(int client, const char[] sGameMode, ArrayList runoffItems = nu
 
     if (voteItems.Length > 0)
     {
-        CallActiveVoteManager(client, VOTE_TYPE_MAP, config.name, voteItems, g_Cvar_VoteTime.IntValue, g_bCurrentVoteAdmin, runoffItems != null);
+        int duration = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminTime.IntValue : g_Cvar_VoteTime.IntValue;
+        CallActiveVoteManager(client, VOTE_TYPE_MAP, config.name, voteItems, duration, g_bCurrentVoteAdmin, runoffItems != null);
     }
     else
     {
@@ -5964,7 +5998,10 @@ void StartSubGroupMapVote(int client, const char[] gamemode, const char[] subgro
     
     char info[128];
     Format(info, sizeof(info), "%s / %s", gamemode, subgroup);
-    CallActiveVoteManager(client, VOTE_TYPE_SUBGROUP_MAP, info, voteItems, g_Cvar_VoteTime.IntValue, g_bCurrentVoteAdmin, runoffItems != null);
+    
+    int duration = g_bCurrentVoteAdmin ? g_Cvar_VoteAdminTime.IntValue : g_Cvar_VoteTime.IntValue;
+    
+    CallActiveVoteManager(client, VOTE_TYPE_SUBGROUP_MAP, info, voteItems, duration, g_bCurrentVoteAdmin, runoffItems != null);
     delete voteItems;
 }
 
@@ -6014,11 +6051,122 @@ public void Core_StartVote(int initiator, VoteType type, const char[] info, Arra
         if (sound[0] != '\0') EmitSoundToAllAny(sound);
     }
     
-    for(int i = 0; i < items.Length; i++)
+    int menuStyle = g_Cvar_MenuStyle.IntValue;
+    
+    if (menuStyle == 1)
     {
-        VoteCandidate item;
-        items.GetArray(i, item);
-        menu.AddItem(item.info, item.name);
+        for(int i = 0; i < items.Length; i++)
+        {
+            VoteCandidate item;
+            items.GetArray(i, item);
+            menu.AddItem(item.info, item.name);
+        }
+    }
+    else if (menuStyle == 2)
+    {
+        bool hasExtendItem = false;
+        int extendIndex = -1;
+        VoteCandidate extendItem;
+        
+        for(int i = 0; i < items.Length; i++)
+        {
+            VoteCandidate item;
+            items.GetArray(i, item);
+            if (StrEqual(item.info, "Extend Map"))
+            {
+                hasExtendItem = true;
+                extendIndex = i;
+                extendItem = item;
+                break;
+            }
+        }
+        
+        if (hasExtendItem)
+        {
+            menu.AddItem(extendItem.info, extendItem.name);
+            menu.AddItem("", "", ITEMDRAW_SPACER);
+        }
+        
+        for(int i = 0; i < items.Length; i++)
+        {
+            if (hasExtendItem && i == extendIndex)
+                continue;
+                
+            VoteCandidate item;
+            items.GetArray(i, item);
+            
+            if (StrContains(item.name, GESTURE_NOMINATED) == -1 && 
+                StrContains(item.name, GESTURE_CURRENT) == -1 &&
+                StrContains(item.name, GESTURE_VOTED) == -1)
+            {
+                bool isNominated = false;
+                
+                if (type == VOTE_TYPE_GROUP || type == VOTE_TYPE_SUBGROUP)
+                {
+                    if (g_NominatedGamemodes != null && g_NominatedGamemodes.FindString(item.info) != -1)
+                    {
+                        isNominated = true;
+                    }
+                }
+                else if (type == VOTE_TYPE_MAP || type == VOTE_TYPE_SUBGROUP_MAP)
+                {
+                    if (GetVoteMethod() == 3 && strlen(g_sVoteGameMode) == 0)
+                    {
+                        StringMapSnapshot snapshot = g_NominatedMaps.Snapshot();
+                        for (int j = 0; j < snapshot.Length; j++)
+                        {
+                            char key[128];
+                            snapshot.GetKey(j, key, sizeof(key));
+                            ArrayList nominatedMaps;
+                            if (g_NominatedMaps.GetValue(key, nominatedMaps) && nominatedMaps.FindString(item.info) != -1)
+                            {
+                                isNominated = true;
+                                break;
+                            }
+                        }
+                        delete snapshot;
+                    }
+                    else
+                    {
+                        char key[128];
+                        if (type == VOTE_TYPE_SUBGROUP_MAP && strlen(g_sVoteSubGroup) > 0)
+                        {
+                            Format(key, sizeof(key), "%s/%s", g_sVoteGameMode, g_sVoteSubGroup);
+                        }
+                        else
+                        {
+                            strcopy(key, sizeof(key), g_sVoteGameMode);
+                        }
+                        
+                        ArrayList mapsNominated;
+                        if (g_NominatedMaps.GetValue(key, mapsNominated) && mapsNominated.FindString(item.info) != -1)
+                        {
+                            isNominated = true;
+                        }
+                    }
+                }
+                
+                if (isNominated)
+                {
+                    char displayName[256];
+                    Format(displayName, sizeof(displayName), "%s%s", item.name, GESTURE_NOMINATED);
+                    menu.AddItem(item.info, displayName);
+                }
+                else
+                {
+                    menu.AddItem(item.info, item.name);
+                }
+            }
+            else
+            {
+                menu.AddItem(item.info, item.name);
+            }
+        }
+        
+        if (items.Length > 0)
+        {
+            menu.AddItem("", "", ITEMDRAW_SPACER);
+        }
     }
     
     menu.ExitButton = false;
