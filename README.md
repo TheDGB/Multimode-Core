@@ -1,4 +1,4 @@
-<h1 align=center>Multimode Core (BETA)</h1> 
+<h1 align=center>Multimode Core 3.0.0+</h1> 
 <div align=center>
 
 [![GitHub last commit](https://img.shields.io/github/last-commit/TheDGB/Multimode-Core)](https://github.com/TheDGB/Multimode-Core)
