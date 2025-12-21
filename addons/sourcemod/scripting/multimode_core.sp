@@ -14,7 +14,7 @@
 #include <multimode/base>
 #include <multimode>
 
-#define PLUGIN_VERSION "3.2.9"
+#define PLUGIN_VERSION "3.3.0"
 
 // Gesture Defines
 #define GESTURE_NOMINATED " (!)" // For nominated global gesture groups/maps
