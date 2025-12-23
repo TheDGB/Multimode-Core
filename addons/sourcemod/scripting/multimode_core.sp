@@ -14,7 +14,7 @@
 #include <multimode/base>
 #include <multimode>
 
-#define PLUGIN_VERSION "3.3.3-beta"
+#define PLUGIN_VERSION "3.3.4-beta"
 
 // Gesture Defines
 #define GESTURE_NOMINATED " (!)" // For nominated global gesture groups/maps
@@ -1608,6 +1608,7 @@ void HandleWinner(const char[] winner, VoteType voteType)
                 }
                 else
                 {
+                    g_sVoteSubGroup[0] = '\0';
                     StartCooldown(VOTE_TYPE_MAP, winner, "", g_iVoteInitiator);
                 }
             }
@@ -1627,6 +1628,54 @@ void HandleWinner(const char[] winner, VoteType voteType)
                         GameModeConfig config;
                         GetGameModesList().GetArray(index, config);
                         strcopy(g_sVoteGameMode, sizeof(g_sVoteGameMode), config.name);
+                        
+                        g_sVoteSubGroup[0] = '\0';
+                        for (int i = 0; i < config.subGroups.Length; i++)
+                        {
+                            SubGroupConfig subConfig;
+                            config.subGroups.GetArray(i, subConfig);
+                            if (subConfig.maps.FindString(g_sVoteMap) != -1)
+                            {
+                                strcopy(g_sVoteSubGroup, sizeof(g_sVoteSubGroup), subConfig.name);
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        g_sVoteSubGroup[0] = '\0';
+                    }
+                }
+                else
+                {
+                    if (strlen(g_sVoteGameMode) > 0)
+                    {
+                        int index = FindGameModeIndex(g_sVoteGameMode);
+                        if (index != -1)
+                        {
+                            GameModeConfig config;
+                            GetGameModesList().GetArray(index, config);
+                            
+                            g_sVoteSubGroup[0] = '\0';
+                            for (int i = 0; i < config.subGroups.Length; i++)
+                            {
+                                SubGroupConfig subConfig;
+                                config.subGroups.GetArray(i, subConfig);
+                                if (subConfig.maps.FindString(g_sVoteMap) != -1)
+                                {
+                                    strcopy(g_sVoteSubGroup, sizeof(g_sVoteSubGroup), subConfig.name);
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            g_sVoteSubGroup[0] = '\0';
+                        }
+                    }
+                    else
+                    {
+                        g_sVoteSubGroup[0] = '\0';
                     }
                 }
                 ExecuteVoteResult();
@@ -6402,6 +6451,36 @@ public void ExecuteVoteResult()
             WriteToLogFile("[MultiMode Core] WARNING: Method 3: Could not find gamemode for map '%s'", g_sVoteMap);
         }
     }
+	
+	if (strlen(g_sVoteGameMode) > 0 && strlen(g_sVoteSubGroup) > 0)
+	{
+		int index = FindGameModeIndex(g_sVoteGameMode);
+		if (index != -1)
+		{
+			GameModeConfig config;
+			ArrayList list = GetGameModesList();
+			list.GetArray(index, config);
+			
+			int subgroupIndex = FindSubGroupIndex(g_sVoteGameMode, g_sVoteSubGroup);
+			if (subgroupIndex == -1)
+			{
+				g_sVoteSubGroup[0] = '\0';
+			}
+			else if (strlen(g_sVoteMap) > 0)
+			{
+				SubGroupConfig subConfig;
+				config.subGroups.GetArray(subgroupIndex, subConfig);
+				if (subConfig.maps.FindString(g_sVoteMap) == -1)
+				{
+					g_sVoteSubGroup[0] = '\0';
+				}
+			}
+		}
+		else
+		{
+			g_sVoteSubGroup[0] = '\0';
+		}
+	}
 	
 	strcopy(g_sNextSubGroup, sizeof(g_sNextSubGroup), g_sVoteSubGroup);
 	
