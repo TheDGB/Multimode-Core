@@ -14,7 +14,7 @@
 #include <multimode/base>
 #include <multimode>
 
-#define PLUGIN_VERSION "3.3.0"
+#define PLUGIN_VERSION "3.3.3-beta"
 
 // Gesture Defines
 #define GESTURE_NOMINATED " (!)" // For nominated global gesture groups/maps
@@ -600,6 +600,18 @@ public void OnMapStart()
             }
             g_kvGameModes.Rewind();
         }
+        
+        if (strlen(g_sNextSubGroup) > 0)
+        {
+            char tempGameMode[128];
+            Format(tempGameMode, sizeof(tempGameMode), "%s/%s", g_sNextGameMode, g_sNextSubGroup);
+            strcopy(g_sCurrentGameMode, sizeof(g_sCurrentGameMode), tempGameMode);
+        }
+        else
+        {
+            strcopy(g_sCurrentGameMode, sizeof(g_sCurrentGameMode), g_sNextGameMode);
+        }
+        
         g_sNextGameMode[0] = '\0';
         g_sNextSubGroup[0] = '\0';
     }
@@ -777,15 +789,24 @@ public void OnMapStart()
 	g_bEndVoteTriggered = false;
     g_bRtvInitialDelay = true;
 	
-    if (g_hRtvCooldownTimer != INVALID_HANDLE && g_hRtvCooldownTimer != null)
+    if (g_hRtvCooldownTimer != INVALID_HANDLE)
     {
         KillTimer(g_hRtvCooldownTimer);
         g_hRtvCooldownTimer = INVALID_HANDLE;
     }
-    if (g_hRtvFirstDelayTimer != INVALID_HANDLE && g_hRtvFirstDelayTimer != null)
+    if (g_hRtvFirstDelayTimer != INVALID_HANDLE)
     {
         KillTimer(g_hRtvFirstDelayTimer);
         g_hRtvFirstDelayTimer = INVALID_HANDLE;
+    }
+    
+    for (int i = 0; i < sizeof(g_hRtvTimers); i++)
+    {
+        if (g_hRtvTimers[i] != INVALID_HANDLE)
+        {
+            KillTimer(g_hRtvTimers[i]);
+            g_hRtvTimers[i] = INVALID_HANDLE;
+        }
     }
 
     g_bCooldownActive = false;
@@ -915,7 +936,7 @@ public void OnMapStart()
         }
     }
 
-    if (g_hEndVoteTimer != null && g_hEndVoteTimer != INVALID_HANDLE)
+    if (g_hEndVoteTimer != INVALID_HANDLE)
     {
         KillTimer(g_hEndVoteTimer);
         g_hEndVoteTimer = INVALID_HANDLE;
@@ -962,12 +983,6 @@ public void OnClientDisconnect(int client)
     }
 	
     if (GetRealClientCount() == 0 && g_hEndVoteTimer != INVALID_HANDLE)
-    {
-        KillTimer(g_hEndVoteTimer);
-        g_hEndVoteTimer = INVALID_HANDLE;
-    }
-	
-    if (g_hEndVoteTimer != INVALID_HANDLE && g_hEndVoteTimer != null)
     {
         KillTimer(g_hEndVoteTimer);
         g_hEndVoteTimer = INVALID_HANDLE;
@@ -1692,12 +1707,15 @@ void StartPendingRunoffVote()
 
 public Action Timer_EnableRTV(Handle timer)
 {
-    if (!g_bRtvCooldown)
+    // This timer is for the initial delay, not cooldown...
+    g_bRtvInitialDelay = false;
+    g_hRtvTimers[0] = INVALID_HANDLE;
+    
+    if (!g_bRtvDisabled && !g_bRtvCooldown)
     {
-        g_bRtvInitialDelay = false;
-        g_hRtvTimers[0] = INVALID_HANDLE;
         CPrintToChatAll("%t", "RTV Available");
     }
+    
     return Plugin_Stop;
 }
 
@@ -2158,7 +2176,7 @@ public Action Timer_StartEndVote(Handle timer)
 {
     if(g_Cvar_EndVoteEnabled.BoolValue) 
     {
-        if (g_hEndVoteTimer == null || g_hEndVoteTimer == INVALID_HANDLE) 
+        if (g_hEndVoteTimer == INVALID_HANDLE) 
         {
             g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
         }
@@ -2170,15 +2188,7 @@ public Action Timer_StartEndVote(Handle timer)
 
 public Action Timer_CheckEndVote(Handle timer)
 {
-    int playerCount = 0;
-    for (int i = 1; i <= MaxClients; i++)
-    {
-        if (IsClientInGame(i) && !IsFakeClient(i))
-        {
-            playerCount++;
-        }
-    }
-
+    int playerCount = GetRealClientCount();
     if (playerCount < 1)
     {
         if (g_Cvar_EndVoteDebug.BoolValue)
@@ -2200,8 +2210,8 @@ public Action Timer_CheckEndVote(Handle timer)
     if (!bMinEnabled && !bRoundsEnabled && !bFragsEnabled)
     {
         if(g_Cvar_EndVoteDebug.BoolValue) 
-            WriteToLogFile("[End Vote] Verification skipped: System disabled/voting active/triggered/RTV blocked");
-        return Plugin_Continue;
+            WriteToLogFile("[End Vote] No conditions enabled, stopping timer");
+        return Plugin_Stop;
     }
 
     if (bMinEnabled)
@@ -2271,7 +2281,10 @@ public Action Timer_CheckEndVote(Handle timer)
         }
         else if (winLimit != null && winLimit.IntValue > 0)
         {
-            roundsRemaining = winLimit.IntValue - GetTeamScore(winLimit.IntValue == GetTeamScore(2) ? 2 : 3);
+            int team2Score = GetTeamScore(2);
+            int team3Score = GetTeamScore(3);
+            int highestScore = (team2Score > team3Score) ? team2Score : team3Score;
+            roundsRemaining = winLimit.IntValue - highestScore;
         }
         
         if (roundsRemaining > 0)
@@ -2283,11 +2296,16 @@ public Action Timer_CheckEndVote(Handle timer)
                 CountdownMessages("Rounds", untilVote);
             }
 
-            if (untilVote == 0)
+            if (untilVote <= 0)
             {
                 PerformEndVote();
                 return Plugin_Stop;
             }
+        }
+        else if (roundsRemaining == 0)
+        {
+            PerformEndVote();
+            return Plugin_Stop;
         }
     }
     
@@ -2302,9 +2320,11 @@ public Action Timer_CheckEndVote(Handle timer)
                 if (IsClientInGame(i) && !IsFakeClient(i))
                 {
                     int frags = GetClientFrags(i);
-                    if (frags > maxFrags) maxFrags = frags;
+                    if (frags > maxFrags) 
+                        maxFrags = frags;
                 }
             }
+            
             int fragsRemaining = fragLimit.IntValue - maxFrags;
             
             if (fragsRemaining > 0)
@@ -2316,11 +2336,16 @@ public Action Timer_CheckEndVote(Handle timer)
                     CountdownMessages("Frags", untilVoteFrags);
                 }
 
-                if (untilVoteFrags == 0)
+                if (untilVoteFrags <= 0)
                 {
                     PerformEndVote();
                     return Plugin_Stop;
                 }
+            }
+            else if (fragsRemaining <= 0)
+            {
+                PerformEndVote();
+                return Plugin_Stop;
             }
         }
     }
@@ -2609,10 +2634,10 @@ public void OnMapTimeLeftChanged()
 
     WriteToLogFile("[End Vote] Map time left changed. Resetting End Vote timer...");
 	
-    if (g_hEndVoteTimer != null)
+    if (g_hEndVoteTimer != INVALID_HANDLE)
     {
         KillTimer(g_hEndVoteTimer);
-        g_hEndVoteTimer = null;
+        g_hEndVoteTimer = INVALID_HANDLE;
     }
 
     if (g_Cvar_EndVoteEnabled.BoolValue)
@@ -3156,15 +3181,33 @@ public Action Command_RTV(int client, int args)
     if(g_bRtvInitialDelay) 
     {
         float fRemaining = GetRemainingTime(0);
-        CPrintToChat(client, "%t", "RTV Wait", RoundFloat(fRemaining));
-        return Plugin_Handled;
+        if (fRemaining <= 0.0)
+        {
+            g_bRtvInitialDelay = false;
+        }
+        else
+        {
+            int iRemaining = RoundToCeil(fRemaining);
+            if (iRemaining < 1) iRemaining = 1;
+            CPrintToChat(client, "%t", "RTV Wait", iRemaining);
+            return Plugin_Handled;
+        }
     }
     
     if(g_bRtvCooldown) 
     {
         float fRemaining = GetRemainingTime(1);
-        CPrintToChat(client, "%t", "RTV Wait Again", RoundFloat(fRemaining));
-        return Plugin_Handled;
+        if (fRemaining <= 0.0)
+        {
+            g_bRtvCooldown = false;
+        }
+        else
+        {
+            int iRemaining = RoundToCeil(fRemaining);
+            if (iRemaining < 1) iRemaining = 1;
+            CPrintToChat(client, "%t", "RTV Wait Again", iRemaining);
+            return Plugin_Handled;
+        }
     }
     
     if(g_bRtvVoted[client]) 
@@ -3217,7 +3260,7 @@ void ResetRTV()
     
     for (int i = 0; i < sizeof(g_hRtvTimers); i++)
     {
-        if (g_hRtvTimers[i] != INVALID_HANDLE && g_hRtvTimers[i] != null)
+        if (g_hRtvTimers[i] != INVALID_HANDLE)
         {
             KillTimer(g_hRtvTimers[i]);
             g_hRtvTimers[i] = INVALID_HANDLE;
@@ -3233,9 +3276,10 @@ void StartRtvCooldown()
         g_fRtvTimerStart[1] = GetEngineTime();
         g_fRtvTimerDuration[1] = fDelay;
 		
-        if (g_hRtvTimers[1] != INVALID_HANDLE && g_hRtvTimers[1] != null)
+        if (g_hRtvTimers[1] != INVALID_HANDLE)
         {
             KillTimer(g_hRtvTimers[1]);
+            g_hRtvTimers[1] = INVALID_HANDLE;
         }
 		
         g_hRtvTimers[1] = CreateTimer(fDelay, Timer_ResetCooldown, _, TIMER_FLAG_NO_MAPCHANGE);
@@ -4866,6 +4910,9 @@ void ShowMapMenu(int client, const char[] sGameMode, const char[] subgroup = "")
     char currentMapName[PLATFORM_MAX_PATH];
     GetCurrentMap(currentMapName, sizeof(currentMapName));
     
+    char currentGroup[64], currentSubgroup[64];
+    SplitGamemodeString(g_sCurrentGameMode, currentGroup, sizeof(currentGroup), currentSubgroup, sizeof(currentSubgroup));
+    
     char map[256];
     char display[256];
     
@@ -4878,7 +4925,27 @@ void ShowMapMenu(int client, const char[] sGameMode, const char[] subgroup = "")
         char prefix[8] = "";
         if (StrEqual(map, currentMapName))
         {
-            strcopy(prefix, sizeof(prefix), GESTURE_CURRENT);
+            bool isCurrentMode = false;
+            
+            if (strlen(subgroup) > 0)
+            {
+                if (StrEqual(sGameMode, currentGroup) && StrEqual(subgroup, currentSubgroup))
+                {
+                    isCurrentMode = true;
+                }
+            }
+            else
+            {
+                if (StrEqual(sGameMode, currentGroup) && strlen(currentSubgroup) == 0)
+                {
+                    isCurrentMode = true;
+                }
+            }
+            
+            if (isCurrentMode)
+            {
+                strcopy(prefix, sizeof(prefix), GESTURE_CURRENT);
+            }
         }
 
         bool isMapVoted = (g_bVoteCompleted && StrEqual(map, g_sVoteMap) && StrEqual(sGameMode, g_sVoteGameMode));
@@ -5189,7 +5256,7 @@ void StartGameModeVote(int client, bool adminVote = false, ArrayList runoffItems
         return;
     }
 
-    if (g_hRtvTimers[1] != INVALID_HANDLE && g_hRtvTimers[1] != null)
+    if (g_hRtvTimers[1] != INVALID_HANDLE)
     {
         KillTimer(g_hRtvTimers[1]);
         g_hRtvTimers[1] = INVALID_HANDLE;
@@ -6249,7 +6316,11 @@ void ExtendMapTime()
     
     if (g_Cvar_EndVoteEnabled.BoolValue) 
     {
-        delete g_hEndVoteTimer;
+        if (g_hEndVoteTimer != INVALID_HANDLE)
+        {
+            KillTimer(g_hEndVoteTimer);
+            g_hEndVoteTimer = INVALID_HANDLE;
+        }
         g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
     }
 	
@@ -6700,6 +6771,42 @@ void UpdateCurrentGameMode(const char[] map)
 {
     ArrayList gameModes = GetGameModesList();
     
+    // check if the map exists in the current gamemode... (if we have one)
+    // this prevents issues when the same map exists in multiple gamemodes...
+    if (strlen(g_sCurrentGameMode) > 0)
+    {
+        char currentGroup[64], currentSubGroup[64];
+        SplitGamemodeString(g_sCurrentGameMode, currentGroup, sizeof(currentGroup), currentSubGroup, sizeof(currentSubGroup));
+        
+        int i = FindGameModeIndex(currentGroup);
+        if (i != -1)
+        {
+            GameModeConfig config;
+            gameModes.GetArray(i, config);
+            
+            if (strlen(currentSubGroup) > 0)
+            {
+                for (int j = 0; j < config.subGroups.Length; j++)
+                {
+                    SubGroupConfig subConfig;
+                    config.subGroups.GetArray(j, subConfig);
+                    
+                    if (StrEqual(subConfig.name, currentSubGroup) && subConfig.maps.FindString(map) != -1)
+                    {
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                if (config.maps.FindString(map) != -1)
+                {
+                    return;
+                }
+            }
+        }
+    }
+    
     for(int i = 0; i < gameModes.Length; i++)
     {
         GameModeConfig config;
@@ -6726,6 +6833,7 @@ void UpdateCurrentGameMode(const char[] map)
         }
     }
     
+    // Map not found in any gamemode
     g_sCurrentGameMode[0] = '\0';
 }
 
@@ -6846,12 +6954,31 @@ bool FindConfigForMap(const char[] map, char[] group, int groupLen, char[] subgr
 
 float GetRemainingTime(int timerIndex)
 {
-    if(timerIndex < 0 || timerIndex >= sizeof(g_hRtvTimers)) return 0.0;
-    if(g_hRtvTimers[timerIndex] == INVALID_HANDLE) return 0.0;
+    if(timerIndex < 0 || timerIndex >= sizeof(g_hRtvTimers)) 
+        return 0.0;
+    
+    bool timerActive = false;
+    if (timerIndex == 0)
+    {
+        timerActive = g_bRtvInitialDelay;
+    }
+    else if (timerIndex == 1)
+    {
+        timerActive = g_bRtvCooldown;
+    }
+
+    if (!timerActive && g_hRtvTimers[timerIndex] == INVALID_HANDLE)
+        return 0.0;
     
     float elapsed = GetEngineTime() - g_fRtvTimerStart[timerIndex];
     float remaining = g_fRtvTimerDuration[timerIndex] - elapsed;
-    return remaining > 0.0 ? remaining : 0.0;
+    
+    if (remaining <= 0.0)
+    {
+        return 0.0;
+    }
+    
+    return remaining;
 }
 
 void WriteToLogFile(const char[] format, any ...)
