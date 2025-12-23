@@ -14,7 +14,7 @@
 #include <multimode/base>
 #include <multimode>
 
-#define PLUGIN_VERSION "3.3.4-beta"
+#define PLUGIN_VERSION "3.3.5-beta"
 
 // Gesture Defines
 #define GESTURE_NOMINATED " (!)" // For nominated global gesture groups/maps
@@ -4207,7 +4207,35 @@ public int NativeMMC_GetNextGameMode(Handle plugin, int numParams)
     if (strlen(g_sNextGameMode) > 0)
     {
         strcopy(group, groupMaxLen, g_sNextGameMode);
-        strcopy(subgroup, subgroupMaxLen, g_sNextSubGroup);
+        
+        if (strlen(g_sNextSubGroup) > 0)
+        {
+            int index = FindGameModeIndex(g_sNextGameMode);
+            if (index != -1)
+            {
+                GameModeConfig config;
+                ArrayList list = GetGameModesList();
+                list.GetArray(index, config);
+                
+                int subgroupIndex = FindSubGroupIndex(g_sNextGameMode, g_sNextSubGroup);
+                if (subgroupIndex != -1)
+                {
+                    strcopy(subgroup, subgroupMaxLen, g_sNextSubGroup);
+                }
+                else
+                {
+                    subgroup[0] = '\0';
+                }
+            }
+            else
+            {
+                subgroup[0] = '\0';
+            }
+        }
+        else
+        {
+            subgroup[0] = '\0';
+        }
     }
     else if (g_Cvar_RandomCycleEnabled.BoolValue && StrEqual(g_sNextMap, ""))
     {
