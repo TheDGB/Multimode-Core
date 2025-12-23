@@ -35,7 +35,7 @@ public Action Command_NextGameMode(int client, int args)
     else
     {
         char display_gamemode[128];
-        if (StrEqual(next_subgroup, ""))
+        if (strlen(next_subgroup) == 0)
         {
             strcopy(display_gamemode, sizeof(display_gamemode), next_gamemode);
         }
@@ -59,7 +59,7 @@ public Action Command_CurrentGameMode(int client, int args)
     MultiMode_GetCurrentMap(current_map, sizeof(current_map));
 
     char display_gamemode[128];
-    if (StrEqual(current_subgroup, ""))
+    if (strlen(current_subgroup) == 0)
     {
         strcopy(display_gamemode, sizeof(display_gamemode), current_gamemode);
     }

@@ -73,7 +73,7 @@ public void MultiMode_OnGamemodeChanged(const char[] group, const char[] subgrou
     if (g_Cvar_Discord.BoolValue && g_Cvar_DiscordGamemodeChanged.BoolValue)
     {
         char displayName[128];
-        if (StrEqual(subgroup, ""))
+        if (strlen(subgroup) == 0)
         {
             strcopy(displayName, sizeof(displayName), group);
         }
@@ -91,7 +91,7 @@ public void MultiMode_OnGamemodeChangedVote(const char[] group, const char[] sub
     if (g_Cvar_Discord.BoolValue && g_Cvar_DiscordVoteResult.BoolValue)
     {
         char displayName[128];
-        if (StrEqual(subgroup, ""))
+        if (strlen(subgroup) == 0)
         {
             strcopy(displayName, sizeof(displayName), group);
         }
