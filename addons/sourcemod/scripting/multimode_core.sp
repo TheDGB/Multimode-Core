@@ -14,7 +14,7 @@
 #include <multimode/base>
 #include <multimode>
 
-#define PLUGIN_VERSION "3.3.5-beta"
+#define PLUGIN_VERSION "3.3.6"
 
 // Gesture Defines
 #define GESTURE_NOMINATED " (!)" // For nominated global gesture groups/maps
@@ -866,18 +866,25 @@ public void OnMapStart()
         g_hEndVoteTimer = INVALID_HANDLE;
     }
 
-    if (g_Cvar_EndVoteEnabled.BoolValue) 
+    if (g_Cvar_Enabled.BoolValue && g_Cvar_EndVoteEnabled.BoolValue) 
     {
         g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
     }
 
-    float fDelay = g_Cvar_RtvFirstDelay.FloatValue;
-    if (fDelay > 0.0)
+    if (g_Cvar_Enabled.BoolValue)
     {
-        g_fRtvTimerStart[0] = GetEngineTime();
-        g_fRtvTimerDuration[0] = fDelay;
-        g_hRtvTimers[0] = CreateTimer(fDelay, Timer_EnableRTV, _, TIMER_FLAG_NO_MAPCHANGE);
-        CPrintToChatAll("%t", "RTV Available In", RoundFloat(fDelay));
+        float fDelay = g_Cvar_RtvFirstDelay.FloatValue;
+        if (fDelay > 0.0)
+        {
+            g_fRtvTimerStart[0] = GetEngineTime();
+            g_fRtvTimerDuration[0] = fDelay;
+            g_hRtvTimers[0] = CreateTimer(fDelay, Timer_EnableRTV, _, TIMER_FLAG_NO_MAPCHANGE);
+            CPrintToChatAll("%t", "RTV Available In", RoundFloat(fDelay));
+        }
+        else
+        {
+            g_bRtvInitialDelay = false;
+        }
     }
     else
     {
@@ -1014,7 +1021,7 @@ public void OnClientDisconnect(int client)
 
 public void OnClientPutInServer(int client)
 {
-    if (GetRealClientCount() == 1 && g_Cvar_EndVoteEnabled.BoolValue && g_hEndVoteTimer == INVALID_HANDLE)
+    if (GetRealClientCount() == 1 && g_Cvar_Enabled.BoolValue && g_Cvar_EndVoteEnabled.BoolValue && g_hEndVoteTimer == INVALID_HANDLE)
     {
         g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
     }
@@ -1760,6 +1767,11 @@ public Action Timer_EnableRTV(Handle timer)
     g_bRtvInitialDelay = false;
     g_hRtvTimers[0] = INVALID_HANDLE;
     
+    if (!g_Cvar_Enabled.BoolValue)
+    {
+        return Plugin_Stop;
+    }
+    
     if (!g_bRtvDisabled && !g_bRtvCooldown)
     {
         CPrintToChatAll("%t", "RTV Available");
@@ -1772,6 +1784,11 @@ public Action Timer_ResetCooldown(Handle timer)
 {
     g_bRtvCooldown = false;
     g_hRtvTimers[1] = INVALID_HANDLE;
+    
+    if (!g_Cvar_Enabled.BoolValue)
+    {
+        return Plugin_Stop;
+    }
     
     if(!g_bRtvDisabled) {
         CPrintToChatAll("%t", "RTV Available Again");
@@ -2223,7 +2240,7 @@ void SelectRandomNextMap(bool bSetNextMap = false)
 
 public Action Timer_StartEndVote(Handle timer)
 {
-    if(g_Cvar_EndVoteEnabled.BoolValue) 
+    if(g_Cvar_Enabled.BoolValue && g_Cvar_EndVoteEnabled.BoolValue) 
     {
         if (g_hEndVoteTimer == INVALID_HANDLE) 
         {
@@ -2245,7 +2262,7 @@ public Action Timer_CheckEndVote(Handle timer)
         return Plugin_Continue;
     }
 
-    if(!g_Cvar_EndVoteEnabled.BoolValue || g_bVoteActive || g_bEndVoteTriggered || g_bRtvDisabled || g_bVoteCompleted)
+    if(!g_Cvar_Enabled.BoolValue || !g_Cvar_EndVoteEnabled.BoolValue || g_bVoteActive || g_bEndVoteTriggered || g_bRtvDisabled || g_bVoteCompleted)
     {
         if(g_Cvar_EndVoteDebug.BoolValue) 
             WriteToLogFile("[End Vote] Verification skipped: System disabled/voting active/triggered/RTV blocked");
@@ -2404,6 +2421,13 @@ public Action Timer_CheckEndVote(Handle timer)
 
 void PerformEndVote()
 {
+    if(!g_Cvar_Enabled.BoolValue)
+    {
+        if(g_Cvar_EndVoteDebug.BoolValue) 
+            WriteToLogFile("[End Vote] PerformEndVote called but multimode_enabled is disabled");
+        return;
+    }
+    
     if(g_Cvar_EndVoteDebug.BoolValue) 
         WriteToLogFile("[End Vote] Triggered! Starting vote...");
     
@@ -2486,6 +2510,11 @@ public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
     if (g_bEndVotePending)
     {
         g_bEndVotePending = false;
+        
+        if(!g_Cvar_Enabled.BoolValue)
+        {
+            return;
+        }
         
         int endType = g_Cvar_EndVoteType.IntValue;
         if(endType < 1) endType = 1;
@@ -2668,7 +2697,7 @@ public void OnTimelimitChanged(ConVar convar, const char[] oldValue, const char[
         g_hEndVoteTimer = INVALID_HANDLE;
     }
 
-    if (g_Cvar_EndVoteEnabled.BoolValue)
+    if (g_Cvar_Enabled.BoolValue && g_Cvar_EndVoteEnabled.BoolValue)
     {
         g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
     }
@@ -2689,7 +2718,7 @@ public void OnMapTimeLeftChanged()
         g_hEndVoteTimer = INVALID_HANDLE;
     }
 
-    if (g_Cvar_EndVoteEnabled.BoolValue)
+    if (g_Cvar_Enabled.BoolValue && g_Cvar_EndVoteEnabled.BoolValue)
     {
         g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
     }
@@ -3375,7 +3404,7 @@ public Action Command_Nominate(int client, int args)
 
 public Action Command_Unnominate(int client, int args)
 {
-    if (!g_Cvar_UnnominateEnabled.BoolValue)
+    if (!g_Cvar_Enabled.BoolValue || !g_Cvar_UnnominateEnabled.BoolValue)
     {
         CPrintToChat(client, "%t", "Unnominate System Is Disabled");
         return Plugin_Handled;
@@ -3449,7 +3478,7 @@ public int UnnominateMenuHandler(Menu menu, MenuAction action, int client, int p
 
 public Action Command_QuickUnnominate(int client, int args)
 {
-    if (!g_Cvar_UnnominateEnabled.BoolValue)
+    if (!g_Cvar_Enabled.BoolValue || !g_Cvar_UnnominateEnabled.BoolValue)
     {
         CPrintToChat(client, "%t", "Unnominate System Is Disabled");
         return Plugin_Handled;
@@ -6391,7 +6420,7 @@ void ExtendMapTime()
     
     g_bEndVoteTriggered = false;
     
-    if (g_Cvar_EndVoteEnabled.BoolValue) 
+    if (g_Cvar_Enabled.BoolValue && g_Cvar_EndVoteEnabled.BoolValue) 
     {
         if (g_hEndVoteTimer != INVALID_HANDLE)
         {
