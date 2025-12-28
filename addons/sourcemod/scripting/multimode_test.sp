@@ -1,24 +1,93 @@
 #include <sourcemod>
 #include <multimode>
-
-public Plugin myinfo = 
-{
-    name = "MultiMode Test",
-    author = "DGB",
-    description = "Test plugin for MultiMode forwards and natives",
-    version = "1.4",
-    url = ""
-};
+#include <multimode/base>
 
 public void OnPluginStart()
 {
-    PrintToServer("[MultiMode Test] Plugin successfully loaded!");
-    
     RegConsoleCmd("sm_cancelvote_test", Command_CancelVoteTest, "Cancels the current MultiMode vote (if active).");
     RegConsoleCmd("sm_randommap_test", Command_RandomMapTest, "Gets a random map from MultiMode and prints it.");
     RegConsoleCmd("sm_isgroupnominated_test", Command_IsGroupNominatedTest, "Checks if a gamemode/subgroup is nominated.");
     RegConsoleCmd("sm_ismapnominated_test", Command_IsMapNominatedTest, "Checks if a map is nominated in a gamemode/subgroup.");
     RegConsoleCmd("sm_forcenominate_test", Command_NominateTest, "Test nomination system");
+	RegConsoleCmd("sm_testvote", Command_TestVote, "Test advanced vote features with sounds");
+}
+
+public Action Command_TestVote(int client, int args)
+{
+    if (client == 0)
+    {
+        PrintToServer("[TestVote] This command can only be used by players.");
+        return Plugin_Handled;
+    }
+    
+    if (!IsClientInGame(client))
+    {
+        ReplyToCommand(client, "[TestVote] You must be in-game to use this command.");
+        return Plugin_Handled;
+    }
+    
+    char voteId[32];
+    Format(voteId, sizeof(voteId), "testvote_%d_%d", client, GetTime());
+    
+    char startSound[128] = "buttons/button19.wav";
+    char endSound[128] = "buttons/button5.wav";
+    char runoffStartSound[128] = "buttons/button19.wav";
+    char runoffEndSound[128] = "buttons/button5.wav";
+    
+    int clients[MAXPLAYERS + 1];
+    int numClients = 0;
+    clients[numClients++] = client;
+    
+    MultimodeMethodType voteType = VOTE_TYPE_GROUPS_THEN_MAPS;
+    
+    TimingMode timing = TIMING_NEXTMAP;
+
+    MultimodeVoteSorted sorted = SORTED_RANDOM;
+    
+    MultimodeRunoffFailAction runoffFailAction = RUNOFF_FAIL_PICK_FIRST;
+    
+    PrintToChat(client, "[TestVote] Iniciando votação de teste com sons...");
+    PrintToServer("[TestVote] Iniciando votação ID: %s", voteId);
+
+    bool success = Multimode_StartVote(
+        voteId,
+        "",
+        voteType,
+        30,
+        timing,
+        startSound,
+        endSound,
+        true,
+        10,
+        15,
+        5,
+        0,
+        0,
+        true,
+        0.5,
+        2,
+        2,
+        runoffFailAction,
+        runoffStartSound,
+        runoffEndSound,
+        sorted,
+        clients,
+        numClients,
+        false
+    );
+    
+    if (success)
+    {
+        PrintToChat(client, "[TestVote] Votação iniciada com sucesso! ID: %s", voteId);
+        PrintToServer("[TestVote] Votação iniciada: ID %s, Client %d", voteId, client);
+    }
+    else
+    {
+        PrintToChat(client, "[TestVote] Falha ao iniciar a votação!");
+        PrintToServer("[TestVote] Falha ao iniciar votação para cliente %d", client);
+    }
+    
+    return Plugin_Handled;
 }
 
 public Action Command_CancelVoteTest(int client, int args)

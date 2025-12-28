@@ -19,4 +19,9 @@
     {
         "da"    "{olive}[MultiMode] {default}Næste spiltilstand: {red}Udefineret"
     }
+
+    "Next Gamemode Random Cycle Waiting"
+    {
+        "da"    "{olive}[MultiMode] {default}Næste spiltilstand: {lightgreen}%s {default}| Kort: {lightgreen}%s {default}({yellow}Tilfældig cyklus - Venter på afstemning{default})"
+    }
 }

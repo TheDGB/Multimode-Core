@@ -19,4 +19,9 @@
     {
         "chi"    "{olive}[多模式] {default}下一个游戏模式: {red}未定义"
     }
+
+    "Next Gamemode Random Cycle Waiting"
+    {
+        "chi"    "{olive}[多模式] {default}下一个游戏模式: {lightgreen}%s {default}| 地图: {lightgreen}%s {default}({yellow}随机循环 - 等待投票{default})"
+    }
 }

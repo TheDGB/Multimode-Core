@@ -1,20 +1,50 @@
+/**
+ * MultiMode Core Base
+ * 
+ * Some bases for the multimode core to work.
+ */
+
 #if defined _multimode_base_included
  #endinput
 #endif
 #define _multimode_base_included
 
+#define PLUGIN_VERSION "3.8.2++"
+
+// Map Cycle Configuration Keys
+#include <multimode/mapcyclecommands>
+
 #include <adt_array>
 
-#define MAX_GAMEMODES 64
-#define MAX_MAPS_PER_MODE 128
-#define MAX_SUBGROUPS_PER_MODE 16
+enum MultimodeMethodType
+{
+    VOTE_TYPE_GROUPS_THEN_MAPS = 1,
+    VOTE_TYPE_GROUPS_ONLY = 2,
+    VOTE_TYPE_MAPS_ONLY = 3
+}
 
 enum TimingMode
 {
     TIMING_NEXTMAP = 0,
     TIMING_NEXTROUND,
     TIMING_INSTANT
-};
+}
+
+enum MultimodeRunoffFailAction
+{
+    RUNOFF_FAIL_PICK_FIRST = 0,
+    RUNOFF_FAIL_DO_NOTHING = 1
+}
+
+enum MultimodeVoteSorted
+{
+    SORTED_RANDOM = 0,
+    SORTED_MAPCYCLE_ORDER = 1
+}
+
+#define MAX_GAMEMODES 64
+#define MAX_MAPS_PER_MODE 128
+#define MAX_SUBGROUPS_PER_MODE 16
 
 enum struct NominationInfo
 {
@@ -47,6 +77,35 @@ enum VoteType
     VOTE_TYPE_SUBGROUP_MAP,
 }
 
+enum struct AdvancedVoteConfig {
+    char id[64];
+    char mapcycle[256];
+    MultimodeMethodType type;
+    int time;
+    TimingMode timing;
+    char startSound[PLATFORM_MAX_PATH];
+    char endSound[PLATFORM_MAX_PATH];
+    bool extendOption;
+    int timestep;
+    int fragstep;
+    int roundstep;
+    int groupexclude;
+    int mapexclude;
+    bool handlenominations;
+    float threshold;
+    int maxRunoffs;
+    int maxRunoffInVote;
+    MultimodeRunoffFailAction runoffFailAction;
+    char runoffstartSound[PLATFORM_MAX_PATH];
+    char runoffendSound[PLATFORM_MAX_PATH];
+    MultimodeVoteSorted sorted;
+    bool adminvote;
+    ArrayList targetClients;
+    VoteType voteType;
+    char contextInfo[128];
+    ArrayList runoffItems;
+}
+
 enum struct SubGroupConfig {
     char name[64];
     char config[256];
@@ -59,6 +118,7 @@ enum struct SubGroupConfig {
     int minplayers;
     int mintime;
     int maxtime;
+    char nominate_flags[32];
     ArrayList maps;
     int maps_invote;
 }
@@ -77,6 +137,7 @@ enum struct GameModeConfig {
     int minplayers;
     int mintime;
     int maxtime;
+    char nominate_flags[32];
     ArrayList maps;
     ArrayList subGroups;
 }
@@ -119,8 +180,6 @@ stock ArrayList GetGameModesList() {
     return list;
 }
 
-forward void OnGamemodeConfigLoaded();
-
 KeyValues g_kvGameModes;
 
 stock void GetNominateFlags(const char[] gamemode, const char[] subgroup, const char[] map, char[] flags, int maxlen)
@@ -130,7 +189,7 @@ stock void GetNominateFlags(const char[] gamemode, const char[] subgroup, const 
     if (strlen(subgroup) > 0) {
         if (g_kvGameModes.JumpToKey(gamemode) && g_kvGameModes.JumpToKey("subgroup") && g_kvGameModes.JumpToKey(subgroup) && g_kvGameModes.JumpToKey("maps")) {
             if (g_kvGameModes.JumpToKey(map)) {
-                g_kvGameModes.GetString("nominate_flags", flags, maxlen);
+                g_kvGameModes.GetString(MAPCYCLE_KEY_NOMINATE_FLAGS, flags, maxlen);
                 g_kvGameModes.GoBack();
             }
             g_kvGameModes.GoBack();
@@ -144,7 +203,7 @@ stock void GetNominateFlags(const char[] gamemode, const char[] subgroup, const 
 
     if (g_kvGameModes.JumpToKey(gamemode) && g_kvGameModes.JumpToKey("maps")) {
         if (g_kvGameModes.JumpToKey(map)) {
-            g_kvGameModes.GetString("nominate_flags", flags, maxlen);
+            g_kvGameModes.GetString(MAPCYCLE_KEY_NOMINATE_FLAGS, flags, maxlen);
             g_kvGameModes.GoBack();
         }
         g_kvGameModes.GoBack();
@@ -155,7 +214,7 @@ stock void GetNominateFlags(const char[] gamemode, const char[] subgroup, const 
 
     if (strlen(subgroup) > 0) {
         if (g_kvGameModes.JumpToKey(gamemode) && g_kvGameModes.JumpToKey("subgroup") && g_kvGameModes.JumpToKey(subgroup)) {
-            g_kvGameModes.GetString("nominate_flags", flags, maxlen);
+            g_kvGameModes.GetString(MAPCYCLE_KEY_NOMINATE_FLAGS, flags, maxlen);
             g_kvGameModes.GoBack();
             g_kvGameModes.GoBack();
             g_kvGameModes.GoBack();
@@ -165,7 +224,7 @@ stock void GetNominateFlags(const char[] gamemode, const char[] subgroup, const 
     }
 
     if (g_kvGameModes.JumpToKey(gamemode)) {
-        g_kvGameModes.GetString("nominate_flags", flags, maxlen);
+        g_kvGameModes.GetString(MAPCYCLE_KEY_NOMINATE_FLAGS, flags, maxlen);
         g_kvGameModes.GoBack();
     }
     g_kvGameModes.Rewind();
@@ -186,94 +245,6 @@ stock bool CanClientNominate(int client, const char[] gamemode, const char[] sub
     return CheckCommandAccess(client, "", requiredFlags, true);
 }
 
-stock void ParseGameModes()
-{
-    ArrayList list = GetGameModesList();
-    list.Clear();
-    
-    if (g_kvGameModes.GotoFirstSubKey())
-    {
-        do
-        {
-            GameModeConfig config;
-            g_kvGameModes.GetSectionName(config.name, sizeof(config.name));
-            
-            if (g_kvGameModes.JumpToKey("serverconfig"))
-            {
-                g_kvGameModes.GetString("command", config.command, sizeof(config.command), "");
-                g_kvGameModes.GoBack();
-            }
-            
-            config.maps = new ArrayList(ByteCountToCells(256));
-            config.subGroups = new ArrayList(sizeof(SubGroupConfig));
-            
-            if (g_kvGameModes.JumpToKey("maps"))
-            {
-                if (g_kvGameModes.GotoFirstSubKey(false))
-                {
-                    do
-                    {
-                        char mapName[256];
-                        g_kvGameModes.GetSectionName(mapName, sizeof(mapName));
-                        config.maps.PushString(mapName);
-                    } while (g_kvGameModes.GotoNextKey(false));
-                    g_kvGameModes.GoBack();
-                }
-                g_kvGameModes.GoBack();
-            }
-            
-            if (g_kvGameModes.JumpToKey("subgroup"))
-            {
-                if (g_kvGameModes.GotoFirstSubKey(false))
-                {
-                    do
-                    {
-                        SubGroupConfig subConfig;
-                        g_kvGameModes.GetSectionName(subConfig.name, sizeof(subConfig.name));
-                        
-                        subConfig.enabled = g_kvGameModes.GetNum("enabled", 1);
-                        subConfig.adminonly = g_kvGameModes.GetNum("adminonly", 0);
-                        subConfig.minplayers = g_kvGameModes.GetNum("minplayers", 0);
-                        subConfig.maxplayers = g_kvGameModes.GetNum("maxplayers", 0);
-                        subConfig.maps_invote = g_kvGameModes.GetNum("maps_invote", 6);
-                        
-                        g_kvGameModes.GetString("command", subConfig.command, sizeof(subConfig.command), "");
-                        g_kvGameModes.GetString("pre-command", subConfig.pre_command, sizeof(subConfig.pre_command), "");
-                        g_kvGameModes.GetString("vote-command", subConfig.vote_command, sizeof(subConfig.vote_command), "");
-                        
-                        subConfig.maps = new ArrayList(ByteCountToCells(256));
-                        
-                        if (g_kvGameModes.JumpToKey("maps"))
-                        {
-                            if (g_kvGameModes.GotoFirstSubKey(false))
-                            {
-                                do
-                                {
-                                    char mapName[256];
-                                    g_kvGameModes.GetSectionName(mapName, sizeof(mapName));
-                                    subConfig.maps.PushString(mapName);
-                                } while (g_kvGameModes.GotoNextKey(false));
-                                g_kvGameModes.GoBack();
-                            }
-                            g_kvGameModes.GoBack();
-                        }
-                        
-                        config.subGroups.PushArray(subConfig);
-                    } while (g_kvGameModes.GotoNextKey(false));
-                    g_kvGameModes.GoBack();
-                }
-                g_kvGameModes.GoBack();
-            }
-            
-            config.maps_invote = g_kvGameModes.GetNum("maps_invote", 6);
-            list.PushArray(config);
-        } while (g_kvGameModes.GotoNextKey());
-    }
-    
-    Call_StartFunction(null, GetFunctionByName(null, "OnGamemodeConfigLoaded"));
-    Call_Finish();
-}
-
 stock bool IsSubgroupValid(const GameModeConfig config, int subIndex)
 {
     SubGroupConfig subCfg;
@@ -292,7 +263,13 @@ stock void SplitGamemodeString(const char[] fullString, char[] group, int groupM
     int slashPos = FindCharInString(fullString, '/');
     if (slashPos != -1)
     {
-        strcopy(group, slashPos + 1, fullString);
+        // Copy group part (up to but not including the slash)
+        int copyLen = slashPos;
+        if (copyLen >= groupMaxLen) copyLen = groupMaxLen - 1;
+        strcopy(group, groupMaxLen, fullString);
+        group[copyLen] = '\0';
+        
+        // Copy subgroup part (after the slash)
         strcopy(subgroup, subgroupMaxLen, fullString[slashPos + 1]);
     }
     else

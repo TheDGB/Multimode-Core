@@ -5,10 +5,21 @@
 #include <sourcemod>
 #include <emitsoundany>
 #include <multimode>
+#include <multimode/base>
+#include <multimode/utils>
 #include <nativevotes>
 
 #pragma semicolon 1
 #pragma newdecls required
+
+public Plugin myinfo = 
+{
+    name = "[MMC] MultiMode Native Votes Support",
+    author = "Oppressive Territory",
+    description = "NativeVotes integration for MultiMode Core",
+    version = PLUGIN_VERSION,
+    url = ""
+}
 
 NativeVote g_hVote;
 bool g_bVoteActive = false;
@@ -16,6 +27,7 @@ bool g_bVoteActive = false;
 ConVar g_CvVoteSounds;
 ConVar g_CvVoteOpenSound;
 ConVar g_CvRunoffVoteOpenSound;
+ConVar g_CvNativeVotesLogs;
 
 public void OnPluginStart()
 {
@@ -27,6 +39,7 @@ public void OnAllPluginsLoaded()
     g_CvVoteSounds = FindConVar("multimode_votesounds");
     g_CvVoteOpenSound = FindConVar("multimode_voteopensound");
     g_CvRunoffVoteOpenSound = FindConVar("multimode_runoff_voteopensound");
+    g_CvNativeVotesLogs = CreateConVar("multimode_nativevotes_logs", "1", "Enable/disable logging for native votes", _, true, 0.0, true, 1.0);
 }
 
 public void OnLibraryAdded(const char[] name)
@@ -46,7 +59,7 @@ void RegisterManager()
     MultiMode_RegisterVoteManager("core", NativeVotes_StartVote, NativeVotes_CancelVote);
 }
 
-public void NativeVotes_StartVote(int initiator, VoteType type, const char[] info, ArrayList items, int duration, bool adminVote, bool isRunoff)
+public void NativeVotes_StartVote(int initiator, VoteType type, const char[] info, ArrayList items, int duration, bool adminVote, bool isRunoff, const char[] startSound, const char[] endSound, const char[] runoffstartSound, const char[] runoffendSound)
 {
     if (!LibraryExists("nativevotes"))
     {
@@ -58,23 +71,39 @@ public void NativeVotes_StartVote(int initiator, VoteType type, const char[] inf
     if (g_CvVoteSounds != null && g_CvVoteSounds.BoolValue)
     {
         char sound[PLATFORM_MAX_PATH];
-        if (isRunoff && g_CvRunoffVoteOpenSound != null)
+        sound[0] = '\0';
+        
+        if (isRunoff)
+        {
+            if (runoffstartSound[0] != '\0')
+            {
+                strcopy(sound, sizeof(sound), runoffstartSound);
+            }
+            else if (g_CvRunoffVoteOpenSound != null)
         {
             g_CvRunoffVoteOpenSound.GetString(sound, sizeof(sound));
         }
+        }
+        else
+        {
+            if (startSound[0] != '\0')
+            {
+                strcopy(sound, sizeof(sound), startSound);
+            }
         else if (g_CvVoteOpenSound != null)
         {
             g_CvVoteOpenSound.GetString(sound, sizeof(sound));
+            }
         }
 
         if (sound[0] != '\0')
         {
-            PrecacheSound(sound, true);
+            PrecacheSoundAny(sound, true);
             EmitSoundToAllAny(sound);
         }
     }
 
-    LogMessage("[MultiMode NativeVotes] Starting Vote. Type: %d, Items: %d", type, items.Length);
+    MMC_WriteToLogFile(g_CvNativeVotesLogs, "[MultiMode NativeVotes] Starting Vote. Type: %d, Items: %d", type, items.Length);
 
     NativeVotesType nvType = NativeVotesType_Custom_Mult;
     
@@ -118,7 +147,7 @@ public void NativeVotes_CancelVote()
         NativeVotes_Cancel();
         g_bVoteActive = false;
         g_hVote = null;
-        LogMessage("[MultiMode NativeVotes] Vote Cancelled.");
+        MMC_WriteToLogFile(g_CvNativeVotesLogs, "[MultiMode NativeVotes] Vote Cancelled.");
     }
 }
 
@@ -169,6 +198,7 @@ public void NativeVotes_ResultHandler(NativeVote vote, int num_votes, int num_cl
         VoteCandidate res;
         res.votes = item_votes[i];
         vote.GetItem(item_indexes[i], res.info, sizeof(res.info), res.name, sizeof(res.name));
+        res.originalIndex = item_indexes[i];
         results.PushArray(res);
 
         if (res.votes > maxVotes)
@@ -180,16 +210,32 @@ public void NativeVotes_ResultHandler(NativeVote vote, int num_votes, int num_cl
     
     if (winnerIndex != -1)
     {
+        VoteCandidate winnerRes;
+        results.GetArray(winnerIndex, winnerRes);
+        
         char display[256];
         vote.GetItem(item_indexes[winnerIndex], "", 0, display, sizeof(display));
         vote.DisplayPass(display);
+        
+        bool isExtendMap = StrEqual(winnerRes.info, "Extend Map") || 
+                          (StrContains(winnerRes.name, "Extend") != -1 && StrContains(winnerRes.name, "Map") != -1) ||
+                          StrEqual(winnerRes.info, "Extend current Map"); // NativeVotes constant
+        
+        if (isExtendMap)
+        {
+            MMC_WriteToLogFile(g_CvNativeVotesLogs, "[MultiMode NativeVotes] Extend Map detected (info='%s', name='%s')", 
+                              winnerRes.info, winnerRes.name);
+            
+            strcopy(winnerRes.info, sizeof(winnerRes.info), "Extend Map");
+            results.SetArray(winnerIndex, winnerRes);
+        }
     }
     else
     {
         vote.DisplayFail(NativeVotesFail_NotEnoughVotes);
     }
     
-    LogMessage("[MultiMode NativeVotes] Vote Finished. Reporting %d items to Core.", results.Length);
+    MMC_WriteToLogFile(g_CvNativeVotesLogs, "[MultiMode NativeVotes] Vote Finished. Reporting %d items to Core.", results.Length);
     
     MultiMode_ReportVoteResults(results, num_votes, num_clients);
     

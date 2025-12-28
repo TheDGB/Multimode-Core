@@ -87,7 +87,7 @@
 
     "Nominate Disabled"
     {
-        "zho"   "{green}[投票換圖] {default}提名系統目前已禁用！"
+        "zho"   "{green}[Nominate] {default}提名系統目前已禁用！"
     }
 
     "Nominate Gamemode Group Menu Title"
@@ -113,6 +113,11 @@
     "Nominate Once Per Map"
     {
         "zho"   "{red}[提名] {default}每張地圖您只能 {red}提名一次。 {default}請等到下一張地圖。"
+    }
+
+    "Map Already Nominated"
+    {
+        "zho"   "{red}[Nominate] {olive}'%s' {default}已被提名！"
     }
 
     "Nominate SubGroup Map Title"
@@ -366,6 +371,11 @@
         "zho"   "選擇投票類型:"
     }
 
+    "Vote Type Selection Title"
+    {
+        "zho"   "選擇投票類型:"
+    }
+
     "Vote Type Normal"
     {
         "zho"   "開始投票"
@@ -376,8 +386,24 @@
         "zho"   "開始單獨投票"
     }
 
+
     "Wants To Vote"
     {
         "zho"   "{green}%N 想要更換地圖 (%d/%d 需要)"
+    }
+
+    "Random Cycle Map Selected With Subgroup"
+    {
+        "zho"   "{olive}[MultiMode Random Cycle] {default}隨機地圖已選擇: {lightgreen}%s {default}(模式: {lightgreen}%s{default}/{lightgreen}%s{default})"
+    }
+
+    "Random Cycle Map Selected With Group"
+    {
+        "zho"   "{olive}[MultiMode Random Cycle] {default}隨機地圖已選擇: {lightgreen}%s {default}(模式: {lightgreen}%s{default})"
+    }
+
+    "Random Cycle Map Selected"
+    {
+        "zho"   "{olive}[MultiMode Random Cycle] {default}隨機地圖已選擇: {lightgreen}%s"
     }
 }

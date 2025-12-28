@@ -3,7 +3,17 @@
 ******************************************************************************/
 
 #include <multimode>
+#include <multimode/base>
 #include <discord>
+
+public Plugin myinfo = 
+{
+    name = "[MMC] MultiMode Discord Support",
+    author = "Oppressive Territory",
+    description = "Discord webhook integration for MultiMode Core",
+    version = PLUGIN_VERSION,
+    url = ""
+}
 
 ConVar g_Cvar_Discord;
 ConVar g_Cvar_DiscordVoteStart;
