@@ -768,6 +768,16 @@ stock int MMC_FindGameModeForMap(const char[] map, const char[] currentGameMode 
             {
                 return index;
             }
+
+            for (int j = 0; j < config.subGroups.Length; j++)
+            {
+                SubGroupConfig subConfig;
+                config.subGroups.GetArray(j, subConfig);
+                if (subConfig.maps.FindString(map) != -1)
+                {
+                    return index;
+                }
+            }
         }
     }
 
@@ -778,6 +788,16 @@ stock int MMC_FindGameModeForMap(const char[] map, const char[] currentGameMode 
         if (config.maps.FindString(map) != -1)
         {
             return i;
+        }
+        
+        for (int j = 0; j < config.subGroups.Length; j++)
+        {
+            SubGroupConfig subConfig;
+            config.subGroups.GetArray(j, subConfig);
+            if (subConfig.maps.FindString(map) != -1)
+            {
+                return i;
+            }
         }
     }
     return -1;

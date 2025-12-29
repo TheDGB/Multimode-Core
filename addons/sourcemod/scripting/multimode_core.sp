@@ -2107,10 +2107,43 @@ public int NativeMMC_StartVote(Handle plugin, int numParams)
     int client = GetNativeCell(1);
     bool adminVote = GetNativeCell(2);
     
+    if (g_bVoteActive || g_bCooldownActive)
+    {
+        return 0;
+    }
+    
+    int method = GetVoteMethod();
+    MultimodeMethodType voteMethodType;
+    VoteType voteType;
+    
+    switch (method)
+    {
+        case 1:
+        {
+            voteMethodType = VOTE_TYPE_GROUPS_THEN_MAPS;
+            voteType = VOTE_TYPE_GROUP;
+        }
+        case 2:
+        {
+            voteMethodType = VOTE_TYPE_GROUPS_ONLY;
+            voteType = VOTE_TYPE_GROUP;
+        }
+        case 3:
+        {
+            voteMethodType = VOTE_TYPE_MAPS_ONLY;
+            voteType = VOTE_TYPE_MAP;
+        }
+        default:
+        {
+            voteMethodType = VOTE_TYPE_GROUPS_THEN_MAPS;
+            voteType = VOTE_TYPE_GROUP;
+        }
+    }
+    
     AdvancedVoteConfig config;
     strcopy(config.id, sizeof(config.id), "gamemode");
     strcopy(config.mapcycle, sizeof(config.mapcycle), "");
-    config.type = VOTE_TYPE_GROUPS_THEN_MAPS;
+    config.type = voteMethodType;
     config.time = 0;
     config.timing = TIMING_NEXTMAP;
     config.startSound[0] = '\0';
@@ -2131,22 +2164,39 @@ public int NativeMMC_StartVote(Handle plugin, int numParams)
     config.sorted = SORTED_MAPCYCLE_ORDER;
     config.adminvote = adminVote;
     config.targetClients = null;
-    config.voteType = VOTE_TYPE_GROUP;
+    config.voteType = voteType;
     config.contextInfo[0] = '\0';
     config.runoffItems = null;
     
-    if (g_bVoteActive || g_bCooldownActive)
+    int voteTypeEx = 0;
+    switch (voteType)
     {
-        return 0;
+        case VOTE_TYPE_GROUP: voteTypeEx = 0;
+        case VOTE_TYPE_SUBGROUP: voteTypeEx = 1;
+        case VOTE_TYPE_MAP: voteTypeEx = 2;
+        case VOTE_TYPE_SUBGROUP_MAP: voteTypeEx = 4;
     }
     
     NativeMMC_OnVoteStart(client);
-    NativeMMC_OnVoteStartEx(client, 0, false);
+    NativeMMC_OnVoteStartEx(client, voteTypeEx, false);
     
     g_bCurrentVoteAdmin = config.adminvote;
     g_bIsRunoffVote = false;
+    g_eVoteTiming = config.timing;
+    g_CurrentVoteConfig = config;
     
-    ArrayList voteItems = PrepareVoteItems_Group(config, null);
+    ArrayList voteItems = null;
+    switch (voteType)
+    {
+        case VOTE_TYPE_GROUP:
+        {
+            voteItems = PrepareVoteItems_Group(config, null);
+        }
+        case VOTE_TYPE_MAP:
+        {
+            voteItems = PrepareVoteItems_Map(config, "", null);
+        }
+    }
     
     if (voteItems == null || voteItems.Length == 0)
     {
@@ -2155,7 +2205,7 @@ public int NativeMMC_StartVote(Handle plugin, int numParams)
     }
     
     bool canExtend = (!g_bMapExtended) && MMC_CanExtendMap();
-    if (config.extendOption && canExtend)
+    if (config.extendOption && canExtend && voteType == VOTE_TYPE_GROUP)
     {
         VoteCandidate item;
         strcopy(item.info, sizeof(item.info), "Extend Map");
@@ -2174,7 +2224,7 @@ public int NativeMMC_StartVote(Handle plugin, int numParams)
         duration = 20;
     }
 	
-    CallActiveVoteManager(client, config.voteType, "", voteItems, duration, config.adminvote, false, config.startSound, config.endSound, config.runoffstartSound, config.runoffendSound);
+    CallActiveVoteManager(client, voteType, "", voteItems, duration, config.adminvote, false, config.startSound, config.endSound, config.runoffstartSound, config.runoffendSound);
     delete voteItems;
     
     g_bVoteActive = true;
@@ -4815,7 +4865,7 @@ void ExecutePendingVote(VoteType voteType, const char[] gamemode, const char[] s
     AdvancedVoteConfig config;
     strcopy(config.id, sizeof(config.id), "pending");
     strcopy(config.mapcycle, sizeof(config.mapcycle), "");
-    config.type = VOTE_TYPE_GROUPS_THEN_MAPS;
+    config.type = g_CurrentVoteConfig.type;
     config.time = 0;
     config.timing = TIMING_NEXTMAP;
     
