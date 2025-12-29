@@ -105,6 +105,7 @@ char g_sCurrentVoteId[64];
 // Int Section
 int g_iCooldownEndTime = 0;
 int g_iRunoffVotesThisMap = 0;
+int g_iGlobalMaxRunoffs = -1;
 int g_iVoteInitiator = -1;
 int g_iPendingVoteInitiator;
 
@@ -609,6 +610,7 @@ public void OnMapStart()
     g_bVoteActive = false;
 
     g_iRunoffVotesThisMap = 0;
+    g_iGlobalMaxRunoffs = -1;
 
     MMC_UpdateCurrentGameMode(CurrentMap, g_sCurrentGameMode, sizeof(g_sCurrentGameMode), g_sCurrentGameMode);
 	
@@ -941,6 +943,11 @@ bool BuildVote(int initiator, AdvancedVoteConfig config)
     
     g_eVoteTiming = config.timing;
     
+    if (config.voteType == VOTE_TYPE_GROUP && config.maxRunoffs > 0 && g_iGlobalMaxRunoffs == -1)
+    {
+        g_iGlobalMaxRunoffs = config.maxRunoffs;
+    }
+    
     g_CurrentVoteConfig = config;
     
     if (config.startSound[0] != '\0')
@@ -996,7 +1003,6 @@ bool BuildVote(int initiator, AdvancedVoteConfig config)
         strcopy(item.info, sizeof(item.info), "Extend Map");
         int timestep = (config.timestep > 0) ? config.timestep : 6;
         Format(item.name, sizeof(item.name), "%t", "Extend Map Normal Vote", timestep);
-        // Insert at position 0 to always show Extend Map at the top
         voteItems.ShiftUp(0);
         voteItems.SetArray(0, item);
     }
@@ -1347,7 +1353,20 @@ void ProcessVoteLogic(VoteType voteType, int num_votes, int num_clients, ArrayLi
 
     if (needsRunoff)
     {
-        int maxRunoffs = g_CurrentVoteConfig.maxRunoffs > 0 ? g_CurrentVoteConfig.maxRunoffs : 3;
+        int maxRunoffs;
+        if (g_iGlobalMaxRunoffs > 0)
+        {
+            maxRunoffs = g_iGlobalMaxRunoffs;
+        }
+        else if (g_CurrentVoteConfig.maxRunoffs > 0)
+        {
+            maxRunoffs = g_CurrentVoteConfig.maxRunoffs;
+        }
+        else
+        {
+            maxRunoffs = 3;  // Default
+        }
+        
         if (g_bIsRunoffVote || g_iRunoffVotesThisMap >= maxRunoffs)
         {
             if (g_bIsRunoffVote) {
@@ -1363,6 +1382,7 @@ void ProcessVoteLogic(VoteType voteType, int num_votes, int num_clients, ArrayLi
                 NativeMMC_OnVoteEnd("", "", "", VoteEnd_Failed);
                 g_bVoteActive = false;
                 g_bIsRunoffVote = false;
+                g_iGlobalMaxRunoffs = -1;
                 return;
             }
             else
@@ -1415,6 +1435,7 @@ void ProcessVoteLogic(VoteType voteType, int num_votes, int num_clients, ArrayLi
             CPrintToChatAll("%t", "No Votes Recorded");
             g_bVoteActive = false;
             g_bVoteCompleted = false;
+            g_iGlobalMaxRunoffs = -1;
             NativeMMC_OnVoteEnd("", "", "", VoteEnd_Failed);
         }
     }
@@ -2140,7 +2161,6 @@ public int NativeMMC_StartVote(Handle plugin, int numParams)
         strcopy(item.info, sizeof(item.info), "Extend Map");
         int timestep = (config.timestep > 0) ? config.timestep : 6;
         Format(item.name, sizeof(item.name), "%t", "Extend Map Normal Vote", timestep);
-        // Insert at position 0 to always show Extend Map at the top
         voteItems.ShiftUp(0);
         voteItems.SetArray(0, item);
     }
@@ -2291,7 +2311,6 @@ public int NativeMMC_StartVoteAdvanced(Handle plugin, int numParams)
             config.voteType = VOTE_TYPE_MAP;
             if (strlen(mapcycle) > 0 && StrContains(mapcycle, ".") == -1 && StrContains(mapcycle, "/") == -1 && StrContains(mapcycle, "\\") == -1)
             {
-                // Looks like a gamemode name, not a file path
                 strcopy(config.contextInfo, sizeof(config.contextInfo), mapcycle);
             }
             else
@@ -2484,7 +2503,6 @@ public int NativeMMC_IsGamemodeRecentlyPlayed(Handle plugin, int numParams)
     int groupExclude = GetNativeCell(2);
     if (groupExclude <= 0)
     {
-        // Check if gamemode is in the list
         return (g_PlayedGamemodes.FindString(gamemode) != -1);
     }
     else
@@ -3517,8 +3535,6 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing, cons
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Map instantly set to (admin): %s", g_sNextMap);
         }
     }
-	
-	// Vote commands now handled by multimode_mccommands.sp
 }
 
 // //////////////////////////////////////////////
@@ -4280,9 +4296,7 @@ public void Core_StartVote(int initiator, VoteType type, const char[] info, Arra
     }
     
     PlayVoteSound(true, isRunoff);
-    
-    // Extend Map is now always at position 0 in the items array (Classic style - top with voting items)
-    // No need for separate handling or spacers
+
     for(int i = 0; i < items.Length; i++)
     {
             
@@ -4461,6 +4475,7 @@ void PerformExtension(float timeStep, int roundStep, int fragStep, bool &bExtend
 public void ExecuteVoteResult()
 {
     g_sCurrentVoteId[0] = '\0';
+    g_iGlobalMaxRunoffs = -1;
     if (GetVoteMethod() == 3 && strlen(g_sVoteMap) > 0 && strlen(g_sVoteGameMode) == 0)
     {
         int index = MMC_FindGameModeForMap(g_sVoteMap);
@@ -4639,6 +4654,7 @@ public void ExecuteVoteResult()
 public void ExecuteSubGroupVoteResult()
 {
     g_sCurrentVoteId[0] = '\0';
+    g_iGlobalMaxRunoffs = -1;
     NativeMMC_OnVoteEnd(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, VoteEnd_Winner);
 	
 	strcopy(g_sNextSubGroup, sizeof(g_sNextSubGroup), g_sVoteSubGroup);
@@ -4879,6 +4895,50 @@ void ExecutePendingVote(VoteType voteType, const char[] gamemode, const char[] s
     BuildVote(initiator, config);
 }
 
+void StartPendingRunoffVote()
+{
+    if (g_RunoffItems == null || g_RunoffItems.Length == 0)
+    {
+        LogError("[MultiMode Core] g_RunoffItems is null or empty in StartPendingRunoffVote. Cancelling runoff.");
+        PlayVoteSound(false, g_bIsRunoffVote);
+        g_bVoteActive = false;
+        g_bIsRunoffVote = false;
+        NativeMMC_OnVoteEnd("", "", "", VoteEnd_Failed);
+        return;
+    }
+
+    AdvancedVoteConfig config;
+    config = g_CurrentVoteConfig;
+    
+    config.runoffItems = g_RunoffItems;
+    
+    VoteType voteType = g_CurrentVoteConfig.voteType;
+    switch (voteType)
+    {
+        case VOTE_TYPE_GROUP:
+        {
+            config.contextInfo[0] = '\0';
+        }
+        case VOTE_TYPE_SUBGROUP:
+        {
+            strcopy(config.contextInfo, sizeof(config.contextInfo), g_sVoteGameMode);
+        }
+        case VOTE_TYPE_MAP:
+        {
+            strcopy(config.contextInfo, sizeof(config.contextInfo), g_sVoteGameMode);
+        }
+        case VOTE_TYPE_SUBGROUP_MAP:
+        {
+            Format(config.contextInfo, sizeof(config.contextInfo), "%s/%s", g_sVoteGameMode, g_sVoteSubGroup);
+        }
+    }
+    
+    int initiator = (g_iVoteInitiator >= 0) ? g_iVoteInitiator : g_iPendingVoteInitiator;
+    if (initiator < 0) initiator = 0;
+    
+    BuildVote(initiator, config);
+}
+
 public Action Timer_EndCooldown(Handle timer)
 {
     g_bCooldownActive = false;
@@ -4887,11 +4947,7 @@ public Action Timer_EndCooldown(Handle timer)
     if(g_bIsRunoffCooldown)
     {
         g_bIsRunoffCooldown = false;
-        LogError("[MultiMode Core] Runoff vote requested but core no longer initiates runoffs. Plugins should use Multimode_StartVote native.");
-        PlayVoteSound(false, g_bIsRunoffVote);
-        g_bVoteActive = false;
-        g_bIsRunoffVote = false;
-        NativeMMC_OnVoteEnd("", "", "", VoteEnd_Failed);
+        StartPendingRunoffVote();
     }
     else
     {
@@ -4906,11 +4962,7 @@ public Action Timer_ExecutePendingVote(Handle timer)
     if(g_bIsRunoffCooldown)
     {
         g_bIsRunoffCooldown = false;
-        LogError("[MultiMode Core] Runoff vote requested but core no longer initiates runoffs. Plugins should use Multimode_StartVote native.");
-        PlayVoteSound(false, g_bIsRunoffVote);
-        g_bVoteActive = false;
-        g_bIsRunoffVote = false;
-        NativeMMC_OnVoteEnd("", "", "", VoteEnd_Failed);
+        StartPendingRunoffVote();
     }
     else
     {
