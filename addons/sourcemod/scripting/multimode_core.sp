@@ -28,8 +28,6 @@ public Plugin myinfo =
 #define GESTURE_NOMINATED " (!)" // For nominated global gesture groups/maps
 #define GESTURE_CURRENT " (*)"   // For Current global gesture group/map
 #define GESTURE_VOTED " (#)"     // For Winning group/map global gesture from a previous vote
-#define GESTURE_SELECTEDNOMINATED " (Nominated)" // For selected nomination global gesture.
-#define GESTURE_EXCLUDED " (Excluded)" // For global exclusion gesture.
 
 enum struct VoteManagerEntry {
     Function start_group;
