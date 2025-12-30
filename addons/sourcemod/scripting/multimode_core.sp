@@ -995,7 +995,21 @@ bool BuildVote(int initiator, AdvancedVoteConfig config)
     }
     
     bool canExtend = (!g_bMapExtended) && MMC_CanExtendMap();
-    if (config.extendOption && canExtend && config.runoffItems == null)
+    bool isFirstVote = false;
+    
+    switch (config.type)
+    {
+        case VOTE_TYPE_GROUPS_THEN_MAPS, VOTE_TYPE_GROUPS_ONLY:
+        {
+            isFirstVote = (config.voteType == VOTE_TYPE_GROUP);
+        }
+        case VOTE_TYPE_MAPS_ONLY:
+        {
+            isFirstVote = (config.voteType == VOTE_TYPE_MAP);
+        }
+    }
+    
+    if (config.extendOption && canExtend && config.runoffItems == null && isFirstVote)
     {
         VoteCandidate item;
         strcopy(item.info, sizeof(item.info), "Extend Map");
@@ -2203,7 +2217,21 @@ public int NativeMMC_StartVote(Handle plugin, int numParams)
     }
     
     bool canExtend = (!g_bMapExtended) && MMC_CanExtendMap();
-    if (config.extendOption && canExtend && voteType == VOTE_TYPE_GROUP)
+    bool isFirstVote = false;
+    
+    switch (config.type)
+    {
+        case VOTE_TYPE_GROUPS_THEN_MAPS, VOTE_TYPE_GROUPS_ONLY:
+        {
+            isFirstVote = (voteType == VOTE_TYPE_GROUP);
+        }
+        case VOTE_TYPE_MAPS_ONLY:
+        {
+            isFirstVote = (voteType == VOTE_TYPE_MAP);
+        }
+    }
+    
+    if (config.extendOption && canExtend && isFirstVote)
     {
         VoteCandidate item;
         strcopy(item.info, sizeof(item.info), "Extend Map");
