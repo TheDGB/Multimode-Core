@@ -87,7 +87,7 @@
 
     "Nominate Disabled"
     {
-        "da"    "{green}[Rock The Vote] {default}Nomineringssystemet er i øjeblikket deaktiveret!"
+        "da"    "{green}[Nominate] {default}Nomineringssystemet er i øjeblikket deaktiveret!"
     }
 
     "Nominate Gamemode Group Menu Title"
@@ -113,6 +113,11 @@
     "Nominate Once Per Map"
     {
         "da"    "{red}[Nominate] {default}Du kan kun {red}nominere én gang {default}pr. kort. Vent til næste kort."
+    }
+
+    "Map Already Nominated"
+    {
+        "da"    "{red}[Nominate] {olive}'%s' {default}er allerede blevet nomineret!"
     }
 
     "Nominate SubGroup Map Title"
@@ -366,6 +371,11 @@
         "da"    "Vælg afstemningstype:"
     }
 
+    "Vote Type Selection Title"
+    {
+        "da"    "Vælg afstemningstype:"
+    }
+
     "Vote Type Normal"
     {
         "da"    "Start afstemning"
@@ -376,8 +386,24 @@
         "da"    "Start separat afstemning"
     }
 
+
     "Wants To Vote"
     {
         "da"    "{green}%N ønsker at skifte kort (%d/%d nødvendige)"
+    }
+
+    "Random Cycle Map Selected With Subgroup"
+    {
+        "da"    "{olive}[MultiMode Random Cycle] {default}Tilfældigt kort valgt: {lightgreen}%s {default}(Tilstand: {lightgreen}%s{default}/{lightgreen}%s{default})"
+    }
+
+    "Random Cycle Map Selected With Group"
+    {
+        "da"    "{olive}[MultiMode Random Cycle] {default}Tilfældigt kort valgt: {lightgreen}%s {default}(Tilstand: {lightgreen}%s{default})"
+    }
+
+    "Random Cycle Map Selected"
+    {
+        "da"    "{olive}[MultiMode Random Cycle] {default}Tilfældigt kort valgt: {lightgreen}%s"
     }
 }

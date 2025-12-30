@@ -87,7 +87,7 @@
 
     "Nominate Disabled"
     {
-        "chi"   "{green}[投票换图] {default}提名系统当前已禁用！"
+        "chi"   "{green}[Nominate] {default}提名系统当前已禁用！"
     }
 
     "Nominate Gamemode Group Menu Title"
@@ -113,6 +113,11 @@
     "Nominate Once Per Map"
     {
         "chi"   "{red}[提名] {default}每张地图您只能 {red}提名一次。 {default}请等到下一张地图。"
+    }
+
+    "Map Already Nominated"
+    {
+        "chi"   "{red}[Nominate] {olive}'%s' {default}已被提名！"
     }
 
     "Nominate SubGroup Map Title"
@@ -366,6 +371,11 @@
         "chi"   "选择投票类型:"
     }
 
+    "Vote Type Selection Title"
+    {
+        "chi"   "选择投票类型:"
+    }
+
     "Vote Type Normal"
     {
         "chi"   "开始投票"
@@ -376,8 +386,24 @@
         "chi"   "开始单独投票"
     }
 
+
     "Wants To Vote"
     {
         "chi"   "{green}%N 想要更换地图 (%d/%d 需要)"
+    }
+
+    "Random Cycle Map Selected With Subgroup"
+    {
+        "chi"   "{olive}[MultiMode Random Cycle] {default}随机地图已选择: {lightgreen}%s {default}(模式: {lightgreen}%s{default}/{lightgreen}%s{default})"
+    }
+
+    "Random Cycle Map Selected With Group"
+    {
+        "chi"   "{olive}[MultiMode Random Cycle] {default}随机地图已选择: {lightgreen}%s {default}(模式: {lightgreen}%s{default})"
+    }
+
+    "Random Cycle Map Selected"
+    {
+        "chi"   "{olive}[MultiMode Random Cycle] {default}随机地图已选择: {lightgreen}%s"
     }
 }

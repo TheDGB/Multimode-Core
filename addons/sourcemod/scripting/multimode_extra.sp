@@ -3,7 +3,21 @@
 ******************************************************************************/
 
 #include <multimode>
+#include <multimode/base>
+#include <multimode/randomcycle>
 #include <morecolors>
+
+public Plugin myinfo = 
+{
+    name = "[MMC] MultiMode Extras",
+    author = "Oppressive Territory",
+    description = "Extra features for MultiMode Core",
+    version = PLUGIN_VERSION,
+    url = ""
+}
+
+// Bool Section
+bool g_bRandomCycleMapSet = false;
 
 public void OnPluginStart()
 {
@@ -11,6 +25,21 @@ public void OnPluginStart()
 	
 	RegConsoleCmd("sm_nextgamemode", Command_NextGameMode, "Shows the next scheduled gamemode");
 	RegConsoleCmd("sm_currentgamemode", Command_CurrentGameMode, "Shows the server's current gamemode");
+}
+
+public void OnMapStart()
+{
+    g_bRandomCycleMapSet = false;
+}
+
+public void MultiMode_OnRandomCycleMapSet(const char[] map, const char[] group, const char[] subgroup)
+{
+    g_bRandomCycleMapSet = true;
+}
+
+public void MultiMode_OnVoteEnd(const char[] group, const char[] subgroup, const char[] map, VoteEndReason reason)
+{
+    g_bRandomCycleMapSet = false;
 }
 
 public Action Command_NextGameMode(int client, int args)
@@ -22,8 +51,7 @@ public Action Command_NextGameMode(int client, int args)
 
     if (StrEqual(next_gamemode, ""))
     {
-        bool randomEnabled = MultiMode_IsRandomCycleEnabled();
-        if (randomEnabled)
+        if (g_bRandomCycleMapSet)
         {
             CPrintToChat(client, "%t", "Random Cycle Next Gamemode");
         }
@@ -44,7 +72,14 @@ public Action Command_NextGameMode(int client, int args)
             Format(display_gamemode, sizeof(display_gamemode), "%s (%s)", next_gamemode, next_subgroup);
         }
 
-        CPrintToChat(client, "%t", "Next Gamemode", display_gamemode, next_map);
+        if (g_bRandomCycleMapSet)
+        {
+            CPrintToChat(client, "%t", "Next Gamemode Random Cycle Waiting", display_gamemode, next_map);
+        }
+        else
+        {
+            CPrintToChat(client, "%t", "Next Gamemode", display_gamemode, next_map);
+        }
     }
 
     return Plugin_Handled;

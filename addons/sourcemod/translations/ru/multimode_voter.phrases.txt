@@ -87,7 +87,7 @@
 
     "Nominate Disabled"
     {
-        "ru"    "{green}[Rock The Vote] {default}Система номинаций в данный момент отключена!"
+        "ru"    "{green}[Nominate] {default}Система номинаций в данный момент отключена!"
     }
 
     "Nominate Gamemode Group Menu Title"
@@ -113,6 +113,11 @@
     "Nominate Once Per Map"
     {
         "ru"    "{red}[Nominate] {default}Вы можете {red}номинировать только один раз {default}за карту. Подождите до следующей карты."
+    }
+
+    "Map Already Nominated"
+    {
+        "ru"    "{red}[Nominate] {olive}'%s' {default}уже был номинирован!"
     }
 
     "Nominate SubGroup Map Title"
@@ -366,6 +371,11 @@
         "ru"    "Выберите тип голосования:"
     }
 
+    "Vote Type Selection Title"
+    {
+        "ru"    "Выберите тип голосования:"
+    }
+
     "Vote Type Normal"
     {
         "ru"    "Начать голосование"
@@ -376,8 +386,24 @@
         "ru"    "Начать отдельное голосование"
     }
 
+
     "Wants To Vote"
     {
         "ru"    "{green}%N хочет сменить карту (%d/%d необходимо)"
+    }
+
+    "Random Cycle Map Selected With Subgroup"
+    {
+        "ru"    "{olive}[MultiMode Random Cycle] {default}Случайная карта выбрана: {lightgreen}%s {default}(Режим: {lightgreen}%s{default}/{lightgreen}%s{default})"
+    }
+
+    "Random Cycle Map Selected With Group"
+    {
+        "ru"    "{olive}[MultiMode Random Cycle] {default}Случайная карта выбрана: {lightgreen}%s {default}(Режим: {lightgreen}%s{default})"
+    }
+
+    "Random Cycle Map Selected"
+    {
+        "ru"    "{olive}[MultiMode Random Cycle] {default}Случайная карта выбрана: {lightgreen}%s"
     }
 }

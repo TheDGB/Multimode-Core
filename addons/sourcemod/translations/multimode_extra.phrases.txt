@@ -19,4 +19,9 @@
     {
         "en"    "{olive}[MultiMode] {default}Next gamemode: {red}Undefined"
     }
+
+    "Next Gamemode Random Cycle Waiting"
+    {
+        "en"    "{olive}[MultiMode] {default}Next gamemode: {lightgreen}%s {default}| Map: {lightgreen}%s {default}({yellow}Random Cycle - Waiting for Vote{default})"
+    }
 }

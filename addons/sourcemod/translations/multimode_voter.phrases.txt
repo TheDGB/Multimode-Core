@@ -87,7 +87,7 @@
 
     "Nominate Disabled"
     {
-        "en"    "{green}[Rock The Vote] {default}The nominate system is currently disabled!"
+        "en"    "{green}[Nominate] {default}The nominate system is currently disabled!"
     }
 
     "Nominate Gamemode Group Menu Title"
@@ -113,6 +113,11 @@
     "Nominate Once Per Map"
     {
         "en"    "{red}[Nominate] {default}You can only {red}nominate once {default}per map. Wait until the next map."
+    }
+
+    "Map Already Nominated"
+    {
+        "en"    "{red}[Nominate] {olive}'%s' {default}has already been nominated!"
     }
 
     "Nominate SubGroup Map Title"
@@ -366,6 +371,12 @@
         "en"    "Choose the type of vote:"
     }
 
+    "Vote Type Selection Title"
+    {
+        "en"    "Choose the type of vote:"
+    }
+
+
     "Vote Type Normal"
     {
         "en"    "Start Vote"
@@ -379,5 +390,20 @@
     "Wants To Vote"
     {
         "en"    "{green}%N wants to change the map (%d/%d needed)"
+    }
+
+    "Random Cycle Map Selected With Subgroup"
+    {
+        "en"    "{olive}[MultiMode Random Cycle] {default}Random map selected: {lightgreen}%s {default}(Mode: {lightgreen}%s{default}/{lightgreen}%s{default})"
+    }
+
+    "Random Cycle Map Selected With Group"
+    {
+        "en"    "{olive}[MultiMode Random Cycle] {default}Random map selected: {lightgreen}%s {default}(Mode: {lightgreen}%s{default})"
+    }
+
+    "Random Cycle Map Selected"
+    {
+        "en"    "{olive}[MultiMode Random Cycle] {default}Random map selected: {lightgreen}%s"
     }
 }

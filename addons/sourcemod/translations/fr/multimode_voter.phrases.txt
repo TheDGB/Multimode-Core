@@ -87,7 +87,7 @@
 
     "Nominate Disabled"
     {
-        "fr"    "{green}[Rock The Vote] {default}Le système de nomination est actuellement désactivé !"
+        "fr"    "{green}[Nominate] {default}Le système de nomination est actuellement désactivé !"
     }
 
     "Nominate Gamemode Group Menu Title"
@@ -113,6 +113,11 @@
     "Nominate Once Per Map"
     {
         "fr"    "{red}[Nominate] {default}Vous ne pouvez {red}nommer qu'une seule fois {default}par carte. Attendez la prochaine carte."
+    }
+
+    "Map Already Nominated"
+    {
+        "fr"    "{red}[Nominate] {olive}'%s' {default}a déjà été nommé!"
     }
 
     "Nominate SubGroup Map Title"
@@ -366,6 +371,11 @@
         "fr"    "Choisissez le type de vote :"
     }
 
+    "Vote Type Selection Title"
+    {
+        "fr"    "Choisissez le type de vote :"
+    }
+
     "Vote Type Normal"
     {
         "fr"    "Démarrer le vote"
@@ -376,8 +386,24 @@
         "fr"    "Démarrer un vote séparé"
     }
 
+
     "Wants To Vote"
     {
         "fr"    "{green}%N veut changer de carte (%d/%d nécessaires)"
+    }
+
+    "Random Cycle Map Selected With Subgroup"
+    {
+        "fr"    "{olive}[MultiMode Random Cycle] {default}Carte aléatoire sélectionnée: {lightgreen}%s {default}(Mode: {lightgreen}%s{default}/{lightgreen}%s{default})"
+    }
+
+    "Random Cycle Map Selected With Group"
+    {
+        "fr"    "{olive}[MultiMode Random Cycle] {default}Carte aléatoire sélectionnée: {lightgreen}%s {default}(Mode: {lightgreen}%s{default})"
+    }
+
+    "Random Cycle Map Selected"
+    {
+        "fr"    "{olive}[MultiMode Random Cycle] {default}Carte aléatoire sélectionnée: {lightgreen}%s"
     }
 }

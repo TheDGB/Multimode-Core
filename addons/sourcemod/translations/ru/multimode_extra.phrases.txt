@@ -19,4 +19,9 @@
     {
         "ru"    "{olive}[MultiMode] {default}Следующий игровой режим: {red}Не определён"
     }
+
+    "Next Gamemode Random Cycle Waiting"
+    {
+        "ru"    "{olive}[MultiMode] {default}Следующий игровой режим: {lightgreen}%s {default}| Карта: {lightgreen}%s {default}({yellow}Случайный цикл - Ожидание голосования{default})"
+    }
 }
