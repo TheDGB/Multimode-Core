@@ -14,18 +14,6 @@ public void OnPluginStart()
 
 public Action Command_TestVote(int client, int args)
 {
-    if (client == 0)
-    {
-        PrintToServer("[TestVote] This command can only be used by players.");
-        return Plugin_Handled;
-    }
-    
-    if (!IsClientInGame(client))
-    {
-        ReplyToCommand(client, "[TestVote] You must be in-game to use this command.");
-        return Plugin_Handled;
-    }
-    
     char voteId[32];
     Format(voteId, sizeof(voteId), "testvote_%d_%d", client, GetTime());
     
@@ -45,11 +33,8 @@ public Action Command_TestVote(int client, int args)
     MultimodeVoteSorted sorted = SORTED_RANDOM;
     
     MultimodeRunoffFailAction runoffFailAction = RUNOFF_FAIL_PICK_FIRST;
-    
-    PrintToChat(client, "[TestVote] Iniciando votação de teste com sons...");
-    PrintToServer("[TestVote] Iniciando votação ID: %s", voteId);
 
-    bool success = Multimode_StartVote(
+    Multimode_StartVote(
         voteId,
         "",
         voteType,
@@ -75,17 +60,6 @@ public Action Command_TestVote(int client, int args)
         numClients,
         false
     );
-    
-    if (success)
-    {
-        PrintToChat(client, "[TestVote] Votação iniciada com sucesso! ID: %s", voteId);
-        PrintToServer("[TestVote] Votação iniciada: ID %s, Client %d", voteId, client);
-    }
-    else
-    {
-        PrintToChat(client, "[TestVote] Falha ao iniciar a votação!");
-        PrintToServer("[TestVote] Falha ao iniciar votação para cliente %d", client);
-    }
     
     return Plugin_Handled;
 }
