@@ -43,6 +43,8 @@ public void OnPluginStart()
     g_Cvar_RandomCycleSubGroupExclude = CreateConVar("multimode_randomcycle_subgroupexclude", "0", "Number of recently played subgroups to exclude from random cycle (0= Disabled)");
     g_Cvar_RandomCycleMapExclude = CreateConVar("multimode_randomcycle_mapexclude", "2", "Number of recently played maps to exclude from random cycle (0= Disabled)");
     
+    AutoExecConfig(true, "multimode_randomcycle");
+    
     g_OnRandomCycleMapSetForward = CreateGlobalForward("MultiMode_OnRandomCycleMapSet", ET_Ignore, Param_String, Param_String, Param_String);
 	
     HookEventEx("game_end", Event_GameOver, EventHookMode_PostNoCopy);

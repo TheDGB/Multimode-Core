@@ -56,6 +56,10 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_unnom", Command_Unnominate, "Remove one or all of your nominations. (ALT)");
     RegConsoleCmd("sm_quickunnominate", Command_QuickUnnominate, "Quickly remove all your nominations.");
     RegConsoleCmd("sm_quickunnom", Command_QuickUnnominate, "Quickly remove all your nominations. (ALT)");
+    
+    AddCommandListener(OnPlayerChat, "say");
+    AddCommandListener(OnPlayerChat, "say2");
+    AddCommandListener(OnPlayerChat, "say_team");
 	
     g_Cvar_UnnominateEnabled = CreateConVar("multimode_unnominate", "1", "Enables or disables the unnominate system.", _, true, 0.0, true, 1.0);
     g_Cvar_Nominate_NominateOneChance = CreateConVar("multimode_nominations_onechance", "1", "If enabled, players can only nominate once per map.", _, true, 0.0, true, 1.0);
@@ -66,6 +70,8 @@ public void OnPluginStart()
     g_Cvar_NominateGroupExclude = CreateConVar("multimode_nominate_groupexclude", "2", "Number of recently played gamemodes to exclude from the menu (0= Disabled)");
     g_Cvar_NominateSubGroupExclude = CreateConVar("multimode_nominate_subgroupexclude", "1", "Number of recently played subgroups to exclude from the menu (0= Disabled)");
     g_Cvar_NominateMapExclude = CreateConVar("multimode_nominate_mapexclude", "2", "Number of recently played maps to exclude from the menu (0= Disabled)");
+    
+    AutoExecConfig(true, "multimode_nominations");
     
     for (int i = 1; i <= MaxClients; i++)
     {

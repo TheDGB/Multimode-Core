@@ -73,6 +73,10 @@ public void OnPluginStart()
     RegConsoleCmd("sm_rtv", Command_RTV, "Rock The Vote");
     RegConsoleCmd("sm_rockthevote", Command_RTV, "Rock The Vote (ALT)");
     
+    AddCommandListener(OnPlayerChat, "say");
+    AddCommandListener(OnPlayerChat, "say2");
+    AddCommandListener(OnPlayerChat, "say_team");
+    
     // Convars
     g_Cvar_MapCycleFile = FindConVar("multimode_mapcycle");
     g_Cvar_RtvMinPlayers = CreateConVar("multimode_rtv_min", "1", "Minimum number of players required to start RTV", _, true, 1.0);
@@ -100,6 +104,8 @@ public void OnPluginStart()
     g_Cvar_ExtendTimeStep = CreateConVar("multimode_rtv_extendtimestep", "6", "Amount of time to extend the time limit when \"Extend Map\" is selected.");
     g_Cvar_ExtendFragStep = CreateConVar("multimode_rtv_extendfragstep", "10", "Amount of frag limit to extend when \"Extend Map\" is selected.");
     g_Cvar_ExtendRoundStep = CreateConVar("multimode_rtv_extendroundstep", "3", "Amount of round limit to extend when \"Extend Map\" is selected.");
+    
+    AutoExecConfig(true, "multimode_rockthevote");
     
     ResetRTV();
     
@@ -531,4 +537,21 @@ float GetRemainingTime(int timerIndex)
     float remaining = g_fRtvTimerDuration[timerIndex] - elapsed;
     
     return (remaining > 0.0) ? remaining : 0.0;
+}
+
+public Action OnPlayerChat(int client, const char[] command, int argc)
+{
+    if (argc == 0)
+        return Plugin_Continue;
+
+    char text[13];
+    GetCmdArg(1, text, sizeof(text));
+
+    if (StrEqual(text, "rtv", false) || StrEqual(text, "rockthevote", false))
+    {
+        Command_RTV(client, 0);
+        return Plugin_Continue;
+    }
+
+    return Plugin_Continue;
 }

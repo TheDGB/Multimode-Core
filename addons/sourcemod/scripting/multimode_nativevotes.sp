@@ -40,6 +40,8 @@ public void OnAllPluginsLoaded()
     g_CvVoteOpenSound = FindConVar("multimode_voteopensound");
     g_CvRunoffVoteOpenSound = FindConVar("multimode_runoff_voteopensound");
     g_CvNativeVotesLogs = CreateConVar("multimode_nativevotes_logs", "1", "Enable/disable logging for native votes", _, true, 0.0, true, 1.0);
+    
+    AutoExecConfig(true, "multimode_nativevotes");
 }
 
 public void OnLibraryAdded(const char[] name)
