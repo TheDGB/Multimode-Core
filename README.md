@@ -1,4 +1,4 @@
-<h1 align=center>Multimode Core 3.0.0+</h1> 
+<h1 align=center>Multimode Core PLUS 3.0.0+</h1> 
 <div align=center>
 
 [![GitHub last commit](https://img.shields.io/github/last-commit/TheDGB/Multimode-Core)](https://github.com/TheDGB/Multimode-Core)
@@ -19,6 +19,8 @@ Do you have a suggestion for the plugin? You can make a **pull request!**
 ### Special thanks:
 [what.rf](https://steamcommunity.com/id/RayanFhoulaBR/) - For fixing Multimode Core's check end vote.
 
+[Cara da Old Spice (Old Spice Guy)](https://steamcommunity.com/id/IgorKock/) - For debuging run off and testing all the progress of the runoff.
+
 [Sanju VinhoeFumaça!](https://steamcommunity.com/id/SanjiVinsmokeBRAZIL/) - For testing and giving ideias to the project.
 
 [Ribas](https://steamcommunity.com/id/ribasgabe/) - Owner of Oppressive Territory Hosting.
@@ -27,8 +29,8 @@ Do you have a suggestion for the plugin? You can make a **pull request!**
 
 #### Supported Games.
 - Team Fortress 2
-- Counter-Strike Source
-- Half-Life 2 Deathmatch
+- Counter-Strike Source (Not Tested)
+- Half-Life 2 Deathmatch (Not Tested)
 - Left 4 Dead 2 (Not Tested)
 - Left 4 Dead 1 (Not Tested)
 
