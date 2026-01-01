@@ -1,4 +1,4 @@
-<h1 align=center>Multimode Core PLUS 3.0.0+</h1> 
+<h1 align=center>Multimode Core+ 3.0.0+</h1> 
 <div align=center>
 
 [![GitHub last commit](https://img.shields.io/github/last-commit/TheDGB/Multimode-Core)](https://github.com/TheDGB/Multimode-Core)
@@ -35,9 +35,9 @@ Do you have a suggestion for the plugin? You can make a **pull request!**
 - Left 4 Dead 1 (Not Tested)
 
 ## Wiki
-You can head over to our Multimode Core wiki for more information about the plugin!
+You can head over to our Multimode Core+ wiki for more information about the plugin!
 
-#### [Multimode Core Wiki](https://github.com/TheDGB/multimode_core/wiki)
+#### [Multimode Core+ Wiki](https://github.com/TheDGB/multimode_core/wiki)
 
 <h1 align=center>Enjoy The Plugin!</h1> 
 <div align=center>
