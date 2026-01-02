@@ -3707,7 +3707,7 @@ ArrayList PrepareVoteItems_Group(AdvancedVoteConfig config, ArrayList runoffItem
         nominatedItems.Sort(Sort_Random, Sort_String);
         otherItems.Sort(Sort_Random, Sort_String);
     }
-    else
+    else if (config.sorted == SORTED_ALPHABETICAL)
     {
         nominatedItems.Sort(Sort_Ascending, Sort_String);
         otherItems.Sort(Sort_Ascending, Sort_String);
@@ -3826,6 +3826,10 @@ ArrayList PrepareVoteItems_SubGroup(AdvancedVoteConfig config, const char[] game
     if (sortMode == SORTED_RANDOM)
     {
         allSubGroups.Sort(Sort_Random, Sort_String);
+    }
+    else if (sortMode == SORTED_ALPHABETICAL)
+    {
+        allSubGroups.Sort(Sort_Ascending, Sort_String);
     }
     
     int limit = gmConfig.subgroups_invote;
@@ -3983,7 +3987,7 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
             listNominations.Sort(Sort_Random, Sort_String);
             listRandoms.Sort(Sort_Random, Sort_String);
         }
-        else
+        else if (config.sorted == SORTED_ALPHABETICAL)
         {
             listNominations.Sort(Sort_Ascending, Sort_String);
             listRandoms.Sort(Sort_Ascending, Sort_String);
@@ -4080,10 +4084,14 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
     if (g_NominatedMaps.GetValue(key, mapsNominated) && mapsNominated != null && mapsNominated.Length > 0)
     {
         ArrayList nominateList = view_as<ArrayList>(CloneHandle(mapsNominated));
-    MultimodeVoteSorted sortMode = (view_as<int>(config.sorted) >= 0) ? config.sorted : SORTED_MAPCYCLE_ORDER;
+        MultimodeVoteSorted sortMode = (view_as<int>(config.sorted) >= 0) ? config.sorted : SORTED_MAPCYCLE_ORDER;
         if (sortMode == SORTED_RANDOM)
         {
             nominateList.Sort(Sort_Random, Sort_String);
+        }
+        else if (sortMode == SORTED_ALPHABETICAL)
+        {
+            nominateList.Sort(Sort_Ascending, Sort_String);
         }
         
         for (int i = 0; i < nominateList.Length; i++)
@@ -4134,7 +4142,7 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
             }
         }
         
-    MultimodeVoteSorted sortMode = (view_as<int>(config.sorted) >= 0) ? config.sorted : SORTED_MAPCYCLE_ORDER;
+        MultimodeVoteSorted sortMode = (view_as<int>(config.sorted) >= 0) ? config.sorted : SORTED_MAPCYCLE_ORDER;
         if (sortMode == SORTED_RANDOM)
         {
             availableMaps.Sort(Sort_Random, Sort_String);
@@ -4148,6 +4156,16 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
             voteMaps.PushString(map);
         }
         delete availableMaps;
+    }
+    
+    MultimodeVoteSorted sortMode = (view_as<int>(config.sorted) >= 0) ? config.sorted : SORTED_MAPCYCLE_ORDER;
+    if (sortMode == SORTED_RANDOM)
+    {
+        voteMaps.Sort(Sort_Random, Sort_String);
+    }
+    else if (sortMode == SORTED_ALPHABETICAL)
+    {
+        voteMaps.Sort(Sort_Ascending, Sort_String);
     }
     
     for (int i = 0; i < voteMaps.Length; i++)
@@ -4239,6 +4257,10 @@ ArrayList PrepareVoteItems_SubGroupMap(AdvancedVoteConfig config, const char[] g
     if (sortMode == SORTED_RANDOM)
     {
         voteMaps.Sort(Sort_Random, Sort_String);
+    }
+    else if (sortMode == SORTED_ALPHABETICAL)
+    {
+        voteMaps.Sort(Sort_Ascending, Sort_String);
     }
     
     int maxItems = 6;
@@ -4942,7 +4964,7 @@ void ExecutePendingVote(VoteType voteType, const char[] gamemode, const char[] s
     config.maxRunoffs = 0;
     config.maxRunoffInVote = 0;
     config.runoffFailAction = RUNOFF_FAIL_PICK_FIRST;
-    config.sorted = SORTED_MAPCYCLE_ORDER;
+    config.sorted = g_CurrentVoteConfig.sorted;
     config.adminvote = g_bCurrentVoteAdmin;
     config.targetClients = null;
     config.voteType = voteType;

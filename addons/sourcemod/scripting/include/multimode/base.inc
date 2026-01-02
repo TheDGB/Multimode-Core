@@ -9,7 +9,7 @@
 #endif
 #define _multimode_base_included
 
-#define PLUGIN_VERSION "3.4.0++"
+#define PLUGIN_VERSION "3.4.1++"
 
 // Map Cycle Configuration Keys
 #include <multimode/mapcyclecommands>
@@ -38,8 +38,9 @@ enum MultimodeRunoffFailAction
 
 enum MultimodeVoteSorted
 {
-    SORTED_RANDOM = 0,
-    SORTED_MAPCYCLE_ORDER = 1
+    SORTED_ALPHABETICAL = 0,
+    SORTED_RANDOM = 1,
+    SORTED_MAPCYCLE_ORDER = 2
 }
 
 #define MAX_GAMEMODES 64
