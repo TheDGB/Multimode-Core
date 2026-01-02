@@ -62,8 +62,14 @@ public void OnPluginStart()
         g_VGuiMenuId = GetUserMessageId("VGUIMenu");
         if (g_VGuiMenuId != INVALID_MESSAGE_ID)
         {
-            HookUserMessage(g_VGuiMenuId, OnVGuiMenu_BfRead);
-            HookUserMessage(g_VGuiMenuId, OnVGuiMenu_Protobuf);
+            if (GetFeatureStatus(FeatureType_Native, "Protobuf.ReadString") == FeatureStatus_Available)
+            {
+                HookUserMessage(g_VGuiMenuId, OnVGuiMenu_Protobuf);
+            }
+            else
+            {
+                HookUserMessage(g_VGuiMenuId, OnVGuiMenu_BfRead);
+            }
         }
     }
 }
