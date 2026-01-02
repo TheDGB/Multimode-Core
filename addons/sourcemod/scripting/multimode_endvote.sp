@@ -28,7 +28,6 @@ ConVar g_Cvar_EndVoteMin;
 ConVar g_Cvar_EndVoteRounds;
 ConVar g_Cvar_EndVoteFrags;
 ConVar g_Cvar_EndVoteOnRoundEnd;
-ConVar g_Cvar_EndVoteType;
 ConVar g_Cvar_EndVoteMethod;
 ConVar g_hCvarTimeLimit;
 
@@ -73,7 +72,6 @@ public void OnPluginStart()
     g_Cvar_EndVoteRounds = CreateConVar("multimode_endvote_rounds", "2", "Rounds remaining before map ends to trigger vote (0 = disabled)", _, true, 0.0);
     g_Cvar_EndVoteFrags = CreateConVar("multimode_endvote_frags", "10", "Frags remaining before map ends to trigger vote (0 = disabled)", _, true, 0.0);
     g_Cvar_EndVoteOnRoundEnd = CreateConVar("multimode_endvote_onroundend", "0", "Wait for round end before starting vote", _, true, 0.0, true, 1.0);
-    g_Cvar_EndVoteType = CreateConVar("multimode_endvote_type", "1", "Vote type: 1 = Groups then Maps, 2 = Groups only, 3 = Maps only", _, true, 1.0, true, 3.0);
     g_Cvar_EndVoteMethod = CreateConVar("multimode_endvote_method", "1", "Vote method for end vote: 1 = Groups then Maps, 2 = Groups only (random map), 3 = Maps only", _, true, 1.0, true, 3.0);
     g_hCvarTimeLimit = FindConVar("mp_timelimit");
     
@@ -335,7 +333,7 @@ void PerformEndVote()
         return;
     }
     
-    int endType = g_Cvar_EndVoteType.IntValue;
+    int endType = g_Cvar_EndVoteMethod.IntValue;
     if (endType < 1) endType = 1;
     else if (endType > 3) endType = 3;
     
@@ -423,7 +421,7 @@ public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
     {
         g_bEndVotePending = false;
         
-        int endType = g_Cvar_EndVoteType.IntValue;
+        int endType = g_Cvar_EndVoteMethod.IntValue;
         if (endType < 1) endType = 1;
         else if (endType > 3) endType = 3;
         
