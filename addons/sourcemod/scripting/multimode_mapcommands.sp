@@ -129,6 +129,46 @@ KeyValues GetMapcycle()
     return g_kvMapcycle;
 }
 
+bool GetMapCycleKeyValue(KeyValues kv, const char[] gamemode, const char[] subgroup, const char[] map, const char[] key, char[] value, int valueLen)
+{
+    if (kv == null)
+        return false;
+
+    value[0] = '\0';
+
+    if (strlen(subgroup) > 0)
+    {
+        KeyValues kvSubMap = MMC_GetSubGroupMapKv(kv, gamemode, subgroup, map);
+        if (kvSubMap != null)
+        {
+            kvSubMap.GetString(key, value, valueLen, "");
+            delete kvSubMap;
+            if (strlen(value) > 0)
+                return true;
+        }
+    }
+
+    KeyValues kvMap = MMC_GetMapKv(kv, gamemode, map);
+    if (kvMap != null)
+    {
+        kvMap.GetString(key, value, valueLen, "");
+        delete kvMap;
+        if (strlen(value) > 0)
+            return true;
+    }
+
+    if (kv.JumpToKey(gamemode))
+    {
+        kv.GetString(key, value, valueLen, "");
+        kv.Rewind();
+        if (strlen(value) > 0)
+            return true;
+    }
+    kv.Rewind();
+
+    return false;
+}
+
 void ExecuteMapCommand(const char[] gamemode, const char[] subgroup, const char[] map)
 {
     if (g_kvMapcycle == null)
@@ -137,57 +177,24 @@ void ExecuteMapCommand(const char[] gamemode, const char[] subgroup, const char[
         if (g_kvMapcycle == null)
             return;
     }
-    
-    char command[512];
-    bool commandFound = false;
-    
-    if (strlen(subgroup) > 0)
-    {
-        KeyValues kv = MMC_GetSubGroupMapKv(g_kvMapcycle, gamemode, subgroup, map);
-        if (kv != null)
-        {
-            kv.GetString(MAPCYCLE_KEY_COMMAND, command, sizeof(command), "");
-            delete kv;
-            if (strlen(command) > 0)
-            {
-                commandFound = true;
-            }
-        }
-    }
-    
-    if (!commandFound)
-    {
-        KeyValues kv = MMC_GetMapKv(g_kvMapcycle, gamemode, map);
-        if (kv != null)
-        {
-            kv.GetString(MAPCYCLE_KEY_COMMAND, command, sizeof(command), "");
-            delete kv;
-            if (strlen(command) > 0)
-            {
-                commandFound = true;
-            }
-        }
-    }
-    
-    if (!commandFound)
-    {
-        if (g_kvMapcycle.JumpToKey(gamemode))
-        {
-            g_kvMapcycle.GetString(MAPCYCLE_KEY_COMMAND, command, sizeof(command), "");
-            g_kvMapcycle.Rewind();
-            if (strlen(command) > 0)
-            {
-                commandFound = true;
-            }
-        }
-        g_kvMapcycle.Rewind();
-    }
 
-    if (commandFound && strlen(command) > 0)
+    char command[512];
+    char config[PLATFORM_MAX_PATH];
+
+    if (GetMapCycleKeyValue(g_kvMapcycle, gamemode, subgroup, map, MAPCYCLE_KEY_COMMAND, command, sizeof(command)))
     {
         ServerCommand("%s", command);
         MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Executed command for map %s (group: %s, subgroup: %s): %s", 
                    map, gamemode, strlen(subgroup) > 0 ? subgroup : "none", command);
+    }
+
+    if (GetMapCycleKeyValue(g_kvMapcycle, gamemode, subgroup, map, MAPCYCLE_KEY_CONFIG, config, sizeof(config)))
+    {
+        char configPath[PLATFORM_MAX_PATH];
+        Format(configPath, sizeof(configPath), "cfg/%s", config);
+        ServerCommand("exec \"%s\"", configPath);
+        MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Executed config for map %s (group: %s, subgroup: %s): %s", 
+                   map, gamemode, strlen(subgroup) > 0 ? subgroup : "none", config);
     }
 }
 
