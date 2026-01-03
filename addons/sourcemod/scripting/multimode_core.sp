@@ -269,54 +269,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnConfigsExecuted()
 {
-    delete g_kvGameModes;
-    g_kvGameModes = new KeyValues("Mapcycle");
-    
-    char configPath[PLATFORM_MAX_PATH];
-    char mapcycleFile[PLATFORM_MAX_PATH];
-    
-    g_Cvar_MapCycleFile.GetString(mapcycleFile, sizeof(mapcycleFile));
-    BuildPath(Path_SM, configPath, sizeof(configPath), "configs/%s", mapcycleFile);
-    
-    if (!g_kvGameModes.ImportFromFile(configPath))
-    {
-        MMC_WriteToLogFile(g_Cvar_Logs, "Falha ao carregar %s", mapcycleFile);
-        return;
-    }
-    
-    g_kvGameModes.Rewind();
-    
-    if (g_kvGameModes.GotoFirstSubKey(false))
-    {
-        do
-        {
-            char gamemodeName[64];
-            g_kvGameModes.GetSectionName(gamemodeName, sizeof(gamemodeName));
-            
-            if (g_kvGameModes.JumpToKey("maps"))
-            {
-                if (g_kvGameModes.GotoFirstSubKey(false))
-                {
-                    do
-                    {
-                        char mapName[PLATFORM_MAX_PATH];
-                        g_kvGameModes.GetSectionName(mapName, sizeof(mapName));
-                        
-                        if (StrContains(mapName, "workshop/") == 0)
-                        {
-                            char displayName[128];
-                            g_kvGameModes.GetString(MAPCYCLE_KEY_DISPLAY, displayName, sizeof(displayName), "");
-                        }
-                    } while (g_kvGameModes.GotoNextKey(false));
-                    g_kvGameModes.GoBack();
-                }
-                g_kvGameModes.GoBack();
-            }
-        } while (g_kvGameModes.GotoNextKey(false));
-        g_kvGameModes.GoBack();
-    }
-    
-    g_kvGameModes.Rewind();
+    LoadGameModesConfig();
 }
 
 public void OnMapStart()
@@ -373,7 +326,6 @@ public void OnMapStart()
                         
                         char mapCommand[256];
                         kv.GetString(MAPCYCLE_KEY_COMMAND, mapCommand, sizeof(mapCommand), "");
-                        
                         if (strlen(mapCommand) > 0)
                         {
                             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing subgroup map command: %s", mapCommand);
@@ -399,41 +351,6 @@ public void OnMapStart()
                 kv.GetString(MAPCYCLE_KEY_COMMAND, mapCommand, sizeof(mapCommand), "");
                 delete kv;
             }
-            
-            if (g_kvGameModes.JumpToKey(config.name) && g_kvGameModes.JumpToKey("maps"))
-            {
-                if (g_kvGameModes.GotoFirstSubKey(false))
-                {
-                    do
-                    {
-                        char mapKey[PLATFORM_MAX_PATH];
-                        g_kvGameModes.GetSectionName(mapKey, sizeof(mapKey));
-
-                        if (MMC_IsWildcardEntry(mapKey) && StrContains(CurrentMap, mapKey) == 0)
-                        {
-                            char wildcardConfig[256];
-                            g_kvGameModes.GetString(MAPCYCLE_KEY_CONFIG, wildcardConfig, sizeof(wildcardConfig), "");
-                            if (strlen(wildcardConfig) > 0)
-                            {
-                                MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing wildcard config (%s): %s", mapKey, wildcardConfig);
-                                ServerCommand("exec %s", wildcardConfig);
-                            }
-                            
-                            char wildcardCommand[256];
-                            g_kvGameModes.GetString(MAPCYCLE_KEY_COMMAND, wildcardCommand, sizeof(wildcardCommand), "");
-                            
-                            if (strlen(wildcardCommand) > 0)
-                            {
-                                MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing wildcard command (%s): %s", mapKey, wildcardCommand);
-                                ServerCommand("%s", wildcardCommand);
-                            }
-                        }
-                    } while (g_kvGameModes.GotoNextKey(false));
-                    g_kvGameModes.GoBack();
-                }
-                g_kvGameModes.GoBack();
-            }
-            g_kvGameModes.Rewind();
         }
         
         if (strlen(g_sNextSubGroup) > 0)
@@ -478,7 +395,7 @@ public void OnMapStart()
                         MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing group config: %s", config.config);
                         ServerCommand("exec %s", config.config);
                     }
-                    
+
                     if (strlen(subConfig.config) > 0)
                     {
                         MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing subgroup config: %s", subConfig.config);
@@ -498,7 +415,6 @@ public void OnMapStart()
                         
                         char mapCommand[256];
                         kv.GetString(MAPCYCLE_KEY_COMMAND, mapCommand, sizeof(mapCommand), "");
-                        
                         if (strlen(mapCommand) > 0)
                         {
                             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing subgroup map command: %s", mapCommand);
@@ -541,46 +457,11 @@ public void OnMapStart()
                     delete kv;
                 }
                 
-                if (g_kvGameModes.JumpToKey(config.name) && g_kvGameModes.JumpToKey("maps"))
-                {
-                    if (g_kvGameModes.GotoFirstSubKey(false))
-                    {
-                        do
-                        {
-                            char mapKey[PLATFORM_MAX_PATH];
-                            g_kvGameModes.GetSectionName(mapKey, sizeof(mapKey));
-
-                            if (MMC_IsWildcardEntry(mapKey) && StrContains(CurrentMap, mapKey) == 0)
-                            {
-                                char wildcardConfig[256];
-                                g_kvGameModes.GetString(MAPCYCLE_KEY_CONFIG, wildcardConfig, sizeof(wildcardConfig), "");
-                                if (strlen(wildcardConfig) > 0)
-                                {
-                                    MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing wildcard config (%s): %s", mapKey, wildcardConfig);
-                                    ServerCommand("exec %s", wildcardConfig);
-                                }
-                                
-                                char wildcardCommand[256];
-                                g_kvGameModes.GetString(MAPCYCLE_KEY_COMMAND, wildcardCommand, sizeof(wildcardCommand), "");
-                                
-                                if (strlen(wildcardCommand) > 0)
-                                {
-                                    MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing wildcard command (%s): %s", mapKey, wildcardCommand);
-                                    ServerCommand("%s", wildcardCommand);
-                                }
-                            }
-                        } while (g_kvGameModes.GotoNextKey(false));
-                        g_kvGameModes.GoBack();
-                    }
-                    g_kvGameModes.GoBack();
-                }
-                g_kvGameModes.Rewind();
-                
                 break;
             }
         }
     }
-	
+    
     if (subgroupFound)
     {
         char tempGameMode[128];
@@ -611,7 +492,7 @@ public void OnMapStart()
     g_iGlobalMaxRunoffs = -1;
 
     MMC_UpdateCurrentGameMode(CurrentMap, g_sCurrentGameMode, sizeof(g_sCurrentGameMode), g_sCurrentGameMode);
-	
+    
     char currentMap[PLATFORM_MAX_PATH];
     GetCurrentMap(currentMap, sizeof(currentMap));
 
@@ -645,7 +526,7 @@ public void OnMapStart()
     {
         g_bHasNominated[i] = false;
     }
-	
+    
     for (int i = 1; i <= MaxClients; i++)
     {
         g_bHasNominated[i] = false;
@@ -664,8 +545,8 @@ public void OnClientDisconnect(int client)
     {
         RemoveAllClientNominations(client, false);
     }
-	
-	g_sClientPendingSubGroup[client][0] = '\0';
+    
+    g_sClientPendingSubGroup[client][0] = '\0';
 }
 
 public void LoadGameModesConfig()
@@ -787,7 +668,7 @@ public void LoadGameModesConfig()
                         {
                             continue;
                         }
-						
+                        
                         SubGroupConfig subConfig;
                         g_kvGameModes.GetSectionName(subConfig.name, sizeof(subConfig.name));
                         
