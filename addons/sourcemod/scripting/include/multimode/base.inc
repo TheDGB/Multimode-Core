@@ -1,7 +1,7 @@
 /**
  * MultiMode Core Base
  * 
- * Some bases for the multimode core to work.
+ * Some bases for the multimode core to work...
  */
 
 #if defined _multimode_base_included
