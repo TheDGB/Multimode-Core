@@ -17,7 +17,7 @@ jobs:
 
       - name: Increment version
         run: |
-          FILE="addons/sourcemod/scripting/include/multimode/utils.inc"
+          FILE="addons/sourcemod/scripting/include/multimode/base.inc"
 
           RAW_VERSION=$(grep -oP '(?<=#define PLUGIN_VERSION ")([^"]+)' "$FILE")
           VERSION=$(echo "$RAW_VERSION" | sed 's/[^0-9.]*//g')
