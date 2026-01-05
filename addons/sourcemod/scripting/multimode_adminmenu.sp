@@ -19,17 +19,21 @@
 #define GESTURE_CURRENT " (*)"   // For Current global gesture group/map
 #define GESTURE_VOTED " (#)"     // For Winning group/map global gesture from a previous vote
 
-// Global Variables
-// g_hCookieVoteType removed - no longer needed, all votes from admin menu are admin votes
+// Char Section
 char g_sClientPendingGameMode[MAXPLAYERS+1][64];
 char g_sClientPendingMap[MAXPLAYERS+1][PLATFORM_MAX_PATH];
 char g_sClientPendingSubGroup[MAXPLAYERS+1][64];
+
+// TimingMode Section
 TimingMode g_eVoteTiming;
 
+// TopMenu Section
 TopMenu g_topmenu;
+
+// KeyValues Section
 KeyValues g_kvMapcycle;
 
-// Vote Configuration ConVars
+// ConVars Section
 ConVar g_Cvar_VoteAdminTime;
 ConVar g_Cvar_VoteAdminSorted;
 ConVar g_Cvar_VoteAdminGroupExclude;
@@ -61,7 +65,6 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
-    // Check if multimode_core is loaded by checking for a native
     if (GetFeatureStatus(FeatureType_Native, "MultiMode_GetCurrentGameMode") != FeatureStatus_Available)
     {
         SetFailState("multimode_core plugin is not loaded!");
@@ -69,7 +72,6 @@ public void OnPluginStart()
     
     LoadTranslations("multimode_voter.phrases");
     
-    // Vote Configuration ConVars
     g_Cvar_VoteAdminTime = CreateConVar("multimode_voteadmin_time", "20", "Voting duration in seconds for admin votes.");
     g_Cvar_VoteAdminSorted = CreateConVar("multimode_voteadmin_sorted", "1", "Sorting mode for admin vote items: 0= Alphabetical, 1= Random, 2= Map Cycle Order", _, true, 0.0, true, 2.0);
     g_Cvar_VoteAdminGroupExclude = CreateConVar("multimode_voteadmin_groupexclude", "0", "Number of recently played gamemodes to exclude from admin votes (0= Disabled)");
