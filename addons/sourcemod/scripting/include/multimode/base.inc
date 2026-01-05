@@ -9,7 +9,7 @@
 #endif
 #define _multimode_base_included
 
-#define PLUGIN_VERSION "3.4.4++"
+#define PLUGIN_VERSION "3.4.5++"
 
 // Map Cycle Configuration Keys
 #include <multimode/mapcyclecommands>
