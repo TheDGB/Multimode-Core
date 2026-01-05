@@ -69,8 +69,6 @@ public void OnPluginStart()
     
     LoadTranslations("multimode_voter.phrases");
     
-    // Cookie removed - no longer needed
-    
     // Vote Configuration ConVars
     g_Cvar_VoteAdminTime = CreateConVar("multimode_voteadmin_time", "20", "Voting duration in seconds for admin votes.");
     g_Cvar_VoteAdminSorted = CreateConVar("multimode_voteadmin_sorted", "1", "Sorting mode for admin vote items: 0= Alphabetical, 1= Random, 2= Map Cycle Order", _, true, 0.0, true, 2.0);
@@ -94,10 +92,8 @@ public void OnPluginStart()
     
     AutoExecConfig(true, "multimode_adminmenu");
     
-    // Load mapcycle file
     LoadMapcycle();
     
-    // Register admin menu
     TopMenu topmenu;
     if (LibraryExists("adminmenu") && ((topmenu = GetAdminTopMenu()) != null))
     {
@@ -311,12 +307,10 @@ public int TimingSelectionMenuHandler(Menu menu, MenuAction action, int param1, 
         
         g_eVoteTiming = timing;
         
-        // Start normal vote with configured method
         StartNormalVote(param1);
     }
     else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack)
     {
-        // Go back to vote type selection menu
         ShowVoteTypeSelectionMenu(param1);
     }
     else if (action == MenuAction_End)
@@ -328,8 +322,6 @@ public int TimingSelectionMenuHandler(Menu menu, MenuAction action, int param1, 
 
 void StartNormalVote(int client)
 {
-    // client parameter not used but required for function signature
-    // Suppress unused parameter warning by using it in a no-op condition
     if (client < 0) {}
     
     int method = g_Cvar_VoteAdminMethod.IntValue;
@@ -520,7 +512,6 @@ void ShowGameModeMenu(int client, bool forceMode)
                 strcopy(prefix, sizeof(prefix), GESTURE_CURRENT);
             }
             
-            // Get custom display name from KeyValues
             kv.GetString(MAPCYCLE_KEY_DISPLAY, groupDisplay, sizeof(groupDisplay), gamemodeName);
             
             bool isNominated = MultiMode_IsGroupNominated(gamemodeName, "");
@@ -683,8 +674,6 @@ void ShowMapMenu(int client, const char[] sGameMode, const char[] subgroup = "")
         return;
     }
     
-    // REMOVED: maps.Sort(Sort_Random, Sort_String); // Mantém a ordem do map cycle
-    
     char currentMapName[PLATFORM_MAX_PATH];
     GetCurrentMap(currentMapName, sizeof(currentMapName));
     
@@ -786,8 +775,7 @@ void ShowForceSubGroupMenu(int client, const char[] gamemode)
             {
                 char subgroupName[64];
                 kv.GetSectionName(subgroupName, sizeof(subgroupName));
-                
-                // Skip subgroups_invote and maps_invote keys
+
                 if (StrEqual(subgroupName, "subgroups_invote", false) || StrEqual(subgroupName, "maps_invote", false))
                 {
                     continue;
