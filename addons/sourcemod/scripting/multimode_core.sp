@@ -359,45 +359,7 @@ public void OnMapStart()
                         MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing subgroup config: %s", subConfig.config);
                         ServerCommand("exec %s", subConfig.config);
                     }
-                    
-                    KeyValues kv = GetSubGroupMapKv(config.name, g_sNextSubGroup, CurrentMap);
-                    if (kv != null)
-                    {
-                        char mapConfig[256];
-                        kv.GetString(MAPCYCLE_KEY_CONFIG, mapConfig, sizeof(mapConfig), "");
-                        if (strlen(mapConfig) > 0)
-                        {
-                            MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing subgroup map config: %s", mapConfig);
-                            ServerCommand("exec %s", mapConfig);
-                        }
-                        
-                        char mapCommand[256];
-                        kv.GetString(MAPCYCLE_KEY_COMMAND, mapCommand, sizeof(mapCommand), "");
-                        
-                        if (strlen(mapCommand) > 0)
-                        {
-                            MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing subgroup map command: %s", mapCommand);
-                            ServerCommand("%s", mapCommand);
-                        }
-                        delete kv;
-                    }
                 }
-            }
-            
-            KeyValues kv = GetMapKv(config.name, CurrentMap);
-            if (kv != null)
-            {
-                char mapConfig[256];
-                kv.GetString(MAPCYCLE_KEY_CONFIG, mapConfig, sizeof(mapConfig), "");
-                if (strlen(mapConfig) > 0)
-                {
-                    MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing map config: %s", mapConfig);
-                    ServerCommand("exec %s", mapConfig);
-                }
-
-                char mapCommand[256];
-                kv.GetString(MAPCYCLE_KEY_COMMAND, mapCommand, sizeof(mapCommand), "");
-                delete kv;
             }
             
             if (g_kvGameModes.JumpToKey(config.name) && g_kvGameModes.JumpToKey("maps"))
@@ -408,26 +370,7 @@ public void OnMapStart()
                     {
                         char mapKey[PLATFORM_MAX_PATH];
                         g_kvGameModes.GetSectionName(mapKey, sizeof(mapKey));
-
-                        if (MMC_IsWildcardEntry(mapKey) && StrContains(CurrentMap, mapKey) == 0)
-                        {
-                            char wildcardConfig[256];
-                            g_kvGameModes.GetString(MAPCYCLE_KEY_CONFIG, wildcardConfig, sizeof(wildcardConfig), "");
-                            if (strlen(wildcardConfig) > 0)
-                            {
-                                MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing wildcard config (%s): %s", mapKey, wildcardConfig);
-                                ServerCommand("exec %s", wildcardConfig);
-                            }
-                            
-                            char wildcardCommand[256];
-                            g_kvGameModes.GetString(MAPCYCLE_KEY_COMMAND, wildcardCommand, sizeof(wildcardCommand), "");
-                            
-                            if (strlen(wildcardCommand) > 0)
-                            {
-                                MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing wildcard command (%s): %s", mapKey, wildcardCommand);
-                                ServerCommand("%s", wildcardCommand);
-                            }
-                        }
+						
                     } while (g_kvGameModes.GotoNextKey(false));
                     g_kvGameModes.GoBack();
                 }
@@ -485,28 +428,6 @@ public void OnMapStart()
                         ServerCommand("exec %s", subConfig.config);
                     }
 
-                    KeyValues kv = GetSubGroupMapKv(config.name, subConfig.name, CurrentMap);
-                    if (kv != null)
-                    {
-                        char mapConfig[256];
-                        kv.GetString(MAPCYCLE_KEY_CONFIG, mapConfig, sizeof(mapConfig), "");
-                        if (strlen(mapConfig) > 0)
-                        {
-                            MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing subgroup map config: %s", mapConfig);
-                            ServerCommand("exec %s", mapConfig);
-                        }
-                        
-                        char mapCommand[256];
-                        kv.GetString(MAPCYCLE_KEY_COMMAND, mapCommand, sizeof(mapCommand), "");
-                        
-                        if (strlen(mapCommand) > 0)
-                        {
-                            MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing subgroup map command: %s", mapCommand);
-                            ServerCommand("%s", mapCommand);
-                        }
-                        delete kv;
-                    }
-
                     break;
                 }
             }
@@ -523,22 +444,6 @@ public void OnMapStart()
                 {
                     MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing group config: %s", config.config);
                     ServerCommand("exec %s", config.config);
-                }
-
-                KeyValues kv = GetMapKv(config.name, CurrentMap);
-                if (kv != null)
-                {
-                    char mapConfig[256];
-                    kv.GetString(MAPCYCLE_KEY_CONFIG, mapConfig, sizeof(mapConfig), "");
-                    if (strlen(mapConfig) > 0)
-                    {
-                        MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing map config: %s", mapConfig);
-                        ServerCommand("exec %s", mapConfig);
-                    }
-                    
-                    char mapCommand[256];
-                    kv.GetString(MAPCYCLE_KEY_COMMAND, mapCommand, sizeof(mapCommand), "");
-                    delete kv;
                 }
                 
                 if (g_kvGameModes.JumpToKey(config.name) && g_kvGameModes.JumpToKey("maps"))
@@ -3640,7 +3545,23 @@ ArrayList PrepareVoteItems_Group(AdvancedVoteConfig config, ArrayList runoffItem
             runoffItems.GetString(i, info, sizeof(info));
             VoteCandidate item;
             strcopy(item.info, sizeof(item.info), info);
-            strcopy(item.name, sizeof(item.name), info);
+            
+            char actualGroup[64];
+            SplitGamemodeString(info, actualGroup, sizeof(actualGroup), "", 0);
+            
+            char groupDisplay[64];
+            if (g_kvGameModes.JumpToKey(actualGroup))
+            {
+                g_kvGameModes.GetString(MAPCYCLE_KEY_DISPLAY, groupDisplay, sizeof(groupDisplay), actualGroup);
+                g_kvGameModes.GoBack();
+            }
+            else
+            {
+                strcopy(groupDisplay, sizeof(groupDisplay), info);
+            }
+            g_kvGameModes.Rewind();
+            
+            strcopy(item.name, sizeof(item.name), groupDisplay);
             voteItems.PushArray(item);
         }
         return voteItems;
@@ -3780,11 +3701,27 @@ ArrayList PrepareVoteItems_SubGroup(AdvancedVoteConfig config, const char[] game
             runoffItems.GetString(i, info, sizeof(info));
             VoteCandidate item;
             strcopy(item.info, sizeof(item.info), info);
-            strcopy(item.name, sizeof(item.name), info);
+            
+            char display[128];
+            if (g_kvGameModes.JumpToKey(gamemode) && g_kvGameModes.JumpToKey("subgroup") && g_kvGameModes.JumpToKey(info))
+            {
+                g_kvGameModes.GetString(MAPCYCLE_KEY_DISPLAY, display, sizeof(display), info);
+                g_kvGameModes.GoBack();
+                g_kvGameModes.GoBack();
+                g_kvGameModes.GoBack();
+            }
+            else
+            {
+                strcopy(display, sizeof(display), info);
+            }
+            g_kvGameModes.Rewind();
+
+            strcopy(item.name, sizeof(item.name), display);
             voteItems.PushArray(item);
         }
         return voteItems;
     }
+
     
     int gamemodeIndex = MMC_FindGameModeIndex(gamemode);
     if (gamemodeIndex == -1)
@@ -3880,7 +3817,11 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
             runoffItems.GetString(i, info, sizeof(info));
             VoteCandidate item;
             strcopy(item.info, sizeof(item.info), info);
-            strcopy(item.name, sizeof(item.name), info);
+            
+            char display[256];
+            GetMapDisplayNameEx(gamemode, info, display, sizeof(display));
+            strcopy(item.name, sizeof(item.name), display);
+            
             voteItems.PushArray(item);
         }
         return voteItems;
@@ -3994,19 +3935,19 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
         }
         
         int maxItems = g_Cvar_VoteDefaultInVoteLimit.IntValue;
-        int slotsNeeded = maxItems - listNominations.Length;
-        
-        for (int i = 0; i < slotsNeeded && i < listRandoms.Length; i++)
-        {
-            char map[PLATFORM_MAX_PATH];
-            listRandoms.GetString(i, map, sizeof(map));
-            finalVoteList.PushString(map);
-        }
         
         for (int i = 0; i < listNominations.Length; i++)
         {
             char map[PLATFORM_MAX_PATH];
             listNominations.GetString(i, map, sizeof(map));
+            finalVoteList.PushString(map);
+        }
+        
+        int slotsNeeded = maxItems - listNominations.Length;
+        for (int i = 0; i < slotsNeeded && i < listRandoms.Length; i++)
+        {
+            char map[PLATFORM_MAX_PATH];
+            listRandoms.GetString(i, map, sizeof(map));
             finalVoteList.PushString(map);
         }
         
@@ -4158,16 +4099,6 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
         delete availableMaps;
     }
     
-    MultimodeVoteSorted sortMode = (view_as<int>(config.sorted) >= 0) ? config.sorted : SORTED_MAPCYCLE_ORDER;
-    if (sortMode == SORTED_RANDOM)
-    {
-        voteMaps.Sort(Sort_Random, Sort_String);
-    }
-    else if (sortMode == SORTED_ALPHABETICAL)
-    {
-        voteMaps.Sort(Sort_Ascending, Sort_String);
-    }
-    
     for (int i = 0; i < voteMaps.Length; i++)
     {
         char map[PLATFORM_MAX_PATH], display[256];
@@ -4201,7 +4132,11 @@ ArrayList PrepareVoteItems_SubGroupMap(AdvancedVoteConfig config, const char[] g
             runoffItems.GetString(i, info, sizeof(info));
             VoteCandidate item;
             strcopy(item.info, sizeof(item.info), info);
-            strcopy(item.name, sizeof(item.name), info);
+            
+            char display[256];
+            GetMapDisplayNameEx(gamemode, info, display, sizeof(display), subgroup);
+            strcopy(item.name, sizeof(item.name), display);
+            
             voteItems.PushArray(item);
         }
         return voteItems;
@@ -4235,15 +4170,71 @@ ArrayList PrepareVoteItems_SubGroupMap(AdvancedVoteConfig config, const char[] g
     }
     
     ArrayList voteMaps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
-    for (int i = 0; i < subConfig.maps.Length; i++)
+    ArrayList mapsNominated;
+    
+    char key[128];
+    Format(key, sizeof(key), "%s/%s", gamemode, subgroup);
+    
+    if (config.handlenominations && g_NominatedMaps.GetValue(key, mapsNominated) && mapsNominated != null && mapsNominated.Length > 0)
     {
-        char map[PLATFORM_MAX_PATH];
-        subConfig.maps.GetString(i, map, sizeof(map));
-        
-        if (IsMapValid(map) && MMC_IsCurrentlyAvailableByTime(g_kvGameModes, gamemode, subgroup, map))
+        ArrayList nominateList = view_as<ArrayList>(CloneHandle(mapsNominated));
+        MultimodeVoteSorted sortMode = (view_as<int>(config.sorted) >= 0) ? config.sorted : SORTED_MAPCYCLE_ORDER;
+        if (sortMode == SORTED_RANDOM)
         {
+            nominateList.Sort(Sort_Random, Sort_String);
+        }
+        else if (sortMode == SORTED_ALPHABETICAL)
+        {
+            nominateList.Sort(Sort_Ascending, Sort_String);
+        }
+        
+        for (int i = 0; i < nominateList.Length; i++)
+        {
+            char map[PLATFORM_MAX_PATH];
+            nominateList.GetString(i, map, sizeof(map));
+            
+            if (IsMapValid(map) && MMC_IsCurrentlyAvailableByTime(g_kvGameModes, gamemode, subgroup, map) && voteMaps.FindString(map) == -1)
+            {
+                voteMaps.PushString(map);
+            }
+        }
+        delete nominateList;
+    }
+    
+    int limit = 6;
+    int needed = limit - voteMaps.Length;
+    if (needed > 0)
+    {
+        ArrayList availableMaps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
+        for (int i = 0; i < subConfig.maps.Length; i++)
+        {
+            char map[PLATFORM_MAX_PATH];
+            subConfig.maps.GetString(i, map, sizeof(map));
+            
+            if (IsMapValid(map) && MMC_IsCurrentlyAvailableByTime(g_kvGameModes, gamemode, subgroup, map) && voteMaps.FindString(map) == -1 && (mapsNominated == null || mapsNominated.FindString(map) == -1))
+            {
+                availableMaps.PushString(map);
+            }
+        }
+        
+        MultimodeVoteSorted sortMode = (view_as<int>(config.sorted) >= 0) ? config.sorted : SORTED_MAPCYCLE_ORDER;
+        if (sortMode == SORTED_RANDOM)
+        {
+            availableMaps.Sort(Sort_Random, Sort_String);
+        }
+        else if (sortMode == SORTED_ALPHABETICAL)
+        {
+            availableMaps.Sort(Sort_Ascending, Sort_String);
+        }
+        
+        int count = (availableMaps.Length < needed) ? availableMaps.Length : needed;
+        for (int i = 0; i < count; i++)
+        {
+            char map[PLATFORM_MAX_PATH];
+            availableMaps.GetString(i, map, sizeof(map));
             voteMaps.PushString(map);
         }
+        delete availableMaps;
     }
     
     if (voteMaps.Length == 0)
@@ -4251,16 +4242,6 @@ ArrayList PrepareVoteItems_SubGroupMap(AdvancedVoteConfig config, const char[] g
         delete voteItems;
         delete voteMaps;
         return null;
-    }
-    
-    MultimodeVoteSorted sortMode = (view_as<int>(config.sorted) >= 0) ? config.sorted : SORTED_MAPCYCLE_ORDER;
-    if (sortMode == SORTED_RANDOM)
-    {
-        voteMaps.Sort(Sort_Random, Sort_String);
-    }
-    else if (sortMode == SORTED_ALPHABETICAL)
-    {
-        voteMaps.Sort(Sort_Ascending, Sort_String);
     }
     
     int maxItems = 6;
@@ -4274,6 +4255,11 @@ ArrayList PrepareVoteItems_SubGroupMap(AdvancedVoteConfig config, const char[] g
         char map[PLATFORM_MAX_PATH], display[256];
         voteMaps.GetString(i, map, sizeof(map));
         GetMapDisplayNameEx(gamemode, map, display, sizeof(display), subgroup);
+        
+        if (config.handlenominations && mapsNominated != null && mapsNominated.FindString(map) != -1)
+        {
+            Format(display, sizeof(display), "%s%s", display, GESTURE_NOMINATED);
+        }
         
         VoteCandidate item;
         strcopy(item.info, sizeof(item.info), map);
@@ -4915,7 +4901,7 @@ void ExecutePendingVote(VoteType voteType, const char[] gamemode, const char[] s
     strcopy(config.mapcycle, sizeof(config.mapcycle), "");
     config.type = g_CurrentVoteConfig.type;
     config.time = 0;
-    config.timing = TIMING_NEXTMAP;
+    config.timing = g_CurrentVoteConfig.timing;
     
     if (g_PreservedStartSound[0] != '\0')
     {

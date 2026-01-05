@@ -92,14 +92,6 @@ public void Event_GameOver(Event event, const char[] name, bool dontBroadcast)
     }
     
     g_bIntermissionCalled = true;
-    
-    char nextMap[PLATFORM_MAX_PATH];
-    MultiMode_GetNextMap(nextMap, sizeof(nextMap));
-    
-    if (StrEqual(nextMap, ""))
-    {
-        SelectRandomNextMap(true);
-    }
 }
 
 void SelectRandomNextMap(bool bSetNextMap = false)

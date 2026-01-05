@@ -361,76 +361,44 @@ void StartSeparatedVote(int client)
     Menu menu = new Menu(SeparatedGameModeMenuHandler);
     menu.SetTitle("%t", "Show Gamemode Admin Title");
 
-    ArrayList gameModes = GetGameModesList();
-    bool useSharedList = (gameModes != null && gameModes.Length > 0);
-    
-    // If shared list is empty, read directly from mapcycle file
-    KeyValues kv = null;
-    if (!useSharedList)
+    KeyValues kv = GetMapcycle();
+    if (kv == null)
     {
-        kv = GetMapcycle();
-        if (kv == null)
-        {
-            CPrintToChat(client, "%t", "None Show Gamemode Group");
-            delete menu;
-            return;
-        }
+        CPrintToChat(client, "%t", "None Show Gamemode Group");
+        delete menu;
+        return;
     }
     
     int itemCount = 0;
     
-    if (useSharedList)
+    kv.Rewind();
+    if (kv.GotoFirstSubKey(false))
     {
-        for (int i = 0; i < gameModes.Length; i++)
+        do
         {
-            GameModeConfig config;
-            gameModes.GetArray(i, config);
+            char gamemodeName[64];
+            kv.GetSectionName(gamemodeName, sizeof(gamemodeName));
             
-            char display[128];
-            bool isNominated = MultiMode_IsGroupNominated(config.name, "");
+            int adminonly = kv.GetNum("adminonly", 0);
+            
+            char display[128], groupDisplay[64];
+            bool isNominated = MultiMode_IsGroupNominated(gamemodeName, "");
             char voteIndicator[6];
             strcopy(voteIndicator, sizeof(voteIndicator), isNominated ? GESTURE_NOMINATED : "");
             
-            if (config.adminonly == 1) 
-                Format(display, sizeof(display), "[ADMIN] %s%s", config.name, voteIndicator);
-            else 
-                Format(display, sizeof(display), "%s%s", config.name, voteIndicator);
+            kv.GetString(MAPCYCLE_KEY_DISPLAY, groupDisplay, sizeof(groupDisplay), gamemodeName);
             
-            menu.AddItem(config.name, display);
+            if (adminonly == 1) 
+                Format(display, sizeof(display), "[ADMIN] %s%s", groupDisplay, voteIndicator);
+            else 
+                Format(display, sizeof(display), "%s%s", groupDisplay, voteIndicator);
+            
+            menu.AddItem(gamemodeName, display);
             itemCount++;
-        }
+        } while (kv.GotoNextKey(false));
+        kv.GoBack();
     }
-    else
-    {
-        kv.Rewind();
-        if (kv.GotoFirstSubKey(false))
-        {
-            do
-            {
-                char gamemodeName[64];
-                kv.GetSectionName(gamemodeName, sizeof(gamemodeName));
-                
-                int adminonly = kv.GetNum("adminonly", 0);
-                
-                char display[128], groupDisplay[64];
-                bool isNominated = MultiMode_IsGroupNominated(gamemodeName, "");
-                char voteIndicator[6];
-                strcopy(voteIndicator, sizeof(voteIndicator), isNominated ? GESTURE_NOMINATED : "");
-                
-                kv.GetString(MAPCYCLE_KEY_DISPLAY, groupDisplay, sizeof(groupDisplay), gamemodeName);
-                
-                if (adminonly == 1) 
-                    Format(display, sizeof(display), "[ADMIN] %s%s", groupDisplay, voteIndicator);
-                else 
-                    Format(display, sizeof(display), "%s%s", groupDisplay, voteIndicator);
-                
-                menu.AddItem(gamemodeName, display);
-                itemCount++;
-            } while (kv.GotoNextKey(false));
-            kv.GoBack();
-        }
-        kv.Rewind();
-    }
+    kv.Rewind();
     
     if (itemCount > 0)
     {
@@ -519,19 +487,12 @@ void ShowGameModeMenu(int client, bool forceMode)
     Menu menu = new Menu(forceMode ? ForceGameModeMenuHandler : GameModeMenuHandler);
     menu.SetTitle("%t", "Show Gamemode Group Title");
 
-    ArrayList gameModes = GetGameModesList();
-    bool useSharedList = (gameModes != null && gameModes.Length > 0);
-
-    KeyValues kv = null;
-    if (!useSharedList)
+    KeyValues kv = GetMapcycle();
+    if (kv == null)
     {
-        kv = GetMapcycle();
-        if (kv == null)
-        {
-            CPrintToChat(client, "%t", "None Show Gamemode Group");
-            delete menu;
-            return;
-        }
+        CPrintToChat(client, "%t", "None Show Gamemode Group");
+        delete menu;
+        return;
     }
     
     char currentGroup[64];
@@ -540,51 +501,39 @@ void ShowGameModeMenu(int client, bool forceMode)
 
     int itemCount = 0;
     
-    if (useSharedList)
+    kv.Rewind();
+    if (kv.GotoFirstSubKey(false))
     {
-        for (int i = 0; i < gameModes.Length; i++)
+        do
         {
-            GameModeConfig config;
-            gameModes.GetArray(i, config);
+            char gamemodeName[64];
+            kv.GetSectionName(gamemodeName, sizeof(gamemodeName));
+            
+            int enabled = kv.GetNum("enabled", 1);
+            int adminonly = kv.GetNum("adminonly", 0);
             
             char display[128], groupDisplay[64];
             char prefix[8] = "";
 
-            if (StrEqual(config.name, currentGroup))
+            if (StrEqual(gamemodeName, currentGroup))
             {
                 strcopy(prefix, sizeof(prefix), GESTURE_CURRENT);
             }
-
-            KeyValues kvDisplay = GetMapcycle();
-            if (kvDisplay != null)
-            {
-                if (kvDisplay.JumpToKey(config.name))
-                {
-                    kvDisplay.GetString(MAPCYCLE_KEY_DISPLAY, groupDisplay, sizeof(groupDisplay), config.name);
-                    kvDisplay.GoBack();
-                }
-                else
-                {
-                    strcopy(groupDisplay, sizeof(groupDisplay), config.name);
-                }
-                kvDisplay.Rewind();
-            }
-            else
-            {
-                strcopy(groupDisplay, sizeof(groupDisplay), config.name);
-            }
             
-            bool isNominated = MultiMode_IsGroupNominated(config.name, "");
+            // Get custom display name from KeyValues
+            kv.GetString(MAPCYCLE_KEY_DISPLAY, groupDisplay, sizeof(groupDisplay), gamemodeName);
+            
+            bool isNominated = MultiMode_IsGroupNominated(gamemodeName, "");
             char voteIndicator[6];
             strcopy(voteIndicator, sizeof(voteIndicator), isNominated ? GESTURE_NOMINATED : "");
             
             if (forceMode)
             {
-                if (config.enabled == 0 && config.adminonly == 1)
+                if (enabled == 0 && adminonly == 1)
                     Format(display, sizeof(display), "[DISABLED, ADMIN] %s%s%s", groupDisplay, voteIndicator, prefix);
-                else if (config.enabled == 0)
+                else if (enabled == 0)
                     Format(display, sizeof(display), "[DISABLED] %s%s%s", groupDisplay, voteIndicator, prefix);
-                else if (config.adminonly == 1)
+                else if (adminonly == 1)
                     Format(display, sizeof(display), "[ADMIN] %s%s%s", groupDisplay, voteIndicator, prefix);
                 else
                     Format(display, sizeof(display), "%s%s%s", groupDisplay, voteIndicator, prefix);
@@ -594,61 +543,12 @@ void ShowGameModeMenu(int client, bool forceMode)
                 Format(display, sizeof(display), "%s%s%s", prefix, groupDisplay, voteIndicator);
             }
             
-            menu.AddItem(config.name, display);
+            menu.AddItem(gamemodeName, display);
             itemCount++;
-        }
+        } while (kv.GotoNextKey(false));
+        kv.GoBack();
     }
-    else
-    {
-        kv.Rewind();
-        if (kv.GotoFirstSubKey(false))
-        {
-            do
-            {
-                char gamemodeName[64];
-                kv.GetSectionName(gamemodeName, sizeof(gamemodeName));
-                
-                int enabled = kv.GetNum("enabled", 1);
-                int adminonly = kv.GetNum("adminonly", 0);
-                
-                char display[128], groupDisplay[64];
-                char prefix[8] = "";
-
-                if (StrEqual(gamemodeName, currentGroup))
-                {
-                    strcopy(prefix, sizeof(prefix), GESTURE_CURRENT);
-                }
-                
-                // Get custom display name from KeyValues
-                kv.GetString(MAPCYCLE_KEY_DISPLAY, groupDisplay, sizeof(groupDisplay), gamemodeName);
-                
-                bool isNominated = MultiMode_IsGroupNominated(gamemodeName, "");
-                char voteIndicator[6];
-                strcopy(voteIndicator, sizeof(voteIndicator), isNominated ? GESTURE_NOMINATED : "");
-                
-                if (forceMode)
-                {
-                    if (enabled == 0 && adminonly == 1)
-                        Format(display, sizeof(display), "[DISABLED, ADMIN] %s%s%s", groupDisplay, voteIndicator, prefix);
-                    else if (enabled == 0)
-                        Format(display, sizeof(display), "[DISABLED] %s%s%s", groupDisplay, voteIndicator, prefix);
-                    else if (adminonly == 1)
-                        Format(display, sizeof(display), "[ADMIN] %s%s%s", groupDisplay, voteIndicator, prefix);
-                    else
-                        Format(display, sizeof(display), "%s%s%s", groupDisplay, voteIndicator, prefix);
-                }
-                else
-                {
-                    Format(display, sizeof(display), "%s%s%s", prefix, groupDisplay, voteIndicator);
-                }
-                
-                menu.AddItem(gamemodeName, display);
-                itemCount++;
-            } while (kv.GotoNextKey(false));
-            kv.GoBack();
-        }
-        kv.Rewind();
-    }
+    kv.Rewind();
     
     if (itemCount > 0)
     {
@@ -719,129 +619,61 @@ void ShowMapMenu(int client, const char[] sGameMode, const char[] subgroup = "")
     }
     
     ArrayList maps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
-    bool found = false;
-	
-    ArrayList list = GetGameModesList();
-    if (list != null && list.Length > 0)
-    {
-        int index = MMC_FindGameModeIndex(sGameMode);
-        if (index != -1)
-        {
-            GameModeConfig config;
-            list.GetArray(index, config);
-            
-            if (strlen(subgroup) > 0)
-            {
-                int subgroupIndex = MMC_FindSubGroupIndex(sGameMode, subgroup);
-                if (subgroupIndex != -1)
-                {
-                    SubGroupConfig subConfig;
-                    config.subGroups.GetArray(subgroupIndex, subConfig);
-                    if (subConfig.maps != null)
-                    {
-                        for (int i = 0; i < subConfig.maps.Length; i++)
-                        {
-                            char map[PLATFORM_MAX_PATH];
-                            subConfig.maps.GetString(i, map, sizeof(map));
-                            maps.PushString(map);
-                        }
-                        found = true;
-                    }
-                }
-            }
-            else
-            {
-                if (config.maps != null)
-                {
-                    for (int i = 0; i < config.maps.Length; i++)
-                    {
-                        char map[PLATFORM_MAX_PATH];
-                        config.maps.GetString(i, map, sizeof(map));
-                        maps.PushString(map);
-                    }
-                    found = true;
-                }
-            }
-        }
-    }
     
-    if (!found)
+    KeyValues kv = GetMapcycle();
+    if (kv == null)
     {
-        KeyValues kv = GetMapcycle();
-        if (kv != null)
+        CPrintToChat(client, "%t", "None Show Map Group");
+        delete maps;
+        delete menu;
+        return;
+    }
+
+    kv.Rewind();
+    if (kv.JumpToKey(sGameMode))
+    {
+        if (strlen(subgroup) > 0)
         {
-            kv.Rewind();
-            if (kv.GotoFirstSubKey(false))
+            if (kv.JumpToKey("subgroup") && kv.JumpToKey(subgroup))
             {
-                do
+                if (kv.JumpToKey("maps"))
                 {
-                    char gamemodeName[64];
-                    kv.GetSectionName(gamemodeName, sizeof(gamemodeName));
-                    if (StrEqual(gamemodeName, sGameMode))
+                    if (kv.GotoFirstSubKey(false))
                     {
-                        if (strlen(subgroup) > 0)
+                        do
                         {
-                            if (kv.JumpToKey("subgroup"))
-                            {
-                                if (kv.GotoFirstSubKey(false))
-                                {
-                                    do
-                                    {
-                                        char subgroupName[64];
-                                        kv.GetSectionName(subgroupName, sizeof(subgroupName));
-                                        if (StrEqual(subgroupName, subgroup))
-                                        {
-                                            if (kv.JumpToKey("maps"))
-                                            {
-                                                if (kv.GotoFirstSubKey(false))
-                                                {
-                                                    do
-                                                    {
-                                                        char mapName[PLATFORM_MAX_PATH];
-                                                        kv.GetSectionName(mapName, sizeof(mapName));
-                                                        maps.PushString(mapName);
-                                                    } while (kv.GotoNextKey(false));
-                                                    kv.GoBack();
-                                                }
-                                                kv.GoBack();
-                                            }
-                                            kv.GoBack();
-                                            kv.GoBack();
-                                            found = true;
-                                            break;
-                                        }
-                                    } while (kv.GotoNextKey(false));
-                                    kv.GoBack();
-                                }
-                                kv.GoBack();
-                            }
-                        }
-                        else
-                        {
-                            if (kv.JumpToKey("maps"))
-                            {
-                                if (kv.GotoFirstSubKey(false))
-                                {
-                                    do
-                                    {
-                                        char mapName[PLATFORM_MAX_PATH];
-                                        kv.GetSectionName(mapName, sizeof(mapName));
-                                        maps.PushString(mapName);
-                                    } while (kv.GotoNextKey(false));
-                                    kv.GoBack();
-                                }
-                                kv.GoBack();
-                            }
-                            found = true;
-                        }
-                        break;
+                            char mapName[PLATFORM_MAX_PATH];
+                            kv.GetSectionName(mapName, sizeof(mapName));
+                            maps.PushString(mapName);
+                        } while (kv.GotoNextKey(false));
+                        kv.GoBack();
                     }
-                } while (kv.GotoNextKey(false));
+                    kv.GoBack();
+                }
+                kv.GoBack();
                 kv.GoBack();
             }
-            kv.Rewind();
         }
+        else
+        {
+            if (kv.JumpToKey("maps"))
+            {
+                if (kv.GotoFirstSubKey(false))
+                {
+                    do
+                    {
+                        char mapName[PLATFORM_MAX_PATH];
+                        kv.GetSectionName(mapName, sizeof(mapName));
+                        maps.PushString(mapName);
+                    } while (kv.GotoNextKey(false));
+                    kv.GoBack();
+                }
+                kv.GoBack();
+            }
+        }
+        kv.GoBack();
     }
+    kv.Rewind();
     
     if (maps.Length == 0)
     {
@@ -851,7 +683,7 @@ void ShowMapMenu(int client, const char[] sGameMode, const char[] subgroup = "")
         return;
     }
     
-    maps.Sort(Sort_Random, Sort_String);
+    // REMOVED: maps.Sort(Sort_Random, Sort_String); // Mantém a ordem do map cycle
     
     char currentMapName[PLATFORM_MAX_PATH];
     GetCurrentMap(currentMapName, sizeof(currentMapName));
@@ -936,125 +768,57 @@ void ShowForceSubGroupMenu(int client, const char[] gamemode)
     char currentGroup[64], currentSubgroup[64];
     MultiMode_GetCurrentGameMode(currentGroup, sizeof(currentGroup), currentSubgroup, sizeof(currentSubgroup));
 
-    bool found = false;
-    
-    ArrayList list = GetGameModesList();
-    if (list != null && list.Length > 0)
+    KeyValues kv = GetMapcycle();
+    if (kv == null)
     {
-        int index = MMC_FindGameModeIndex(gamemode);
-        if (index != -1)
+        CPrintToChat(client, "%t", "No Available SubGroups");
+        delete menu;
+        ShowGameModeMenu(client, true);
+        return;
+    }
+
+    kv.Rewind();
+    if (kv.JumpToKey(gamemode) && kv.JumpToKey("subgroup"))
+    {
+        if (kv.GotoFirstSubKey(false))
         {
-            GameModeConfig config;
-            list.GetArray(index, config);
-            
-            for (int i = 0; i < config.subGroups.Length; i++)
+            do
             {
-                SubGroupConfig subConfig;
-                config.subGroups.GetArray(i, subConfig);
+                char subgroupName[64];
+                kv.GetSectionName(subgroupName, sizeof(subgroupName));
                 
-                if (!subConfig.enabled) continue;
+                // Skip subgroups_invote and maps_invote keys
+                if (StrEqual(subgroupName, "subgroups_invote", false) || StrEqual(subgroupName, "maps_invote", false))
+                {
+                    continue;
+                }
                 
+                int enabled = kv.GetNum("enabled", 1);
+                if (enabled == 0) continue;
+
                 char display[128], subgroupDisplay[64];
                 char prefix[8] = "";
 
-                if (StrEqual(gamemode, currentGroup) && StrEqual(subConfig.name, currentSubgroup))
+                if (StrEqual(gamemode, currentGroup) && StrEqual(subgroupName, currentSubgroup))
                 {
                     strcopy(prefix, sizeof(prefix), GESTURE_CURRENT);
                 }
 
-                KeyValues kv = GetMapcycle();
-                if (kv != null)
-                {
-                    if (kv.JumpToKey(gamemode) && kv.JumpToKey("subgroup") && kv.JumpToKey(subConfig.name))
-                    {
-                        kv.GetString(MAPCYCLE_KEY_DISPLAY, subgroupDisplay, sizeof(subgroupDisplay), subConfig.name);
-                        kv.GoBack();
-                        kv.GoBack();
-                        kv.GoBack();
-                    }
-                    else
-                    {
-                        strcopy(subgroupDisplay, sizeof(subgroupDisplay), subConfig.name);
-                    }
-                    kv.Rewind();
-                }
-                else
-                {
-                    strcopy(subgroupDisplay, sizeof(subgroupDisplay), subConfig.name);
-                }
+                kv.GetString(MAPCYCLE_KEY_DISPLAY, subgroupDisplay, sizeof(subgroupDisplay), subgroupName);
                 
-                bool isNominated = MultiMode_IsGroupNominated(gamemode, subConfig.name);
+                bool isNominated = MultiMode_IsGroupNominated(gamemode, subgroupName);
                 char voteIndicator[6];
                 strcopy(voteIndicator, sizeof(voteIndicator), isNominated ? GESTURE_NOMINATED : "");
 
                 Format(display, sizeof(display), "%s%s%s", subgroupDisplay, voteIndicator, prefix);
-                menu.AddItem(subConfig.name, display);
-            }
-            found = true;
+                menu.AddItem(subgroupName, display);
+            } while (kv.GotoNextKey(false));
+            kv.GoBack();
         }
+        kv.GoBack();
+        kv.GoBack();
     }
-    
-    if (!found)
-    {
-        KeyValues kv = GetMapcycle();
-        if (kv != null)
-        {
-            kv.Rewind();
-            if (kv.GotoFirstSubKey(false))
-            {
-                do
-                {
-                    char gamemodeName[64];
-                    kv.GetSectionName(gamemodeName, sizeof(gamemodeName));
-                    if (StrEqual(gamemodeName, gamemode))
-                    {
-                        if (kv.JumpToKey("subgroup"))
-                        {
-                            if (kv.GotoFirstSubKey(false))
-                            {
-                                do
-                                {
-                                    char subgroupName[64];
-                                    kv.GetSectionName(subgroupName, sizeof(subgroupName));
-                                    
-                                    // Skip subgroups_invote and maps_invote keys
-                                    if (StrEqual(subgroupName, "subgroups_invote", false) || StrEqual(subgroupName, "maps_invote", false))
-                                    {
-                                        continue;
-                                    }
-                                    
-                                    int enabled = kv.GetNum("enabled", 1);
-                                    if (enabled == 0) continue;
-
-                                    char display[128], subgroupDisplay[64];
-                                    char prefix[8] = "";
-
-                                    if (StrEqual(gamemode, currentGroup) && StrEqual(subgroupName, currentSubgroup))
-                                    {
-                                        strcopy(prefix, sizeof(prefix), GESTURE_CURRENT);
-                                    }
-
-                                    kv.GetString(MAPCYCLE_KEY_DISPLAY, subgroupDisplay, sizeof(subgroupDisplay), subgroupName);
-                                    
-                                    bool isNominated = MultiMode_IsGroupNominated(gamemode, subgroupName);
-                                    char voteIndicator[6];
-                                    strcopy(voteIndicator, sizeof(voteIndicator), isNominated ? GESTURE_NOMINATED : "");
-
-                                    Format(display, sizeof(display), "%s%s%s", subgroupDisplay, voteIndicator, prefix);
-                                    menu.AddItem(subgroupName, display);
-                                } while (kv.GotoNextKey(false));
-                                kv.GoBack();
-                            }
-                            kv.GoBack();
-                        }
-                        break;
-                    }
-                } while (kv.GotoNextKey(false));
-                kv.GoBack();
-            }
-            kv.Rewind();
-        }
-    }
+    kv.Rewind();
 
     if (menu.ItemCount == 0)
     {
@@ -1358,4 +1122,3 @@ void StartAdminVote(const char[] id, const char[] mapcycle, MultimodeMethodType 
         adminVote
     );
 }
-
