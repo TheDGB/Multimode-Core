@@ -870,12 +870,12 @@ public int ForceTimingMenuHandler(Menu menu, MenuAction action, int client, int 
     {
         char timingStr[16];
         menu.GetItem(param2, timingStr, sizeof(timingStr));
-        
-        int timing = 0; // TIMING_NEXTMAP
+
+        int timing = 1;
         if (StrEqual(timingStr, "nextround"))
-            timing = 1; // TIMING_NEXTROUND
+            timing = 2;
         else if (StrEqual(timingStr, "instant"))
-            timing = 2; // TIMING_INSTANT
+            timing = 3;
         
         ExecuteModeChange(
             g_sClientPendingGameMode[client],
@@ -941,61 +941,48 @@ public int ExtendTimeMenuHandler(Menu menu, MenuAction action, int client, int p
 
 void ExecuteModeChange(const char[] gamemode = "", const char[] map, int timing, const char[] subgroup = "")
 {
-    if (strlen(gamemode) > 0 || strlen(subgroup) > 0) {}
-
     if (MultiMode_CanStopVote())
     {
         MultiMode_StopVote();
     }
-    
-    TimingMode mode = view_as<TimingMode>(timing);
-    
-    SetNextMap(map);
-    
-    switch(mode)
+
+    if (!MultiMode_SetNextMap(map, timing, gamemode, subgroup))
     {
-        case TIMING_NEXTMAP:
-        {
-            CPrintToChatAll("%t", "Timing NextMap Notify", map);
-        }
-        
-        case TIMING_NEXTROUND:
-        {
-            CPrintToChatAll("%t", "Timing NextRound Notify", map);
-        }
-        
-        case TIMING_INSTANT:
-        {
-            char game[20];
-            GetGameFolderName(game, sizeof(game));
-            ConVar mp_tournament = FindConVar("mp_tournament");
+        LogError("[MultiMode AdminMenu] Failed to set next map: %s (timing: %d, gamemode: %s, subgroup: %s)", map, timing, gamemode, subgroup);
+        return;
+    }
+
+    if (timing == 3)
+    {
+        char game[20];
+        GetGameFolderName(game, sizeof(game));
+        ConVar mp_tournament = FindConVar("mp_tournament");
 	
-            if (mp_tournament != null && mp_tournament.BoolValue)
+        if (mp_tournament != null && mp_tournament.BoolValue)
+        {
+            ForceChangeLevel(map, "Map modified by admin");
+        }
+        else
+        {
+            if (!StrEqual(game, "gesource", false) && !StrEqual(game, "zps", false))
             {
-                ForceChangeLevel(map, "Map modified by admin");
+                int iGameEnd = FindEntityByClassname(-1, "game_end");
+                if (iGameEnd == -1 && (iGameEnd = CreateEntityByName("game_end")) == -1)
+                {
+                    ForceChangeLevel(map, "Map modified by admin");
+                } 
+                else 
+                {     
+                    AcceptEntityInput(iGameEnd, "EndGame");
+                }
             }
             else
             {
-                if (!StrEqual(game, "gesource", false) && !StrEqual(game, "zps", false))
-                {
-                    int iGameEnd = FindEntityByClassname(-1, "game_end");
-                    if (iGameEnd == -1 && (iGameEnd = CreateEntityByName("game_end")) == -1)
-                    {
-                        ForceChangeLevel(map, "Map modified by admin");
-                    } 
-                    else 
-                    {     
-                        AcceptEntityInput(iGameEnd, "EndGame");
-                    }
-                }
-                else
-                {
-                    ForceChangeLevel(map, "Map modified by admin");
-                }
+                ForceChangeLevel(map, "Map modified by admin");
             }
-
-            CPrintToChatAll("%t", "Timing Instant Notify", map);
         }
+
+        CPrintToChatAll("%t", "Timing Instant Notify", map);
     }
 }
 

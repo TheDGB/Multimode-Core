@@ -1590,26 +1590,10 @@ public Action Timer_ForceMapInstant(Handle timer, DataPack dp)
 
 public Action Timer_ChangeMap(Handle timer)
 {
-    if (strlen(g_sCurrentGameMode) == 0)
-        return Plugin_Stop;
-
-    int index = MMC_FindGameModeIndex(g_sCurrentGameMode);
-    if (index == -1)
-        return Plugin_Stop;
-
-    GameModeConfig config;
-    ArrayList list = GetGameModesList();
-    list.GetArray(index, config);
-
-    char currentMap[PLATFORM_MAX_PATH];
-    GetCurrentMap(currentMap, sizeof(currentMap));
-    
-    KeyValues kv = GetMapKv(g_sCurrentGameMode, currentMap);
-    if (kv != null)
+    if (strlen(g_sNextMap) == 0 || !IsMapValid(g_sNextMap))
     {
-        char mapPreCommand[256];
-        kv.GetString(MAPCYCLE_KEY_PRE_COMMAND, mapPreCommand, sizeof(mapPreCommand), "");
-        delete kv;
+        MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Timer_ChangeMap: Invalid or empty next map, cannot change map.");
+        return Plugin_Stop;
     }
     
     char game[20];
@@ -2737,7 +2721,10 @@ public int NativeMMC_StopVote(Handle plugin, int numParams)
     
     if (g_bVoteActive)
     {
-        CancelVote();
+        if (IsVoteInProgress())
+        {
+            CancelVote();
+        }
         g_bVoteActive = false;
         bWasActive = true;
     }

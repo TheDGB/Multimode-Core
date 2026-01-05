@@ -686,6 +686,10 @@ void ShowGamemodeOptionsMenu(int client, const char[] gamemode)
             ShowMapMenu(client, gamemode);
             return;
         }
+        else if (hasSubgroups && hasMaps)
+        {
+            g_CameFromOptionsMenu[client] = true;
+        }
         else if (!hasSubgroups && !hasMaps)
         {
             CPrintToChat(client, "[MultiMode] No options available for this gamemode.");
@@ -1508,7 +1512,7 @@ void ShowDescriptionMenu(int client, const char[] gamemode, const char[] subgrou
         
         char linkDesc[128];
         char linkCmd[128];
-        int onlyIngamemode = descKv.GetNum("only_ingamemode", 0); // Default to 0 (false)
+        int onlyIngamemode = descKv.GetNum("only_ingamemode", 0);
         
         descKv.GetString("description", linkDesc, sizeof(linkDesc), "");
         descKv.GetString("command", linkCmd, sizeof(linkCmd), "");
