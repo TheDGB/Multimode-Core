@@ -25,13 +25,11 @@ jobs:
           echo "Changed Files:"
           echo "$CHANGED"
           NEED_BUMP=false
-          if echo "$CHANGED" | grep -q '^addons/sourcemod/scripting/multimode_.*\.sp'; then
+          if echo "$CHANGED" | grep -Eq '^addons/sourcemod/scripting/multimode_.*\.sp$'; then
             NEED_BUMP=true
           fi
-          if echo "$CHANGED" | grep -q '^addons/sourcemod/scripting/include/multimode/.*\.inc'; then
-            if ! echo "$CHANGED" | grep -q 'addons/sourcemod/scripting/include/multimode/base.inc'; then
-              NEED_BUMP=true
-            fi
+          if echo "$CHANGED" | grep -Eq '^addons/sourcemod/scripting/include/multimode/.*\.inc$'; then
+            NEED_BUMP=true
           fi
           echo "need_bump=$NEED_BUMP" >> $GITHUB_OUTPUT
 
@@ -98,16 +96,14 @@ jobs:
         id: changed
         run: |
           CHANGED=$(git diff --name-only HEAD^ HEAD)
-          echo "Arquivos alterados:"
+          echo "Files modified:"
           echo "$CHANGED"
           NEED_BUILD=false
-          if echo "$CHANGED" | grep -q '^addons/sourcemod/scripting/multimode_.*\.sp'; then
+          if echo "$CHANGED" | grep -Eq '^addons/sourcemod/scripting/multimode_.*\.sp$'; then
             NEED_BUILD=true
           fi
-          if echo "$CHANGED" | grep -q '^addons/sourcemod/scripting/include/multimode/.*\.inc'; then
-            if ! echo "$CHANGED" | grep -q 'addons/sourcemod/scripting/include/multimode/base.inc'; then
-              NEED_BUILD=true
-            fi
+          if echo "$CHANGED" | grep -Eq '^addons/sourcemod/scripting/include/multimode/.*\.inc$'; then
+            NEED_BUILD=true
           fi
           echo "need_build=$NEED_BUILD" >> $GITHUB_OUTPUT
 
