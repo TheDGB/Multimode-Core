@@ -1,4 +1,4 @@
-name: Bump plugin version
+name: Auto bump + Compile
 
 on:
   push:
@@ -9,42 +9,146 @@ permissions:
   contents: write
 
 jobs:
-  bump:
+  bump_version:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-      - name: Increment version
+      - name: Detect changes that really matter
+        id: changed
+        run: |
+          CHANGED=$(git diff --name-only HEAD^ HEAD)
+          echo "Changed Files:"
+          echo "$CHANGED"
+          NEED_BUMP=false
+          if echo "$CHANGED" | grep -q '^addons/sourcemod/scripting/multimode_.*\.sp'; then
+            NEED_BUMP=true
+          fi
+          if echo "$CHANGED" | grep -q '^addons/sourcemod/scripting/include/multimode/.*\.inc'; then
+            if ! echo "$CHANGED" | grep -q 'addons/sourcemod/scripting/include/multimode/base.inc'; then
+              NEED_BUMP=true
+            fi
+          fi
+          echo "need_bump=$NEED_BUMP" >> $GITHUB_OUTPUT
+
+      - name: Bump version
+        if: steps.changed.outputs.need_bump == 'true'
         run: |
           FILE="addons/sourcemod/scripting/include/multimode/base.inc"
-
           RAW_VERSION=$(grep -oP '(?<=#define PLUGIN_VERSION ")([^"]+)' "$FILE")
           VERSION=$(echo "$RAW_VERSION" | sed 's/[^0-9.]*//g')
-
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-
           if [ "$PATCH" -ge 9 ]; then
             PATCH=0
             MINOR=$((MINOR + 1))
           else
             PATCH=$((PATCH + 1))
           fi
-
           NEW_VERSION="$MAJOR.$MINOR.$PATCH++"
-
           sed -i "s/#define PLUGIN_VERSION \".*\"/#define PLUGIN_VERSION \"$NEW_VERSION\"/" "$FILE"
-
           echo "New Version: $NEW_VERSION"
 
-      - name: Commit & push
+      - name: Commit + Push
+        if: steps.changed.outputs.need_bump == 'true'
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-
           git add addons/sourcemod/scripting/include/multimode/base.inc
           git commit -m "Bump version automatically [skip ci]" || exit 0
+          git push
+
+  compile:
+    runs-on: ubuntu-latest
+    needs: bump_version
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download SourceMod compiler
+        run: |
+          mkdir compiler
+          cd compiler
+          wget https://sm.alliedmods.net/smdrop/1.11/sourcemod-1.11.0-git6923-linux.tar.gz
+          tar -xzf sourcemod-*-linux.tar.gz
+          mv addons/sourcemod/scripting/* ..
+          cd ..
+
+      - name: Prepare include folder
+        run: |
+          mkdir -p addons/sourcemod/scripting/include
+
+      - name: Download Sourcemod Discord includes
+        run: |
+          git clone https://github.com/Cruze03/sourcemod-discord.git temp-discord
+          cp -r temp-discord/include/* addons/sourcemod/scripting/include/
+
+      - name: Download SMJansson include
+        run: |
+          curl -L https://raw.githubusercontent.com/davenonymous/SMJansson/master/pawn/scripting/include/smjansson.inc \
+            -o addons/sourcemod/scripting/include/smjansson.inc
+
+      - name: Detect changed multimode files
+        id: changed
+        run: |
+          CHANGED=$(git diff --name-only HEAD^ HEAD)
+          echo "Arquivos alterados:"
+          echo "$CHANGED"
+          NEED_BUILD=false
+          if echo "$CHANGED" | grep -q '^addons/sourcemod/scripting/multimode_.*\.sp'; then
+            NEED_BUILD=true
+          fi
+          if echo "$CHANGED" | grep -q '^addons/sourcemod/scripting/include/multimode/.*\.inc'; then
+            if ! echo "$CHANGED" | grep -q 'addons/sourcemod/scripting/include/multimode/base.inc'; then
+              NEED_BUILD=true
+            fi
+          fi
+          echo "need_build=$NEED_BUILD" >> $GITHUB_OUTPUT
+
+      - name: Compile Multimode Core only
+        if: steps.changed.outputs.need_build == 'true'
+        run: |
+          mkdir -p build
+          for file in addons/sourcemod/scripting/multimode_*.sp; do
+            if [[ "$file" == *"multimode_test.sp" ]]; then
+              echo "Skipping $file"
+              continue
+            fi
+            ./spcomp "$file" -iaddons/sourcemod/scripting/include -o"build/$(basename "${file%.sp}.smx")"
+          done
+
+      - name: Upload artifacts
+        if: steps.changed.outputs.need_build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-plugins
+          path: build
+
+      - name: Remove old Multimode compiled plugins
+        if: steps.changed.outputs.need_build == 'true'
+        run: |
+          mkdir -p addons/sourcemod/plugins
+          git rm -f addons/sourcemod/plugins/multimode_*.smx || true
+          rm -f addons/sourcemod/plugins/multimode_*.smx || true
+
+      - name: Copy compiled plugins into repo
+        if: steps.changed.outputs.need_build == 'true'
+        run: |
+          mkdir -p addons/sourcemod/plugins
+          cp -f build/multimode_*.smx addons/sourcemod/plugins/
+
+      - name: Commit plugins to repository
+        if: steps.changed.outputs.need_build == 'true'
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add addons/sourcemod/plugins/*.smx
+          git commit -m "Replace compiled plugins automatically [skip ci]" || exit 0
+          git pull --rebase origin main || true
           git push
