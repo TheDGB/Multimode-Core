@@ -1,0 +1,48 @@
+name: Bump plugin version
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Increment version
+        run: |
+          FILE="multimode_core/addons/sourcemod/scripting/include/multimode/utils.inc"
+
+          RAW_VERSION=$(grep -oP '(?<=#define PLUGIN_VERSION ")([^"]+)' "$FILE")
+
+          VERSION=$(echo "$RAW_VERSION" | sed 's/[^0-9.]*//g')
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+          if [ "$PATCH" -ge 9 ]; then
+            PATCH=0
+            MINOR=$((MINOR + 1))
+          else
+            PATCH=$((PATCH + 1))
+          fi
+
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH++"
+
+          sed -i "s/#define PLUGIN_VERSION \".*\"/#define PLUGIN_VERSION \"$NEW_VERSION\"/" "$FILE"
+
+          echo "Nova versão: $NEW_VERSION"
+
+      - name: Commit & push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+
+          git add multimode_core/addons/sourcemod/scripting/include/multimode/utils.inc
+          git commit -m "Bump version automatically [skip ci]" || exit 0
+          git push
