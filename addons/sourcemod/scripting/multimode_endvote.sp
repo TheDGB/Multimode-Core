@@ -415,6 +415,22 @@ void PerformEndVote()
     );
 }
 
+public void MultiMode_OnVoteEnd(const char[] group, const char[] subgroup, const char[] map, VoteEndReason reason)
+{
+    if (reason == VoteEnd_Extend)
+    {
+        g_bEndVoteTriggered = false;
+        
+        if (g_Cvar_EndVoteDebug.BoolValue)
+            MMC_WriteToLogFile(g_Cvar_EndVoteLogs, "[MultiMode End Vote] Map extended, resetting end vote trigger...");
+        
+        if (g_hEndVoteTimer == INVALID_HANDLE)
+        {
+            g_hEndVoteTimer = CreateTimer(1.0, Timer_CheckEndVote, _, TIMER_REPEAT);
+        }
+    }
+}
+
 public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 {
     if (g_bEndVotePending)

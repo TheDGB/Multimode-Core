@@ -43,17 +43,16 @@ public void MultiMode_OnVoteEnd(const char[] group, const char[] subgroup, const
     if (!g_Cvar_Discord.BoolValue) 
         return;
 
-    if (StrEqual(group, "extend"))
-    {
-        if (g_Cvar_DiscordExtend.BoolValue)
-        {
-            NotifyDiscordExtend();
-        }
-        return;
-    }
-
     switch (reason)
     {
+        case VoteEnd_Extend:
+        {
+            if (g_Cvar_DiscordExtend.BoolValue)
+            {
+                NotifyDiscordExtend();
+            }
+            return;
+        }
         case VoteEnd_Runoff:
         {
 		    if (g_Cvar_DiscordRunOff.BoolValue)
