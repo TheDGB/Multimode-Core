@@ -43,7 +43,7 @@ You can head over to our Multimode Core+ wiki for more information about the plu
 
 Since multimode core support will always be active for now, updating and making multimode core a reality requires a lot of work and focused time, to support me, you can donate or give us a star on GitHub. It really motivates us! I appreciate it in advance!
 
-Live Pix: https://livepix.gg/thedgb
+### Live Pix: https://livepix.gg/thedgb
 
 <a href="https://livepix.gg/thedgb">
   <img src="http://fastdl.optr.me:8090/embed/livepix1.png" width="250">
