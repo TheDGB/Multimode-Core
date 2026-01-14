@@ -39,6 +39,16 @@ You can head over to our Multimode Core+ wiki for more information about the plu
 
 #### [Multimode Core+ Wiki](https://github.com/TheDGB/multimode_core/wiki)
 
+# Donations
+
+Since multimode core support will always be active for now, updating and making multimode core a reality requires a lot of work and focused time, to support me, you can donate or give us a star on GitHub. It really motivates me! I appreciate it in advance!
+
+### Live Pix: https://livepix.gg/thedgb
+
+<a href="https://livepix.gg/thedgb">
+  <img src="http://fastdl.optr.me:8090/embed/livepix1.png" width="250">
+</a>
+
 <h1 align=center>Enjoy The Plugin!</h1> 
 <div align=center>
   
