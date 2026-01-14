@@ -9,7 +9,7 @@
 #endif
 #define _multimode_base_included
 
-#define PLUGIN_VERSION "3.4.7++"
+#define PLUGIN_VERSION "3.4.8++"
 
 // Map Cycle Configuration Keys
 #include <multimode/mapcyclecommands>
@@ -78,6 +78,13 @@ enum VoteType
     VOTE_TYPE_SUBGROUP_MAP,
 }
 
+enum ItemWeightType
+{
+    ITEM_TYPE_GROUP = 0,
+    ITEM_TYPE_SUBGROUP = 1,
+    ITEM_TYPE_MAP = 2
+}
+
 enum struct AdvancedVoteConfig {
     char id[64];
     char mapcycle[256];
@@ -122,6 +129,7 @@ enum struct SubGroupConfig {
     char nominate_flags[32];
     ArrayList maps;
     int maps_invote;
+    float baseWeight;
 }
 
 enum struct GameModeConfig {
@@ -141,6 +149,7 @@ enum struct GameModeConfig {
     char nominate_flags[32];
     ArrayList maps;
     ArrayList subGroups;
+    float baseWeight;
 }
 
 methodmap GameMode {

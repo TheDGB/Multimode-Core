@@ -22,4 +22,5 @@
 #define MAPCYCLE_KEY_MAXPLAYERS        "maxplayers"
 #define MAPCYCLE_KEY_MAPS_INVOTE       "maps_invote"
 #define MAPCYCLE_KEY_SUBGROUPS_INVOTE  "subgroups_invote"
+#define MAPCYCLE_KEY_WEIGHT            "weight"
 

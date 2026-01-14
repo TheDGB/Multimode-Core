@@ -390,6 +390,18 @@ forward void MultiMode_OnVoteStartEx(int initiator, int voteType, bool isRunoff)
 forward void MultiMode_OnVoteEnd(const char[] group, const char[] subgroup, const char[] map, VoteEndReason reason);
 
 /**
+ * Called when the core needs to get the weight/rating for an item.
+ * Plugins can implement this to provide dynamic weights based on ratings or other factors.
+ * 
+ * @param group          Gamemode/group name (empty for map-only queries).
+ * @param subgroup       Subgroup name (empty if not applicable).
+ * @param map            Map name (empty for group/subgroup queries).
+ * @param itemType       Type of item: 0=GROUP, 1=SUBGROUP, 2=MAP.
+ * @return               Rating value (1.0-5.0) if available, or -1.0 if not rated/available.
+ */
+forward float MultiMode_OnGetItemWeight(const char[] group, const char[] subgroup, const char[] map, int itemType);
+
+/**
  * Callback signature for starting a vote.
  * 
  * @param initiator     Client index who started the vote (0 for server).

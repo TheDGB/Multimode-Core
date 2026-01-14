@@ -110,7 +110,7 @@ public Action OnPlayerChat(int client, const char[] command, int argc)
     char text[256];
     GetCmdArgString(text, sizeof(text));
     
-    MMC_WriteToLogFileEx("[MMC Descriptions] OnPlayerChat: client=%d, text='%s'", client, text);
+    MMC_WriteToLogFileEx2("[MMC Descriptions] OnPlayerChat: client=%d, text='%s'", client, text);
     
     TrimString(text);
     int textLen = strlen(text);
@@ -137,12 +137,12 @@ public Action OnPlayerChat(int client, const char[] command, int argc)
         }
     }
     
-    MMC_WriteToLogFileEx("[MMC Descriptions] Parsed command (lowercase): '%s'", cmd);
+    MMC_WriteToLogFileEx2("[MMC Descriptions] Parsed command (lowercase): '%s'", cmd);
     
     char path[256];
     if (g_CommandMap.GetString(cmd, path, sizeof(path)))
     {
-        MMC_WriteToLogFileEx("[MMC Descriptions] Found command '%s' in map, path='%s'", cmd, path);
+        MMC_WriteToLogFileEx2("[MMC Descriptions] Found command '%s' in map, path='%s'", cmd, path);
         
         char gamemode[64], subgroup[64], map[PLATFORM_MAX_PATH];
         int pos1 = FindCharInString(path, '|');
@@ -173,7 +173,7 @@ public Action OnPlayerChat(int client, const char[] command, int argc)
     }
     else
     {
-        MMC_WriteToLogFileEx("[MMC Descriptions] Command '%s' not found in map", cmd);
+        MMC_WriteToLogFileEx2("[MMC Descriptions] Command '%s' not found in map", cmd);
     }
     
     return Plugin_Continue;
@@ -491,7 +491,7 @@ void LoadDescriptionCommands(KeyValues kv, const char[] gamemode, const char[] s
             }
             
             g_CommandMap.SetString(commandLower, path);
-            MMC_WriteToLogFileEx("[MMC Descriptions] Registered command '%s' (lowercase: '%s') for path '%s'", command, commandLower, path);
+            MMC_WriteToLogFileEx2("[MMC Descriptions] Registered command '%s' (lowercase: '%s') for path '%s'", command, commandLower, path);
         }
     }
 
@@ -521,7 +521,7 @@ void LoadDescriptionCommands(KeyValues kv, const char[] gamemode, const char[] s
                 }
                 
                 g_CommandMap.SetString(commandLower, path);
-                MMC_WriteToLogFileEx("[MMC Descriptions] Registered command '%s' (lowercase: '%s') for path '%s'", command, commandLower, path);
+                MMC_WriteToLogFileEx2("[MMC Descriptions] Registered command '%s' (lowercase: '%s') for path '%s'", command, commandLower, path);
             }
         }
         else
@@ -1476,39 +1476,39 @@ void ShowDescriptionMenu(int client, const char[] gamemode, const char[] subgrou
         return;
     }
     
-    MMC_WriteToLogFileEx("[MMC Descriptions] Showing description menu for client %N (ID: %d) - %s/%s/%s", client, client, gamemode, subgroup, map);
+    MMC_WriteToLogFileEx2("[MMC Descriptions] Showing description menu for client %N (ID: %d) - %s/%s/%s", client, client, gamemode, subgroup, map);
 
     Menu menu = new Menu(DescriptionMenuHandler);
     
     char title[128];
     descKv.GetString("description_title", title, sizeof(title), "Description");
     menu.SetTitle(title);
-    MMC_WriteToLogFileEx("[MMC Descriptions] Menu title: '%s'", title);
+    MMC_WriteToLogFileEx2("[MMC Descriptions] Menu title: '%s'", title);
     
     char description[2048];
     descKv.GetString("description", description, sizeof(description), "");
     if (strlen(description) > 0)
     {
-        MMC_WriteToLogFileEx("[MMC Descriptions] Found description text (length: %d)", strlen(description));
+        MMC_WriteToLogFileEx2("[MMC Descriptions] Found description text (length: %d)", strlen(description));
         ProcessDescriptionText(menu, description);
     }
     else
     {
-        MMC_WriteToLogFileEx("[MMC Descriptions] No description text found");
+        MMC_WriteToLogFileEx2("[MMC Descriptions] No description text found");
     }
 
     char currentServerGamemode[64];
     char currentServerSubgroup[64];
     MultiMode_GetCurrentGameMode(currentServerGamemode, sizeof(currentServerGamemode), currentServerSubgroup, sizeof(currentServerSubgroup));
-    MMC_WriteToLogFileEx("[MMC Descriptions] Current server gamemode: '%s', subgroup: '%s'", currentServerGamemode, currentServerSubgroup);
+    MMC_WriteToLogFileEx2("[MMC Descriptions] Current server gamemode: '%s', subgroup: '%s'", currentServerGamemode, currentServerSubgroup);
     
     int linkIndex = 0;
     
-    MMC_WriteToLogFileEx("[MMC Descriptions] Processing description links for %s/%s/%s", gamemode, subgroup, map);
+    MMC_WriteToLogFileEx2("[MMC Descriptions] Processing description links for %s/%s/%s", gamemode, subgroup, map);
     
     if (descKv.JumpToKey("description_link"))
     {
-        MMC_WriteToLogFileEx("[MMC Descriptions] Found description_link (no number)");
+        MMC_WriteToLogFileEx2("[MMC Descriptions] Found description_link (no number)");
         
         char linkDesc[128];
         char linkCmd[128];
@@ -1518,7 +1518,7 @@ void ShowDescriptionMenu(int client, const char[] gamemode, const char[] subgrou
         descKv.GetString("command", linkCmd, sizeof(linkCmd), "");
         descKv.GoBack();
         
-        MMC_WriteToLogFileEx("[MMC Descriptions] description_link values: desc='%s' cmd='%s' only_ingamemode='%d'", linkDesc, linkCmd, onlyIngamemode);
+        MMC_WriteToLogFileEx2("[MMC Descriptions] description_link values: desc='%s' cmd='%s' only_ingamemode='%d'", linkDesc, linkCmd, onlyIngamemode);
         
         if (strlen(linkDesc) > 0 && strlen(linkCmd) > 0)
         {
@@ -1526,23 +1526,23 @@ void ShowDescriptionMenu(int client, const char[] gamemode, const char[] subgrou
             if (onlyIngamemode == 1 && !StrEqual(currentServerGamemode, gamemode))
             {
                 itemStyle = ITEMDRAW_DISABLED;
-                MMC_WriteToLogFileEx("[MMC Descriptions] Disabling link '%s' because 'only_ingamemode' is 1 and current gamemode ('%s') != description gamemode ('%s')", linkDesc, currentServerGamemode, gamemode);
+                MMC_WriteToLogFileEx2("[MMC Descriptions] Disabling link '%s' because 'only_ingamemode' is 1 and current gamemode ('%s') != description gamemode ('%s')", linkDesc, currentServerGamemode, gamemode);
             }
 
             char itemInfo[256];
             Format(itemInfo, sizeof(itemInfo), "link_%s", linkCmd);
             menu.AddItem(itemInfo, linkDesc, itemStyle);
             linkIndex++;
-            MMC_WriteToLogFileEx("[MMC Descriptions] Added description_link (no number) to menu with style %d", itemStyle);
+            MMC_WriteToLogFileEx2("[MMC Descriptions] Added description_link (no number) to menu with style %d", itemStyle);
         }
         else
         {
-            MMC_WriteToLogFileEx("[MMC Descriptions] description_link (no number) missing desc or cmd");
+            MMC_WriteToLogFileEx2("[MMC Descriptions] description_link (no number) missing desc or cmd");
         }
     }
     else
     {
-        MMC_WriteToLogFileEx("[MMC Descriptions] No description_link (no number) found");
+        MMC_WriteToLogFileEx2("[MMC Descriptions] No description_link (no number) found");
     }
     
     int linkCopyNum = 2;
@@ -1561,7 +1561,7 @@ void ShowDescriptionMenu(int client, const char[] gamemode, const char[] subgrou
             descKv.GetString("command", linkCmd, sizeof(linkCmd), "");
             descKv.GoBack();
             
-            MMC_WriteToLogFileEx("[MMC Descriptions] Found %s (subkey): desc='%s' cmd='%s' only_ingamemode='%d'", linkKey, linkDesc, linkCmd, onlyIngamemode);
+            MMC_WriteToLogFileEx2("[MMC Descriptions] Found %s (subkey): desc='%s' cmd='%s' only_ingamemode='%d'", linkKey, linkDesc, linkCmd, onlyIngamemode);
             
             if (strlen(linkDesc) > 0 && strlen(linkCmd) > 0)
             {
@@ -1569,18 +1569,18 @@ void ShowDescriptionMenu(int client, const char[] gamemode, const char[] subgrou
                 if (onlyIngamemode == 1 && !StrEqual(currentServerGamemode, gamemode))
                 {
                     itemStyle = ITEMDRAW_DISABLED;
-                    MMC_WriteToLogFileEx("[MMC Descriptions] Disabling link '%s' because 'only_ingamemode' is 1 and current gamemode ('%s') != description gamemode ('%s')", linkDesc, currentServerGamemode, gamemode);
+                    MMC_WriteToLogFileEx2("[MMC Descriptions] Disabling link '%s' because 'only_ingamemode' is 1 and current gamemode ('%s') != description gamemode ('%s')", linkDesc, currentServerGamemode, gamemode);
                 }
 
                 char itemInfo[256];
                 Format(itemInfo, sizeof(itemInfo), "link_%s", linkCmd);
                 menu.AddItem(itemInfo, linkDesc, itemStyle);
                 linkIndex++;
-                MMC_WriteToLogFileEx("[MMC Descriptions] Added %s to menu with style %d", linkKey, itemStyle);
+                MMC_WriteToLogFileEx2("[MMC Descriptions] Added %s to menu with style %d", linkKey, itemStyle);
             }
             else
             {
-                MMC_WriteToLogFileEx("[MMC Descriptions] %s missing desc or cmd", linkKey);
+                MMC_WriteToLogFileEx2("[MMC Descriptions] %s missing desc or cmd", linkKey);
             }
         }
         else
@@ -1590,7 +1590,7 @@ void ShowDescriptionMenu(int client, const char[] gamemode, const char[] subgrou
             
             if (strlen(linkDesc) == 0)
             {
-                MMC_WriteToLogFileEx("[MMC Descriptions] %s not found, stopping copy format search", linkKey);
+                MMC_WriteToLogFileEx2("[MMC Descriptions] %s not found, stopping copy format search", linkKey);
                 break;
             }
             
@@ -1603,7 +1603,7 @@ void ShowDescriptionMenu(int client, const char[] gamemode, const char[] subgrou
             Format(onlyIngamemodeKey, sizeof(onlyIngamemodeKey), "description_link_%d_only_ingamemode", linkCopyNum);
             int onlyIngamemode = descKv.GetNum(onlyIngamemodeKey, 0);
             
-            MMC_WriteToLogFileEx("[MMC Descriptions] Found %s (string): desc='%s' cmd='%s' only_ingamemode='%d'", linkKey, linkDesc, linkCmd, onlyIngamemode);
+            MMC_WriteToLogFileEx2("[MMC Descriptions] Found %s (string): desc='%s' cmd='%s' only_ingamemode='%d'", linkKey, linkDesc, linkCmd, onlyIngamemode);
             
             if (strlen(linkCmd) > 0)
             {
@@ -1611,25 +1611,25 @@ void ShowDescriptionMenu(int client, const char[] gamemode, const char[] subgrou
                 if (onlyIngamemode == 1 && !StrEqual(currentServerGamemode, gamemode))
                 {
                     itemStyle = ITEMDRAW_DISABLED;
-                    MMC_WriteToLogFileEx("[MMC Descriptions] Disabling link '%s' because 'only_ingamemode' is 1 and current gamemode ('%s') != description gamemode ('%s')", linkDesc, currentServerGamemode, gamemode);
+                    MMC_WriteToLogFileEx2("[MMC Descriptions] Disabling link '%s' because 'only_ingamemode' is 1 and current gamemode ('%s') != description gamemode ('%s')", linkDesc, currentServerGamemode, gamemode);
                 }
 
                 char itemInfo[256];
                 Format(itemInfo, sizeof(itemInfo), "link_%s", linkCmd);
                 menu.AddItem(itemInfo, linkDesc, itemStyle);
                 linkIndex++;
-                MMC_WriteToLogFileEx("[MMC Descriptions] Added %s (string) to menu with style %d", linkKey, itemStyle);
+                MMC_WriteToLogFileEx2("[MMC Descriptions] Added %s (string) to menu with style %d", linkKey, itemStyle);
             }
             else
             {
-                MMC_WriteToLogFileEx("[MMC Descriptions] %s (string) missing cmd", linkKey);
+                MMC_WriteToLogFileEx2("[MMC Descriptions] %s (string) missing cmd", linkKey);
             }
         }
         
         linkCopyNum++;
     } while (linkCopyNum < 100 && linkIndex < 100);
     
-    MMC_WriteToLogFileEx("[MMC Descriptions] Total description links added: %d", linkIndex);
+    MMC_WriteToLogFileEx2("[MMC Descriptions] Total description links added: %d", linkIndex);
     
     menu.ExitBackButton = true;
     
@@ -1750,7 +1750,7 @@ void ProcessDescriptionText(Menu menu, const char[] text)
     }
 }
 
-stock void MMC_WriteToLogFileEx(const char[] format, any ...)
+stock void MMC_WriteToLogFileEx2(const char[] format, any ...)
 {
     if (!GetConVarBool(g_Cvar_DescriptionsLogs))
     {

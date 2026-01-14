@@ -682,6 +682,35 @@ stock void MMC_WriteToLogFile(ConVar logsCvar, const char[] format, any ...)
     }
 }
 
+stock void MMC_WriteToLogFileEx(const char[] format, any ...)
+{
+    char buffer[512];
+    VFormat(buffer, sizeof(buffer), format, 2);
+
+    char dateStr[32];
+    FormatTime(dateStr, sizeof(dateStr), "%Y%m%d");
+
+    char logPath[PLATFORM_MAX_PATH];
+    BuildPath(Path_SM, logPath, sizeof(logPath), "logs/MMC_%s.txt", dateStr);
+
+    File file = OpenFile(logPath, "a+");
+    if (file != null)
+    {
+        char timeStr[64];
+        FormatTime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S");
+
+        file.WriteLine("[%s] %s", timeStr, buffer);
+        LogMessage("%s", buffer);
+
+        delete file;
+    }
+    else
+    {
+        LogError("Failed to write to log file: %s", logPath);
+    }
+}
+
+
 stock bool MMC_FindConfigForMap(const char[] map, char[] group, int groupLen, char[] subgroup, int subgroupLen, const char[] currentGameMode = "")
 {
     ArrayList gameModes = GetGameModesList();

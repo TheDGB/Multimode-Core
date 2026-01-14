@@ -47,6 +47,7 @@ ConVar g_Cvar_VoteGroupInVoteLimit;
 ConVar g_Cvar_VoteDefaultInVoteLimit;
 ConVar g_Cvar_VoteManager;
 ConVar g_hCvarTimeLimit;
+ConVar g_Cvar_WeightScale;
 
 // Bool
 bool g_bChangeMapNextRound;
@@ -116,6 +117,7 @@ Handle g_OnGamemodeChangedVoteForward;
 Handle g_OnVoteEndForward;
 Handle g_OnVoteStartExForward;
 Handle g_OnVoteStartForward;
+Handle g_OnGetItemWeightForward;
 
 public void OnPluginStart() 
 {
@@ -149,6 +151,7 @@ public void OnPluginStart()
     g_Cvar_Method = CreateConVar("multimode_method", "1", "Voting method: 1=Groups then maps, 2=Only groups (random map), 3=Only maps (all groups)", _, true, 1.0, true, 3.0);
     
     g_Cvar_Logs = CreateConVar("multimode_logs", "1", "Enables and disables Multimode Core logs, when enabled, a new file will be created in sourcemod/logs/MMC_YearMouthDay.txt and multimode core logs messages in server console.");
+    g_Cvar_WeightScale = CreateConVar("multimode_weight_scale", "1.0", "Exponential scale for weight calculation (weight_final = (rating)^scale * baseWeight)", FCVAR_PLUGIN, true, 0.1, true, 10.0);
 
     g_PlayedGamemodes = new ArrayList(ByteCountToCells(128));
     g_PlayedMaps = new StringMap();
@@ -193,6 +196,7 @@ public void OnPluginStart()
     g_OnVoteEndForward = CreateGlobalForward("MultiMode_OnVoteEnd", ET_Ignore, Param_String, Param_String, Param_String, Param_Cell);
     g_OnGamemodeChangedForward = CreateGlobalForward("MultiMode_OnGamemodeChanged", ET_Ignore, Param_String, Param_String, Param_String, Param_Cell);
     g_OnGamemodeChangedVoteForward = CreateGlobalForward("MultiMode_OnGamemodeChangedVote", ET_Ignore, Param_String, Param_String, Param_String, Param_Cell);
+    g_OnGetItemWeightForward = CreateGlobalForward("MultiMode_OnGetItemWeight", ET_Single, Param_String, Param_String, Param_String, Param_Cell);
     
     g_hCvarTimeLimit = FindConVar("mp_timelimit");
     g_NominatedGamemodes = new ArrayList(ByteCountToCells(128));
@@ -622,6 +626,31 @@ public void LoadGameModesConfig()
             g_kvGameModes.GetString(MAPCYCLE_KEY_CONFIG, config.config, sizeof(config.config), "");
             g_kvGameModes.GetString(MAPCYCLE_KEY_NOMINATE_FLAGS, config.nominate_flags, sizeof(config.nominate_flags), "");
             
+            config.baseWeight = 1.0;
+            char weightStr[16];
+            g_kvGameModes.GetString(MAPCYCLE_KEY_WEIGHT, weightStr, sizeof(weightStr), "");
+            if (strlen(weightStr) > 0)
+            {
+                config.baseWeight = StringToFloat(weightStr);
+            }
+            else
+            {
+                g_kvGameModes.GetString("force", weightStr, sizeof(weightStr), "");
+                if (strlen(weightStr) > 0)
+                {
+                    config.baseWeight = StringToFloat(weightStr);
+                }
+                else
+                {
+                    g_kvGameModes.GetString("chance", weightStr, sizeof(weightStr), "");
+                    if (strlen(weightStr) > 0)
+                    {
+                        config.baseWeight = StringToFloat(weightStr);
+                    }
+                }
+            }
+            if (config.baseWeight <= 0.0) config.baseWeight = 1.0;
+            
             if (strlen(config.command) == 0 && g_kvGameModes.JumpToKey("serverconfig"))
             {
                 g_kvGameModes.GetString(MAPCYCLE_KEY_COMMAND, config.command, sizeof(config.command), "");
@@ -712,6 +741,31 @@ public void LoadGameModesConfig()
                         g_kvGameModes.GetString(MAPCYCLE_KEY_VOTE_COMMAND, subConfig.vote_command, sizeof(subConfig.vote_command), "");
                         g_kvGameModes.GetString(MAPCYCLE_KEY_CONFIG, subConfig.config, sizeof(subConfig.config), "");
                         g_kvGameModes.GetString(MAPCYCLE_KEY_NOMINATE_FLAGS, subConfig.nominate_flags, sizeof(subConfig.nominate_flags), "");
+                        
+                        subConfig.baseWeight = 1.0;
+                        char subWeightStr[16];
+                        g_kvGameModes.GetString(MAPCYCLE_KEY_WEIGHT, subWeightStr, sizeof(subWeightStr), "");
+                        if (strlen(subWeightStr) > 0)
+                        {
+                            subConfig.baseWeight = StringToFloat(subWeightStr);
+                        }
+                        else
+                        {
+                            g_kvGameModes.GetString("force", subWeightStr, sizeof(subWeightStr), "");
+                            if (strlen(subWeightStr) > 0)
+                            {
+                                subConfig.baseWeight = StringToFloat(subWeightStr);
+                            }
+                            else
+                            {
+                                g_kvGameModes.GetString("chance", subWeightStr, sizeof(subWeightStr), "");
+                                if (strlen(subWeightStr) > 0)
+                                {
+                                    subConfig.baseWeight = StringToFloat(subWeightStr);
+                                }
+                            }
+                        }
+                        if (subConfig.baseWeight <= 0.0) subConfig.baseWeight = 1.0;
                         
                         subConfig.maps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
                         
@@ -3513,6 +3567,168 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing, cons
 
 // Vote Menu System Manager
 
+float GetMapWeightFromKv(const char[] gamemode, const char[] subgroup, const char[] map)
+{
+    float weight = 1.0;
+    
+    KeyValues mapKv = null;
+    if (strlen(subgroup) > 0)
+    {
+        mapKv = MMC_GetSubGroupMapKv(g_kvGameModes, gamemode, subgroup, map);
+    }
+    else
+    {
+        mapKv = MMC_GetMapKv(g_kvGameModes, gamemode, map);
+    }
+    
+    if (mapKv != null)
+    {
+        char weightStr[16];
+        mapKv.GetString(MAPCYCLE_KEY_WEIGHT, weightStr, sizeof(weightStr), "");
+        if (strlen(weightStr) > 0)
+        {
+            weight = StringToFloat(weightStr);
+        }
+        else
+        {
+            mapKv.GetString("force", weightStr, sizeof(weightStr), "");
+            if (strlen(weightStr) > 0)
+            {
+                weight = StringToFloat(weightStr);
+            }
+            else
+            {
+                mapKv.GetString("chance", weightStr, sizeof(weightStr), "");
+                if (strlen(weightStr) > 0)
+                {
+                    weight = StringToFloat(weightStr);
+                }
+            }
+        }
+        if (weight <= 0.0) weight = 1.0;
+        delete mapKv;
+    }
+    
+    return weight;
+}
+
+float CalculateItemWeight(const char[] group, const char[] subgroup, const char[] map, ItemWeightType itemType, float baseWeight)
+{
+    float scale = g_Cvar_WeightScale.FloatValue;
+    float rating = -1.0;
+    
+    Call_StartForward(g_OnGetItemWeightForward);
+    Call_PushString(group);
+    Call_PushString(subgroup);
+    Call_PushString(map);
+    Call_PushCell(view_as<int>(itemType));
+    Call_Finish(rating);
+
+    if (rating < 0.0)
+    {
+        return baseWeight;
+    }
+    
+    float finalWeight = Pow(rating, scale) * baseWeight;
+    
+    if (finalWeight <= 0.0)
+    {
+        finalWeight = baseWeight;
+    }
+    
+    return finalWeight;
+}
+
+ArrayList SelectWeightedRandom(ArrayList items, ArrayList weights, int count)
+{
+    ArrayList selected = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
+    
+    if (items == null || items.Length == 0 || weights == null || weights.Length == 0)
+    {
+        return selected;
+    }
+    
+    if (items.Length != weights.Length)
+    {
+        return selected;
+    }
+    
+    ArrayList itemsCopy = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
+    ArrayList weightsCopy = new ArrayList();
+    
+    for (int i = 0; i < items.Length; i++)
+    {
+        char item[PLATFORM_MAX_PATH];
+        items.GetString(i, item, sizeof(item));
+        itemsCopy.PushString(item);
+        
+        float weight = weights.Get(i);
+        weightsCopy.Push(weight);
+    }
+    
+    int toSelect = (count < itemsCopy.Length) ? count : itemsCopy.Length;
+    
+    for (int s = 0; s < toSelect; s++)
+    {
+        float totalWeight = 0.0;
+        for (int i = 0; i < weightsCopy.Length; i++)
+        {
+            float w = weightsCopy.Get(i);
+            if (w > 0.0)
+            {
+                totalWeight += w;
+            }
+        }
+        
+        if (totalWeight <= 0.0)
+        {
+            int randomIndex = GetRandomInt(0, itemsCopy.Length - 1);
+            char item[PLATFORM_MAX_PATH];
+            itemsCopy.GetString(randomIndex, item, sizeof(item));
+            selected.PushString(item);
+            itemsCopy.Erase(randomIndex);
+            weightsCopy.Erase(randomIndex);
+            continue;
+        }
+        
+        float random = GetRandomFloat(0.0, totalWeight);
+        
+        float accumulated = 0.0;
+        int selectedIndex = -1;
+        
+        for (int i = 0; i < weightsCopy.Length; i++)
+        {
+            float w = weightsCopy.Get(i);
+            if (w > 0.0)
+            {
+                accumulated += w;
+                if (random <= accumulated)
+                {
+                    selectedIndex = i;
+                    break;
+                }
+            }
+        }
+        
+        if (selectedIndex == -1)
+        {
+            selectedIndex = weightsCopy.Length - 1;
+        }
+        
+        char item[PLATFORM_MAX_PATH];
+        itemsCopy.GetString(selectedIndex, item, sizeof(item));
+        selected.PushString(item);
+        
+        itemsCopy.Erase(selectedIndex);
+        weightsCopy.Erase(selectedIndex);
+    }
+    
+    delete itemsCopy;
+    delete weightsCopy;
+    
+    return selected;
+}
+
 ArrayList PrepareVoteItems_Group(AdvancedVoteConfig config, ArrayList runoffItems = null)
 {
     ArrayList voteItems = new ArrayList(sizeof(VoteCandidate));
@@ -3630,12 +3846,39 @@ ArrayList PrepareVoteItems_Group(AdvancedVoteConfig config, ArrayList runoffItem
         voteSourceList.PushString(gm);
     }
     
-    for (int i = 0; i < otherItems.Length && voteSourceList.Length < limit; i++)
+    int remainingSlots = limit - voteSourceList.Length;
+    if (remainingSlots > 0 && otherItems.Length > 0)
     {
-        char gm[64];
-        otherItems.GetString(i, gm, sizeof(gm));
-        if (voteSourceList.FindString(gm) == -1)
-            voteSourceList.PushString(gm);
+        ArrayList weights = new ArrayList();
+        
+        for (int i = 0; i < otherItems.Length; i++)
+        {
+            char gm[64];
+            otherItems.GetString(i, gm, sizeof(gm));
+            
+            int index = MMC_FindGameModeIndex(gm);
+            float weight = 1.0;
+            if (index != -1)
+            {
+                GameModeConfig gmConfig;
+                gameModes.GetArray(index, gmConfig);
+                weight = CalculateItemWeight(gm, "", "", ITEM_TYPE_GROUP, gmConfig.baseWeight);
+            }
+            weights.Push(weight);
+        }
+        
+        ArrayList selectedOtherItems = SelectWeightedRandom(otherItems, weights, remainingSlots);
+        
+        for (int i = 0; i < selectedOtherItems.Length && voteSourceList.Length < limit; i++)
+        {
+            char gm[64];
+            selectedOtherItems.GetString(i, gm, sizeof(gm));
+            if (voteSourceList.FindString(gm) == -1)
+                voteSourceList.PushString(gm);
+        }
+        
+        delete selectedOtherItems;
+        delete weights;
     }
     
     delete nominatedItems;
@@ -4070,20 +4313,28 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
             }
         }
         
-        MultimodeVoteSorted sortMode = (view_as<int>(config.sorted) >= 0) ? config.sorted : SORTED_MAPCYCLE_ORDER;
-        if (sortMode == SORTED_RANDOM)
-        {
-            availableMaps.Sort(Sort_Random, Sort_String);
-        }
-        
-        int count = (availableMaps.Length < needed) ? availableMaps.Length : needed;
-        for (int i = 0; i < count; i++)
+        ArrayList weights = new ArrayList();
+        for (int i = 0; i < availableMaps.Length; i++)
         {
             char map[PLATFORM_MAX_PATH];
             availableMaps.GetString(i, map, sizeof(map));
+            
+            float mapWeight = GetMapWeightFromKv(gamemode, "", map);
+            float finalWeight = CalculateItemWeight(gamemode, "", map, ITEM_TYPE_MAP, mapWeight);
+            weights.Push(finalWeight);
+        }
+        
+        ArrayList selectedMaps = SelectWeightedRandom(availableMaps, weights, needed);
+        delete availableMaps;
+        delete weights;
+        
+        for (int i = 0; i < selectedMaps.Length; i++)
+        {
+            char map[PLATFORM_MAX_PATH];
+            selectedMaps.GetString(i, map, sizeof(map));
             voteMaps.PushString(map);
         }
-        delete availableMaps;
+        delete selectedMaps;
     }
     
     for (int i = 0; i < voteMaps.Length; i++)
@@ -4663,8 +4914,7 @@ public void ExecuteVoteResult()
     
     strcopy(g_sNextGameMode, sizeof(g_sNextGameMode), g_sVoteGameMode);
     strcopy(g_sNextMap, sizeof(g_sNextMap), g_sVoteMap);
-	
-    // Execute vote-command
+
     bool commandExecuted = false;
     
     if (strlen(g_sVoteSubGroup) > 0)
@@ -5177,5 +5427,11 @@ public void OnPluginEnd()
     {
         CloseHandle(g_OnGamemodeChangedVoteForward);
         g_OnGamemodeChangedVoteForward = null;
+    }
+    
+    if (g_OnGetItemWeightForward != null)
+    {
+        CloseHandle(g_OnGetItemWeightForward);
+        g_OnGetItemWeightForward = null;
     }
 }
