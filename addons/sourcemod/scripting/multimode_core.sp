@@ -151,7 +151,7 @@ public void OnPluginStart()
     g_Cvar_Method = CreateConVar("multimode_method", "1", "Voting method: 1=Groups then maps, 2=Only groups (random map), 3=Only maps (all groups)", _, true, 1.0, true, 3.0);
     
     g_Cvar_Logs = CreateConVar("multimode_logs", "1", "Enables and disables Multimode Core logs, when enabled, a new file will be created in sourcemod/logs/MMC_YearMouthDay.txt and multimode core logs messages in server console.");
-    g_Cvar_WeightScale = CreateConVar("multimode_weight_scale", "1.0", "Exponential scale for weight calculation (weight_final = (rating)^scale * baseWeight)", FCVAR_PLUGIN, true, 0.1, true, 10.0);
+    g_Cvar_WeightScale = CreateConVar("multimode_weight_scale", "1.0", "Exponential scale for weight calculation (weight_final = ^scale * baseWeight)", FCVAR_PLUGIN, true, 0.1, true, 10.0);
 
     g_PlayedGamemodes = new ArrayList(ByteCountToCells(128));
     g_PlayedMaps = new StringMap();
