@@ -144,7 +144,8 @@ public Action OnPlayerChat(int client, const char[] command, int argc)
     {
         MMC_WriteToLogFileEx2("[MMC Descriptions] Found command '%s' in map, path='%s'", cmd, path);
         
-        char gamemode[64], subgroup[64], map[PLATFORM_MAX_PATH];
+        char gamemode[64], subgroup[64], map[PLATFORM_MAX_PATH], page[64];
+        page[0] = '\0';
         int pos1 = FindCharInString(path, '|');
         int pos2 = -1;
         
@@ -155,7 +156,16 @@ public Action OnPlayerChat(int client, const char[] command, int argc)
             if (pos2 != -1)
             {
                 strcopy(subgroup, pos2 + 1, path[pos1 + 1]);
-                strcopy(map, sizeof(map), path[pos1 + pos2 + 2]);
+                int pos3 = FindCharInString(path[pos1 + pos2 + 2], '|');
+                if (pos3 != -1)
+                {
+                    strcopy(map, pos3 + 1, path[pos1 + pos2 + 2]);
+                    strcopy(page, sizeof(page), path[pos1 + pos2 + 2 + pos3 + 1]);
+                }
+                else
+                {
+                    strcopy(map, sizeof(map), path[pos1 + pos2 + 2]);
+                }
             }
             else
             {
@@ -167,7 +177,7 @@ public Action OnPlayerChat(int client, const char[] command, int argc)
             strcopy(gamemode, sizeof(gamemode), path);
         }
         
-        ShowDescriptionMenu(client, gamemode, (strlen(subgroup) > 0) ? subgroup : "", (strlen(map) > 0) ? map : "");
+        ShowDescriptionMenu(client, gamemode, (strlen(subgroup) > 0) ? subgroup : "", (strlen(map) > 0) ? map : "", (strlen(page) > 0) ? page : "description");
         
         return Plugin_Handled;
     }
@@ -448,6 +458,55 @@ void RegisterDescriptionCommands()
     kv.Rewind();
 }
 
+static void LoadDescriptionCommandsFromPage(KeyValues kv, const char[] path)
+{
+    if (kv.JumpToKey("description_command"))
+    {
+        char command[64];
+        kv.GetString("command", command, sizeof(command), "");
+        kv.GoBack();
+        if (strlen(command) > 0)
+        {
+            char commandLower[64];
+            strcopy(commandLower, sizeof(commandLower), command);
+            for (int i = 0; i < strlen(commandLower); i++)
+            {
+                if (commandLower[i] >= 'A' && commandLower[i] <= 'Z')
+                    commandLower[i] = commandLower[i] + ('a' - 'A');
+            }
+            g_CommandMap.SetString(commandLower, path);
+            MMC_WriteToLogFileEx2("[MMC Descriptions] Registered command '%s' (lowercase: '%s') for path '%s'", command, commandLower, path);
+        }
+    }
+    int copyNum = 2;
+    do
+    {
+        char commandKey[64];
+        Format(commandKey, sizeof(commandKey), "description_command_%d", copyNum);
+        if (kv.JumpToKey(commandKey))
+        {
+            char command[64];
+            kv.GetString("command", command, sizeof(command), "");
+            kv.GoBack();
+            if (strlen(command) > 0)
+            {
+                char commandLower[64];
+                strcopy(commandLower, sizeof(commandLower), command);
+                for (int i = 0; i < strlen(commandLower); i++)
+                {
+                    if (commandLower[i] >= 'A' && commandLower[i] <= 'Z')
+                        commandLower[i] = commandLower[i] + ('a' - 'A');
+                }
+                g_CommandMap.SetString(commandLower, path);
+                MMC_WriteToLogFileEx2("[MMC Descriptions] Registered command '%s' (lowercase: '%s') for path '%s'", command, commandLower, path);
+            }
+            copyNum++;
+        }
+        else
+            break;
+    } while (copyNum < 100);
+}
+
 void LoadDescriptionCommands(KeyValues kv, const char[] gamemode, const char[] subgroup = "", const char[] map = "")
 {
     if (kv == null)
@@ -470,67 +529,29 @@ void LoadDescriptionCommands(KeyValues kv, const char[] gamemode, const char[] s
         Format(path, sizeof(path), "%s||", gamemode);
     }
     
-    
-    if (kv.JumpToKey("description_command"))
-    {
-        char command[64];
-        
-        kv.GetString("command", command, sizeof(command), "");
+    bool isNewFormat = kv.JumpToKey("description");
+    if (isNewFormat)
         kv.GoBack();
-        
-        if (strlen(command) > 0)
+    
+    if (isNewFormat)
+    {
+        if (kv.GotoFirstSubKey(false))
         {
-            char commandLower[64];
-            strcopy(commandLower, sizeof(commandLower), command);
-            for (int i = 0; i < strlen(commandLower); i++)
+            do
             {
-                if (commandLower[i] >= 'A' && commandLower[i] <= 'Z')
-                {
-                    commandLower[i] = commandLower[i] + ('a' - 'A');
-                }
-            }
-            
-            g_CommandMap.SetString(commandLower, path);
-            MMC_WriteToLogFileEx2("[MMC Descriptions] Registered command '%s' (lowercase: '%s') for path '%s'", command, commandLower, path);
+                char pageName[64];
+                kv.GetSectionName(pageName, sizeof(pageName));
+                char pathWithPage[256];
+                Format(pathWithPage, sizeof(pathWithPage), "%s|%s", path, pageName);
+                LoadDescriptionCommandsFromPage(kv, pathWithPage);
+            } while (kv.GotoNextKey(false));
+            kv.GoBack();
         }
     }
-
-    int copyNum = 2;
-    do
+    else
     {
-        char commandKey[64];
-        Format(commandKey, sizeof(commandKey), "description_command_%d", copyNum);
-        
-        if (kv.JumpToKey(commandKey))
-        {
-            char command[64];
-            
-            kv.GetString("command", command, sizeof(command), "");
-            kv.GoBack();
-            
-            if (strlen(command) > 0)
-            {
-                char commandLower[64];
-                strcopy(commandLower, sizeof(commandLower), command);
-                for (int i = 0; i < strlen(commandLower); i++)
-                {
-                    if (commandLower[i] >= 'A' && commandLower[i] <= 'Z')
-                    {
-                        commandLower[i] = commandLower[i] + ('a' - 'A');
-                    }
-                }
-                
-                g_CommandMap.SetString(commandLower, path);
-                MMC_WriteToLogFileEx2("[MMC Descriptions] Registered command '%s' (lowercase: '%s') for path '%s'", command, commandLower, path);
-            }
-        }
-        else
-        {
-            break;
-        }
-        
-        copyNum++;
-    } while (copyNum < 100);
+        LoadDescriptionCommandsFromPage(kv, path);
+    }
 }
 
 void ShowGamemodeMenu(int client)
@@ -1319,7 +1340,7 @@ public int MapMenuHandler(Menu menu, MenuAction action, int client, int param2)
     return 0;
 }
 
-void ShowDescriptionMenu(int client, const char[] gamemode, const char[] subgroup = "", const char[] map = "")
+void ShowDescriptionMenu(int client, const char[] gamemode, const char[] subgroup = "", const char[] map = "", const char[] page = "description")
 {
     KeyValues kv = GetMapcycle();
     if (kv == null)
@@ -1468,6 +1489,24 @@ void ShowDescriptionMenu(int client, const char[] gamemode, const char[] subgrou
         return;
     }
 
+    bool isNewFormat = descKv.JumpToKey("description");
+    if (isNewFormat)
+        descKv.GoBack();
+
+    if (!descKv.JumpToKey(page))
+    {
+        if (StrEqual(page, "description"))
+        {
+            // old format, descKv still at descriptions, use as page block
+        }
+        else
+        {
+            CPrintToChat(client, "[MultiMode] Description not found.");
+            kv.Rewind();
+            return;
+        }
+    }
+
     if (!CheckDescriptionAccess(client, descKv))
     {
         LogError("[MMC Descriptions] Client %N (ID: %d) doesn't have access to description for %s/%s/%s", client, client, gamemode, subgroup, map);
@@ -1476,7 +1515,7 @@ void ShowDescriptionMenu(int client, const char[] gamemode, const char[] subgrou
         return;
     }
     
-    MMC_WriteToLogFileEx2("[MMC Descriptions] Showing description menu for client %N (ID: %d) - %s/%s/%s", client, client, gamemode, subgroup, map);
+    MMC_WriteToLogFileEx2("[MMC Descriptions] Showing description menu for client %N (ID: %d) - %s/%s/%s (page: %s)", client, client, gamemode, subgroup, map, page);
 
     Menu menu = new Menu(DescriptionMenuHandler);
     
@@ -1556,7 +1595,7 @@ void ShowDescriptionMenu(int client, const char[] gamemode, const char[] subgrou
             char linkDesc[128];
             char linkCmd[128];
             int onlyIngamemode = descKv.GetNum("only_ingamemode", 0);
-            
+
             descKv.GetString("description", linkDesc, sizeof(linkDesc), "");
             descKv.GetString("command", linkCmd, sizeof(linkCmd), "");
             descKv.GoBack();
@@ -1631,6 +1670,86 @@ void ShowDescriptionMenu(int client, const char[] gamemode, const char[] subgrou
     
     MMC_WriteToLogFileEx2("[MMC Descriptions] Total description links added: %d", linkIndex);
     
+    /* description_linkpage: buttons to open another description page */
+    if (descKv.JumpToKey("description_linkpage"))
+    {
+        char linkpageName[128];
+        char linkpagePage[64];
+        descKv.GetString("description_name", linkpageName, sizeof(linkpageName), "");
+        if (strlen(linkpageName) == 0)
+            descKv.GetString("description", linkpageName, sizeof(linkpageName), "");
+        descKv.GetString("description_page", linkpagePage, sizeof(linkpagePage), "");
+        descKv.GoBack();
+        if (strlen(linkpageName) > 0 && strlen(linkpagePage) > 0)
+        {
+            char itemInfo[256];
+            Format(itemInfo, sizeof(itemInfo), "linkpage_%s", linkpagePage);
+            menu.AddItem(itemInfo, linkpageName, ITEMDRAW_DEFAULT);
+        }
+    }
+    int linkpageCopyNum = 2;
+    do
+    {
+        char linkpageKey[64];
+        Format(linkpageKey, sizeof(linkpageKey), "description_linkpage_%d", linkpageCopyNum);
+        if (descKv.JumpToKey(linkpageKey))
+        {
+            char linkpageName[128];
+            char linkpagePage[64];
+            descKv.GetString("description_name", linkpageName, sizeof(linkpageName), "");
+            if (strlen(linkpageName) == 0)
+                descKv.GetString("description", linkpageName, sizeof(linkpageName), "");
+            descKv.GetString("description_page", linkpagePage, sizeof(linkpagePage), "");
+            descKv.GoBack();
+            if (strlen(linkpageName) > 0 && strlen(linkpagePage) > 0)
+            {
+                char itemInfo[256];
+                Format(itemInfo, sizeof(itemInfo), "linkpage_%s", linkpagePage);
+                menu.AddItem(itemInfo, linkpageName, ITEMDRAW_DEFAULT);
+            }
+            linkpageCopyNum++;
+        }
+        else
+            break;
+    } while (linkpageCopyNum < 100);
+    
+    if (isNewFormat)
+    {
+        char nextPageName[64];
+        if (StrEqual(page, "description"))
+            strcopy(nextPageName, sizeof(nextPageName), "description_2");
+        else
+        {
+            int pageNum = 0;
+            if (StrContains(page, "description_") == 0)
+            {
+                int i = 12;
+                while (i < strlen(page) && page[i] >= '0' && page[i] <= '9')
+                {
+                    pageNum = pageNum * 10 + (page[i] - '0');
+                    i++;
+                }
+                pageNum++;
+            }
+            if (pageNum > 0)
+                Format(nextPageName, sizeof(nextPageName), "description_%d", pageNum);
+        }
+        if (strlen(nextPageName) > 0)
+        {
+            descKv.GoBack();
+            if (descKv.JumpToKey(nextPageName))
+            {
+                if (CheckDescriptionAccess(client, descKv))
+                {
+                    char itemInfo[128];
+                    Format(itemInfo, sizeof(itemInfo), "page_%s", nextPageName);
+                    menu.AddItem(itemInfo, "Next Page", ITEMDRAW_DEFAULT);
+                }
+                descKv.GoBack();
+            }
+        }
+    }
+    
     menu.ExitBackButton = true;
     
     strcopy(g_LastGamemode[client], sizeof(g_LastGamemode[]), gamemode);
@@ -1661,6 +1780,18 @@ public int DescriptionMenuHandler(Menu menu, MenuAction action, int client, int 
                 strcopy(command, sizeof(command), info[5]);
                 
                 FakeClientCommand(client, command);
+            }
+            else if (StrContains(info, "linkpage_") == 0)
+            {
+                char page[64];
+                strcopy(page, sizeof(page), info[9]);
+                ShowDescriptionMenu(client, g_LastGamemode[client], g_LastSubgroup[client], g_LastMap[client], page);
+            }
+            else if (StrContains(info, "page_") == 0)
+            {
+                char page[64];
+                strcopy(page, sizeof(page), info[5]);
+                ShowDescriptionMenu(client, g_LastGamemode[client], g_LastSubgroup[client], g_LastMap[client], page);
             }
         }
     }
@@ -1741,10 +1872,10 @@ void ProcessDescriptionText(Menu menu, const char[] text)
             char itemInfo[32];
             Format(itemInfo, sizeof(itemInfo), "desc_%d", lineNum);
             menu.AddItem(itemInfo, line, ITEMDRAW_DISABLED);
+            lineNum++;
         }
     }
-    
-    if (lineNum == 0 && strlen(buffer) > 0)
+    else if (lineNum == 0 && strlen(buffer) > 0)
     {
         menu.AddItem("desc_0", buffer, ITEMDRAW_DISABLED);
     }
