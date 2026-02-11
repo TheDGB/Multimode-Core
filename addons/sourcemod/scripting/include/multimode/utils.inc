@@ -13,6 +13,56 @@
 #include <multimode/base>
 #include <emitsoundany>
 
+/**
+ * Fills buffer with the current map cycle filename (from multimode_mapcycle convar).
+ * Plugins that only need the filename (e.g. for Multimode_StartVote) can use this.
+ *
+ * @param buffer    Buffer to store the filename.
+ * @param maxlen    Maximum length of the buffer.
+ * @return         True if the convar was found and buffer was filled, false otherwise.
+ */
+stock bool MMC_GetMapCycleFilename(char[] buffer, int maxlen)
+{
+    ConVar cvar = FindConVar("multimode_mapcycle");
+    if (cvar == null)
+    {
+        buffer[0] = '\0';
+        return false;
+    }
+    cvar.GetString(buffer, maxlen);
+    if (buffer[0] == '\0')
+    {
+        strcopy(buffer, maxlen, "mmc_mapcycle.txt");
+    }
+    return true;
+}
+
+/**
+ * Loads and returns the current map cycle as KeyValues from the file specified by multimode_mapcycle.
+ * The caller MUST delete the returned KeyValues when done to avoid leaks.
+ * Plugins that cache the result should listen to MultiMode_OnMapCycleReloaded() and reload when it fires.
+ *
+ * @return KeyValues handle, or null if convar not found or file failed to load.
+ */
+stock KeyValues MMC_GetMapCycle()
+{
+    char filename[PLATFORM_MAX_PATH];
+    if (!MMC_GetMapCycleFilename(filename, sizeof(filename)))
+        return null;
+
+    char configPath[PLATFORM_MAX_PATH];
+    BuildPath(Path_SM, configPath, sizeof(configPath), "configs/%s", filename);
+
+    KeyValues kv = new KeyValues("Mapcycle");
+    if (!kv.ImportFromFile(configPath))
+    {
+        delete kv;
+        return null;
+    }
+    kv.Rewind();
+    return kv;
+}
+
 stock bool MMC_IsWildcardEntry(const char[] mapname)
 {
     int len = strlen(mapname);

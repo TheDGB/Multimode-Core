@@ -473,6 +473,12 @@ forward void MultiMode_OnGamemodeChanged(const char[] group, const char[] subgro
  */
 forward void MultiMode_OnGamemodeChangedVote(const char[] group, const char[] subgroup, const char[] map, int timing);
 
+/**
+ * Called when the core (re)loads the map cycle (e.g. LoadGameModesConfig, OnConfigsExecuted, multimode_reload).
+ * Plugins that cache the map cycle KeyValues should listen to this and reload their cache (e.g. via MMC_GetMapCycle()).
+ */
+forward void MultiMode_OnMapCycleReloaded();
+
 public SharedPlugin __pl_multimode_core = {
     name = "multimode_core",
     file = "multimode_core.smx",

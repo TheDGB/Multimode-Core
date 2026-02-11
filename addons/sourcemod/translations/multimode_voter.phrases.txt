@@ -1,4 +1,4 @@
-﻿"Phrases"
+"Phrases"
 {
     "Admin Cancel No Vote"
     {
@@ -203,6 +203,11 @@
     "RTV Wait Again"
     {
         "en"    "{green}[Rock The Vote] {default}Please wait %d seconds to vote again!"
+    }
+
+    "RTV Player Left Start"
+    {
+        "en"    "{green}[Rock The Vote] {default}A player left the server. Starting RTV vote..."
     }
 
     "RTV Threshold Reached"
