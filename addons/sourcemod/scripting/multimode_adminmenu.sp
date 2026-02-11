@@ -14,11 +14,6 @@
 #include <multimode/base>
 #include <multimode/utils>
 
-// Gesture Defines
-#define GESTURE_NOMINATED " (!)" // For nominated global gesture groups/maps
-#define GESTURE_CURRENT " (*)"   // For Current global gesture group/map
-#define GESTURE_VOTED " (#)"     // For Winning group/map global gesture from a previous vote
-
 // Char Section
 char g_sClientPendingGameMode[MAXPLAYERS+1][64];
 char g_sClientPendingMap[MAXPLAYERS+1][PLATFORM_MAX_PATH];

@@ -13,6 +13,12 @@
 #include <multimode/base>
 #include <emitsoundany>
 
+#define GESTURE_NOMINATED " (!)" // For nominated global gesture groups/maps
+#define GESTURE_CURRENT " (*)"   // For Current global gesture group/map
+#define GESTURE_VOTED " (#)"     // For Winning group/map global gesture from a previous vote
+#define GESTURE_SELECTEDNOMINATED " (Nominated)" // For selected nomination global gesture.
+#define GESTURE_EXCLUDED " (Excluded)" // For global exclusion gesture.
+
 /**
  * Fills buffer with the current map cycle filename (from multimode_mapcycle convar).
  * Plugins that only need the filename (e.g. for Multimode_StartVote) can use this.

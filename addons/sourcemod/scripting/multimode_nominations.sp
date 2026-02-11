@@ -20,11 +20,6 @@ public Plugin myinfo =
     url = ""
 }
 
-// Gesture Defines
-#define GESTURE_NOMINATED " (!)" // For nominated global gesture groups/maps
-#define GESTURE_SELECTEDNOMINATED " (Nominated)" // For selected nomination global gesture.
-#define GESTURE_EXCLUDED " (Excluded)" // For global exclusion gesture.
-
 // ConVars
 ConVar g_Cvar_UnnominateEnabled;
 ConVar g_Cvar_Nominate_NominateOneChance;
