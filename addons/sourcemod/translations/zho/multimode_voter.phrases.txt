@@ -391,19 +391,4 @@
     {
         "zho"   "{green}%N 想要更換地圖 (%d/%d 需要)"
     }
-
-    "Random Cycle Map Selected With Subgroup"
-    {
-        "zho"   "{olive}[MultiMode Random Cycle] {default}隨機地圖已選擇: {lightgreen}%s {default}(模式: {lightgreen}%s{default}/{lightgreen}%s{default})"
-    }
-
-    "Random Cycle Map Selected With Group"
-    {
-        "zho"   "{olive}[MultiMode Random Cycle] {default}隨機地圖已選擇: {lightgreen}%s {default}(模式: {lightgreen}%s{default})"
-    }
-
-    "Random Cycle Map Selected"
-    {
-        "zho"   "{olive}[MultiMode Random Cycle] {default}隨機地圖已選擇: {lightgreen}%s"
-    }
 }

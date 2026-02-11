@@ -391,19 +391,4 @@
     {
         "es"    "{green}%N quiere cambiar de mapa (%d/%d necesarios)"
     }
-
-    "Random Cycle Map Selected With Subgroup"
-    {
-        "es"    "{olive}[MultiMode Random Cycle] {default}Mapa aleatorio seleccionado: {lightgreen}%s {default}(Modo: {lightgreen}%s{default}/{lightgreen}%s{default})"
-    }
-
-    "Random Cycle Map Selected With Group"
-    {
-        "es"    "{olive}[MultiMode Random Cycle] {default}Mapa aleatorio seleccionado: {lightgreen}%s {default}(Modo: {lightgreen}%s{default})"
-    }
-
-    "Random Cycle Map Selected"
-    {
-        "es"    "{olive}[MultiMode Random Cycle] {default}Mapa aleatorio seleccionado: {lightgreen}%s"
-    }
 }

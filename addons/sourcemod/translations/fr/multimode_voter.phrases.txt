@@ -391,19 +391,4 @@
     {
         "fr"    "{green}%N veut changer de carte (%d/%d nécessaires)"
     }
-
-    "Random Cycle Map Selected With Subgroup"
-    {
-        "fr"    "{olive}[MultiMode Random Cycle] {default}Carte aléatoire sélectionnée: {lightgreen}%s {default}(Mode: {lightgreen}%s{default}/{lightgreen}%s{default})"
-    }
-
-    "Random Cycle Map Selected With Group"
-    {
-        "fr"    "{olive}[MultiMode Random Cycle] {default}Carte aléatoire sélectionnée: {lightgreen}%s {default}(Mode: {lightgreen}%s{default})"
-    }
-
-    "Random Cycle Map Selected"
-    {
-        "fr"    "{olive}[MultiMode Random Cycle] {default}Carte aléatoire sélectionnée: {lightgreen}%s"
-    }
 }
