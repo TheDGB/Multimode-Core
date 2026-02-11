@@ -391,19 +391,4 @@
     {
         "ru"    "{green}%N хочет сменить карту (%d/%d необходимо)"
     }
-
-    "Random Cycle Map Selected With Subgroup"
-    {
-        "ru"    "{olive}[MultiMode Random Cycle] {default}Случайная карта выбрана: {lightgreen}%s {default}(Режим: {lightgreen}%s{default}/{lightgreen}%s{default})"
-    }
-
-    "Random Cycle Map Selected With Group"
-    {
-        "ru"    "{olive}[MultiMode Random Cycle] {default}Случайная карта выбрана: {lightgreen}%s {default}(Режим: {lightgreen}%s{default})"
-    }
-
-    "Random Cycle Map Selected"
-    {
-        "ru"    "{olive}[MultiMode Random Cycle] {default}Случайная карта выбрана: {lightgreen}%s"
-    }
 }

@@ -391,19 +391,4 @@
     {
         "chi"   "{green}%N 想要更换地图 (%d/%d 需要)"
     }
-
-    "Random Cycle Map Selected With Subgroup"
-    {
-        "chi"   "{olive}[MultiMode Random Cycle] {default}随机地图已选择: {lightgreen}%s {default}(模式: {lightgreen}%s{default}/{lightgreen}%s{default})"
-    }
-
-    "Random Cycle Map Selected With Group"
-    {
-        "chi"   "{olive}[MultiMode Random Cycle] {default}随机地图已选择: {lightgreen}%s {default}(模式: {lightgreen}%s{default})"
-    }
-
-    "Random Cycle Map Selected"
-    {
-        "chi"   "{olive}[MultiMode Random Cycle] {default}随机地图已选择: {lightgreen}%s"
-    }
 }

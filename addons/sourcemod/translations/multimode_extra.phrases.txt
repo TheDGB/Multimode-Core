@@ -14,6 +14,21 @@
     {
         "en"    "{olive}[MultiMode] {default}Next gamemode: {lightgreen}Random Selection, Waiting for Voting..."
     }
+	
+    "Random Cycle Map Selected With Subgroup"
+    {
+        "en"    "{olive}[MultiMode Random Cycle] {default}Random map selected: {lightgreen}%s {default}(Mode: {lightgreen}%s{default}/{lightgreen}%s{default})"
+    }
+
+    "Random Cycle Map Selected With Group"
+    {
+        "en"    "{olive}[MultiMode Random Cycle] {default}Random map selected: {lightgreen}%s {default}(Mode: {lightgreen}%s{default})"
+    }
+
+    "Random Cycle Map Selected"
+    {
+        "en"    "{olive}[MultiMode Random Cycle] {default}Random map selected: {lightgreen}%s"
+    }
 
     "Unknown Next Gamemode"
     {

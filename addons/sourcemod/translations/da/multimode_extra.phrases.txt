@@ -14,7 +14,22 @@
     {
         "da"    "{olive}[MultiMode] {default}Næste spiltilstand: {lightgreen}Tilfældig valg, venter på afstemning..."
     }
+	
+    "Random Cycle Map Selected With Subgroup"
+    {
+        "da"    "{olive}[MultiMode Random Cycle] {default}Tilfældigt kort valgt: {lightgreen}%s {default}(Tilstand: {lightgreen}%s{default}/{lightgreen}%s{default})"
+    }
 
+    "Random Cycle Map Selected With Group"
+    {
+        "da"    "{olive}[MultiMode Random Cycle] {default}Tilfældigt kort valgt: {lightgreen}%s {default}(Tilstand: {lightgreen}%s{default})"
+    }
+
+    "Random Cycle Map Selected"
+    {
+        "da"    "{olive}[MultiMode Random Cycle] {default}Tilfældigt kort valgt: {lightgreen}%s"
+    }
+	
     "Unknown Next Gamemode"
     {
         "da"    "{olive}[MultiMode] {default}Næste spiltilstand: {red}Udefineret"

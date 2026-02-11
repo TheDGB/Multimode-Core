@@ -14,6 +14,21 @@
     {
         "zho"    "{olive}[多模式] {default}下一個遊戲模式: {lightgreen}隨機選擇，等待投票..."
     }
+	
+    "Random Cycle Map Selected With Subgroup"
+    {
+        "zho"   "{olive}[MultiMode Random Cycle] {default}隨機地圖已選擇: {lightgreen}%s {default}(模式: {lightgreen}%s{default}/{lightgreen}%s{default})"
+    }
+
+    "Random Cycle Map Selected With Group"
+    {
+        "zho"   "{olive}[MultiMode Random Cycle] {default}隨機地圖已選擇: {lightgreen}%s {default}(模式: {lightgreen}%s{default})"
+    }
+
+    "Random Cycle Map Selected"
+    {
+        "zho"   "{olive}[MultiMode Random Cycle] {default}隨機地圖已選擇: {lightgreen}%s"
+    }
 
     "Unknown Next Gamemode"
     {
