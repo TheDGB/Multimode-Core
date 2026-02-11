@@ -204,6 +204,11 @@
     {
         "zho"   "{green}[投票換圖] {default}請等待 %d 秒以再次投票！"
     }
+	
+    "RTV Player Left Start"
+    {
+        "zho"       "{green}[Rock The Vote] {default}一名玩家离开了服务器。正在启动 RTV 投票..."
+    }
 
     "RTV Threshold Reached"
     {

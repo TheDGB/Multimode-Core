@@ -204,6 +204,11 @@
     {
         "ru"    "{green}[Rock The Vote] {default}Пожалуйста, подождите %d секунд, чтобы проголосовать снова!"
     }
+	
+    "RTV Player Left Start"
+    {
+        "ru"        "{green}[Rock The Vote] {default}Игрок покинул сервер. Запуск голосования RTV..."
+    }
 
     "RTV Threshold Reached"
     {

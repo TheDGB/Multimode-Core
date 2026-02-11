@@ -204,6 +204,11 @@
     {
         "chi"   "{green}[投票换图] {default}请等待 %d 秒以再次投票！"
     }
+	
+    "RTV Player Left Start"
+    {
+        "chi"       "{green}[Rock The Vote] {default}有玩家离开了服务器。正在开始 RTV 投票..."
+    }
 
     "RTV Threshold Reached"
     {

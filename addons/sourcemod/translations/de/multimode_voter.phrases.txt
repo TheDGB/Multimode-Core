@@ -209,6 +209,11 @@
     {
         "de"    "{green}[Rock The Vote] {default}Bitte warte %d Sekunden, um erneut abzustimmen!"
     }
+	
+    "RTV Player Left Start"
+    {
+        "de"        "{green}[Rock The Vote] {default}Ein Spieler hat den Server verlassen. RTV-Abstimmung startet..."
+    }
 
     "Reload Gamemodes Successful"
     {

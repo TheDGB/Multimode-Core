@@ -204,6 +204,11 @@
     {
         "da"    "{green}[Rock The Vote] {default}Vent venligst %d sekunder for at stemme igen!"
     }
+	
+    "RTV Player Left Start"
+    {
+        "da"        "{green}[Rock The Vote] {default}En spiller forlod serveren. Starter RTV-afstemning..."
+    }
 
     "RTV Threshold Reached"
     {

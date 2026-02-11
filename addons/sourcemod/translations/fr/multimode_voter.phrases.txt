@@ -204,6 +204,11 @@
     {
         "fr"    "{green}[Rock The Vote] {default}Veuillez attendre %d secondes pour voter à nouveau !"
     }
+	
+    "RTV Player Left Start"
+    {
+        "fr"        "{green}[Rock The Vote] {default}Un joueur a quitté le serveur. Démarrage du vote RTV..."
+    }
 
     "RTV Threshold Reached"
     {
