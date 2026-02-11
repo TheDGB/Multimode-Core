@@ -114,6 +114,7 @@ Handle g_hCooldownTimer = INVALID_HANDLE;
 Handle g_hHudSync;
 Handle g_OnGamemodeChangedForward;
 Handle g_OnGamemodeChangedVoteForward;
+Handle g_OnMapCycleReloadedForward;
 Handle g_OnVoteEndForward;
 Handle g_OnVoteStartExForward;
 Handle g_OnVoteStartForward;
@@ -196,6 +197,7 @@ public void OnPluginStart()
     g_OnVoteEndForward = CreateGlobalForward("MultiMode_OnVoteEnd", ET_Ignore, Param_String, Param_String, Param_String, Param_Cell);
     g_OnGamemodeChangedForward = CreateGlobalForward("MultiMode_OnGamemodeChanged", ET_Ignore, Param_String, Param_String, Param_String, Param_Cell);
     g_OnGamemodeChangedVoteForward = CreateGlobalForward("MultiMode_OnGamemodeChangedVote", ET_Ignore, Param_String, Param_String, Param_String, Param_Cell);
+    g_OnMapCycleReloadedForward = CreateGlobalForward("MultiMode_OnMapCycleReloaded", ET_Ignore);
     g_OnGetItemWeightForward = CreateGlobalForward("MultiMode_OnGetItemWeight", ET_Single, Param_String, Param_String, Param_String, Param_Cell);
     
     g_hCvarTimeLimit = FindConVar("mp_timelimit");
@@ -321,6 +323,12 @@ public void OnConfigsExecuted()
     }
     
     g_kvGameModes.Rewind();
+
+    if (g_OnMapCycleReloadedForward != null)
+    {
+        Call_StartForward(g_OnMapCycleReloadedForward);
+        Call_Finish();
+    }
 }
 
 public void OnMapStart()
@@ -828,6 +836,12 @@ public void LoadGameModesConfig()
     OnGamemodeConfigLoaded();
     
     g_kvGameModes.Rewind();
+
+    if (g_OnMapCycleReloadedForward != null)
+    {
+        Call_StartForward(g_OnMapCycleReloadedForward);
+        Call_Finish();
+    }
 }
 
 // This is NOT a public API, its only used internally by the natives...
@@ -2812,13 +2826,18 @@ public int NativeMMC_GetRandomMap(Handle plugin, int numParams)
     int groupLen = GetNativeCell(2);
     int subgroupLen = GetNativeCell(4);
     int mapLen = GetNativeCell(6);
+
+    if (groupLen <= 0 || subgroupLen <= 0 || mapLen <= 0) {
+        LogError("[MultiMode] Invalid buffer sizes in NativeMMC_GetRandomMap: groupLen=%d, subgroupLen=%d, mapLen=%d", 
+                 groupLen, subgroupLen, mapLen);
+        return false;
+    }
     
     char[] groupIn = new char[groupLen];
     char[] subgroupIn = new char[subgroupLen];
     
     GetNativeString(1, groupIn, groupLen);
     GetNativeString(3, subgroupIn, subgroupLen);
-
     ArrayList gameModes = GetGameModesList();
     if (gameModes.Length == 0) return false;
 
@@ -2913,6 +2932,10 @@ public int NativeMMC_GetRandomMap(Handle plugin, int numParams)
         delete mapToSubgroup;
     }
 
+    if (strlen(config.name) == 0 || strlen(finalMap) == 0) {
+        return false;
+    }
+    
     SetNativeString(1, config.name, groupLen);
     SetNativeString(3, finalSubgroup, subgroupLen);
     SetNativeString(5, finalMap, mapLen);
@@ -5427,6 +5450,12 @@ public void OnPluginEnd()
     {
         CloseHandle(g_OnGamemodeChangedVoteForward);
         g_OnGamemodeChangedVoteForward = null;
+    }
+
+    if (g_OnMapCycleReloadedForward != null)
+    {
+        CloseHandle(g_OnMapCycleReloadedForward);
+        g_OnMapCycleReloadedForward = null;
     }
     
     if (g_OnGetItemWeightForward != null)

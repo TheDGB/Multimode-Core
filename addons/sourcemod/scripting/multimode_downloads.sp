@@ -257,30 +257,17 @@ public int Native_AddPrecacheGeneric(Handle plugin, int numParams)
 void LoadDownloadsConfig()
 {
     delete g_kvMapcycle;
-    g_kvMapcycle = new KeyValues("Mapcycle");
-    
-    ConVar cvar_filename = FindConVar("multimode_mapcycle");
-    if (cvar_filename == null)
+    g_kvMapcycle = MMC_GetMapCycle();
+    if (g_kvMapcycle != null)
     {
-        LogError("[MultiMode Downloads] multimode_mapcycle convar not found!");
-        return;
+        g_kvMapcycle.Rewind();
     }
-    
-    char filename[PLATFORM_MAX_PATH];
-    cvar_filename.GetString(filename, sizeof(filename));
-    
-    char configPath[PLATFORM_MAX_PATH];
-    BuildPath(Path_SM, configPath, sizeof(configPath), "configs/%s", filename);
-    
-    if (!g_kvMapcycle.ImportFromFile(configPath))
-    {
-        LogError("[MultiMode Downloads] Mapcycle failed to load: %s", configPath);
-        delete g_kvMapcycle;
-        g_kvMapcycle = null;
-        return;
-    }
-    
-    g_kvMapcycle.Rewind();
+}
+
+public void MultiMode_OnMapCycleReloaded()
+{
+    LoadDownloadsConfig();
+    LoadDownloadsForCurrentMap();
 }
 
 KeyValues GetMapcycle()

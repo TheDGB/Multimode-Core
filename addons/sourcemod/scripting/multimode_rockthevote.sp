@@ -9,6 +9,7 @@
 #include <morecolors>
 #include <multimode/base>
 #include <multimode>
+#include <multimode/utils>
 
 public Plugin myinfo = 
 {
@@ -26,7 +27,6 @@ ConVar g_Cvar_RtvFirstDelay;
 ConVar g_Cvar_RtvDelay;
 ConVar g_Cvar_RtvType;
 ConVar g_Cvar_RtvMethod;
-ConVar g_Cvar_MapCycleFile;
 
 // Vote Configuration ConVars
 ConVar g_Cvar_VoteTime;
@@ -78,7 +78,6 @@ public void OnPluginStart()
     AddCommandListener(OnPlayerChat, "say_team");
     
     // Convars
-    g_Cvar_MapCycleFile = FindConVar("multimode_mapcycle");
     g_Cvar_RtvMinPlayers = CreateConVar("multimode_rtv_min", "1", "Minimum number of players required to start RTV", _, true, 1.0);
     g_Cvar_RtvRatio = CreateConVar("multimode_rtv_ratio", "0.8", "Ratio of players needed to start RTV", _, true, 0.05, true, 1.0);
     g_Cvar_RtvFirstDelay = CreateConVar("multimode_rtvfirstdelay", "60", "Initial delay after map loads to allow RTV");
@@ -179,7 +178,10 @@ public Action Event_PlayerDisconnect(Event event, const char[] name, bool dontBr
                 g_iRtvVotes = 0;
         }
         
-        CheckRtvThreshold();
+        int iPlayersAfterDisconnect = GetRealClientCount() - 1;
+        if (iPlayersAfterDisconnect < 0)
+            iPlayersAfterDisconnect = 0;
+        CheckRtvThreshold(iPlayersAfterDisconnect);
     }
     
     return Plugin_Continue;
@@ -273,14 +275,8 @@ public Action Command_RTV(int client, int args)
         TimingMode timing = view_as<TimingMode>(rtvType - 1);
         
         char mapcycle[PLATFORM_MAX_PATH];
-        if (g_Cvar_MapCycleFile != null)
-        {
-            g_Cvar_MapCycleFile.GetString(mapcycle, sizeof(mapcycle));
-        }
-        else
-        {
+        if (!MMC_GetMapCycleFilename(mapcycle, sizeof(mapcycle)))
             strcopy(mapcycle, sizeof(mapcycle), "mmc_mapcycle.txt");
-        }
         
         int emptyClients[MAXPLAYERS + 1];
         char startSound[256] = "";
@@ -420,24 +416,28 @@ void StartRtvCooldown()
     }
 }
 
-void CheckRtvThreshold()
+void CheckRtvThreshold(int forcePlayerCount = -1)
 {
     if (g_bRtvDisabled)
         return;
-    
-    int iPlayers = GetRealClientCount();
+
+    int iPlayers = (forcePlayerCount >= 0) ? forcePlayerCount : GetRealClientCount();
     float ratio = g_Cvar_RtvRatio.FloatValue;
     int minRequired = g_Cvar_RtvMinPlayers.IntValue;
 
     int iRequired = RoundToNearest(float(iPlayers) * ratio);
 
     if (iRequired < minRequired)
-    { 
+    {
         iRequired = minRequired;
     }
-    
+
     if (!g_bRtvDisabled && g_iRtvVotes > 0 && g_iRtvVotes >= iRequired)
     {
+        if (forcePlayerCount >= 0)
+        {
+            CPrintToChatAll("%t", "RTV Player Left Start");
+        }
         CPrintToChatAll("%t", "RTV Threshold Reached", g_iRtvVotes, iRequired); 
         
         int rtvType = g_Cvar_RtvType.IntValue;
@@ -447,14 +447,8 @@ void CheckRtvThreshold()
         TimingMode timing = view_as<TimingMode>(rtvType - 1);
         
         char mapcycle[PLATFORM_MAX_PATH];
-        if (g_Cvar_MapCycleFile != null)
-        {
-            g_Cvar_MapCycleFile.GetString(mapcycle, sizeof(mapcycle));
-        }
-        else
-        {
+        if (!MMC_GetMapCycleFilename(mapcycle, sizeof(mapcycle)))
             strcopy(mapcycle, sizeof(mapcycle), "mmc_mapcycle.txt");
-        }
 
         int emptyClients[MAXPLAYERS + 1];
         char startSound[256] = "";

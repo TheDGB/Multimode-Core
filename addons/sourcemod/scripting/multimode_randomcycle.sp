@@ -98,90 +98,81 @@ void SelectRandomNextMap(bool bSetNextMap = false)
 {
     char nextMap[PLATFORM_MAX_PATH];
     MultiMode_GetNextMap(nextMap, sizeof(nextMap));
-    
+
     if (!StrEqual(nextMap, ""))
     {
         return;
     }
-    
+
     int groupExclude = g_Cvar_RandomCycleGroupExclude.IntValue;
     int subgroupExclude = g_Cvar_RandomCycleSubGroupExclude.IntValue;
     int mapExclude = g_Cvar_RandomCycleMapExclude.IntValue;
-    
+
+    ArrayList candidateGroups = new ArrayList(ByteCountToCells(64));
+    ArrayList candidateSubgroups = new ArrayList(ByteCountToCells(64));
+
     ArrayList gamemodes = new ArrayList(ByteCountToCells(64));
     int gamemodeCount = Multimode_GetGamemodeList(gamemodes, false, false);
-    
-    if (gamemodeCount == 0)
+
+    for (int i = 0; i < gamemodeCount; i++)
     {
-        delete gamemodes;
-        return;
+        char gamemode[64];
+        gamemodes.GetString(i, gamemode, sizeof(gamemode));
+
+        if (groupExclude > 0 && MultiMode_IsGamemodeRecentlyPlayed(gamemode, groupExclude))
+            continue;
+
+        char testMap[PLATFORM_MAX_PATH];
+        if (MultiMode_GetRandomMap(gamemode, sizeof(gamemode), "", 0, testMap, sizeof(testMap)))
+        {
+            candidateGroups.PushString(gamemode);
+            candidateSubgroups.PushString("");
+        }
+
+        ArrayList subgroups = new ArrayList(ByteCountToCells(64));
+        int subgroupCount = Multimode_GetSubgroupList(gamemode, subgroups, false, false);
+        for (int j = 0; j < subgroupCount; j++)
+        {
+            char subgroup[64];
+            subgroups.GetString(j, subgroup, sizeof(subgroup));
+            if (subgroupExclude > 0 && MultiMode_IsSubGroupRecentlyPlayed(gamemode, subgroup, subgroupExclude))
+                continue;
+            if (MultiMode_GetRandomMap(gamemode, sizeof(gamemode), subgroup, sizeof(subgroup), testMap, sizeof(testMap)))
+            {
+                candidateGroups.PushString(gamemode);
+                candidateSubgroups.PushString(subgroup);
+            }
+        }
+        delete subgroups;
     }
-    
+    delete gamemodes;
+
     char selectedGroup[64] = "";
     char selectedSubgroup[64] = "";
     char selectedMap[PLATFORM_MAX_PATH] = "";
     bool found = false;
-    
-    for (int attempt = 0; attempt < 50 && !found; attempt++)
+
+    if (candidateGroups.Length > 0)
     {
-        int randomGamemodeIndex = GetRandomInt(0, gamemodes.Length - 1);
-        char gamemode[64];
-        gamemodes.GetString(randomGamemodeIndex, gamemode, sizeof(gamemode));
-        
-        if (groupExclude > 0 && MultiMode_IsGamemodeRecentlyPlayed(gamemode, groupExclude))
+        int idx = GetRandomInt(0, candidateGroups.Length - 1);
+        candidateGroups.GetString(idx, selectedGroup, sizeof(selectedGroup));
+        candidateSubgroups.GetString(idx, selectedSubgroup, sizeof(selectedSubgroup));
+
+        for (int attempt = 0; attempt < 30 && !found; attempt++)
         {
-            continue;
-        }
-        
-        if (MultiMode_GetRandomMap(gamemode, sizeof(gamemode), "", 0, selectedMap, sizeof(selectedMap)))
-        {
-            if (mapExclude > 0 && MultiMode_IsMapRecentlyPlayed(gamemode, selectedMap, "", mapExclude))
+            if (MultiMode_GetRandomMap(selectedGroup, sizeof(selectedGroup), selectedSubgroup, sizeof(selectedSubgroup), selectedMap, sizeof(selectedMap)))
             {
-                continue;
-            }
-            
-            strcopy(selectedGroup, sizeof(selectedGroup), gamemode);
-            selectedSubgroup[0] = '\0';
-            found = true;
-            break;
-        }
-        
-        ArrayList subgroups = new ArrayList(ByteCountToCells(64));
-        int subgroupCount = Multimode_GetSubgroupList(gamemode, subgroups, false, false);
-        
-        if (subgroupCount > 0)
-        {
-            int randomSubgroupIndex = GetRandomInt(0, subgroups.Length - 1);
-            char subgroup[64];
-            subgroups.GetString(randomSubgroupIndex, subgroup, sizeof(subgroup));
-            
-            if (subgroupExclude > 0 && MultiMode_IsSubGroupRecentlyPlayed(gamemode, subgroup, subgroupExclude))
-            {
-                delete subgroups;
-                continue;
-            }
-            
-            if (MultiMode_GetRandomMap(gamemode, sizeof(gamemode), subgroup, sizeof(subgroup), selectedMap, sizeof(selectedMap)))
-            {
-                if (mapExclude > 0 && MultiMode_IsMapRecentlyPlayed(gamemode, selectedMap, subgroup, mapExclude))
-                {
-                    delete subgroups;
+                if (mapExclude > 0 && MultiMode_IsMapRecentlyPlayed(selectedGroup, selectedMap, selectedSubgroup, mapExclude))
                     continue;
-                }
-                
-                strcopy(selectedGroup, sizeof(selectedGroup), gamemode);
-                strcopy(selectedSubgroup, sizeof(selectedSubgroup), subgroup);
                 found = true;
-                delete subgroups;
                 break;
             }
         }
-        
-        delete subgroups;
     }
-    
-    delete gamemodes;
-    
+
+    delete candidateGroups;
+    delete candidateSubgroups;
+
     if (!found || StrEqual(selectedMap, ""))
     {
         if (MultiMode_GetRandomMap("", 0, "", 0, selectedMap, sizeof(selectedMap)))
@@ -189,7 +180,7 @@ void SelectRandomNextMap(bool bSetNextMap = false)
             found = true;
         }
     }
-    
+
     if (found && !StrEqual(selectedMap, ""))
     {
         if (IsMapValid(selectedMap))

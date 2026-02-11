@@ -122,30 +122,16 @@ KeyValues GetMapcycle()
 void LoadMapcycle()
 {
     delete g_kvMapcycle;
-    g_kvMapcycle = new KeyValues("Mapcycle");
-    
-    ConVar cvar_filename = FindConVar("multimode_mapcycle");
-    if (cvar_filename == null)
+    g_kvMapcycle = MMC_GetMapCycle();
+    if (g_kvMapcycle != null)
     {
-        LogError("[AdminMenu] multimode_mapcycle convar not found!");
-        return;
+        g_kvMapcycle.Rewind();
     }
-    
-    char filename[PLATFORM_MAX_PATH];
-    cvar_filename.GetString(filename, sizeof(filename));
-    
-    char configPath[PLATFORM_MAX_PATH];
-    BuildPath(Path_SM, configPath, sizeof(configPath), "configs/%s", filename);
+}
 
-    if (!g_kvMapcycle.ImportFromFile(configPath))
-    {
-        LogError("[AdminMenu] Mapcycle failed to load: %s", configPath);
-        delete g_kvMapcycle;
-        g_kvMapcycle = null;
-        return;
-    }
-    
-    g_kvMapcycle.Rewind();
+public void MultiMode_OnMapCycleReloaded()
+{
+    LoadMapcycle();
 }
 
 public void OnLibraryAdded(const char[] name)
@@ -951,39 +937,6 @@ void ExecuteModeChange(const char[] gamemode = "", const char[] map, int timing,
         LogError("[MultiMode AdminMenu] Failed to set next map: %s (timing: %d, gamemode: %s, subgroup: %s)", map, timing, gamemode, subgroup);
         return;
     }
-
-    if (timing == 3)
-    {
-        char game[20];
-        GetGameFolderName(game, sizeof(game));
-        ConVar mp_tournament = FindConVar("mp_tournament");
-	
-        if (mp_tournament != null && mp_tournament.BoolValue)
-        {
-            ForceChangeLevel(map, "Map modified by admin");
-        }
-        else
-        {
-            if (!StrEqual(game, "gesource", false) && !StrEqual(game, "zps", false))
-            {
-                int iGameEnd = FindEntityByClassname(-1, "game_end");
-                if (iGameEnd == -1 && (iGameEnd = CreateEntityByName("game_end")) == -1)
-                {
-                    ForceChangeLevel(map, "Map modified by admin");
-                } 
-                else 
-                {     
-                    AcceptEntityInput(iGameEnd, "EndGame");
-                }
-            }
-            else
-            {
-                ForceChangeLevel(map, "Map modified by admin");
-            }
-        }
-
-        CPrintToChatAll("%t", "Timing Instant Notify", map);
-    }
 }
 
 bool HasSubGroups(const char[] gamemode)
@@ -1047,6 +1000,17 @@ void GetMapDisplayNameEx(const char[] gamemode, const char[] map, char[] display
 
 void StartAdminVote(const char[] id, const char[] mapcycle, MultimodeMethodType voteType, TimingMode timing, int clients[MAXPLAYERS + 1], int numClients, bool adminVote)
 {
+    char mapcycleParam[PLATFORM_MAX_PATH];
+    if (mapcycle[0] == '\0')
+    {
+        if (!MMC_GetMapCycleFilename(mapcycleParam, sizeof(mapcycleParam)))
+            strcopy(mapcycleParam, sizeof(mapcycleParam), "mmc_mapcycle.txt");
+    }
+    else
+    {
+        strcopy(mapcycleParam, sizeof(mapcycleParam), mapcycle);
+    }
+
     char startSound[256] = "";
     char endSound[256] = "";
     char runoffStartSound[256] = "";
@@ -1074,7 +1038,7 @@ void StartAdminVote(const char[] id, const char[] mapcycle, MultimodeMethodType 
     
     Multimode_StartVote(
         id,
-        mapcycle,
+        mapcycleParam,
         voteType,
         g_Cvar_VoteAdminTime.IntValue,
         timing,
