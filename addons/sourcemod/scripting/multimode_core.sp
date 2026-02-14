@@ -24,11 +24,6 @@ public Plugin myinfo =
     url = ""
 }
 
-// Gesture Defines
-#define GESTURE_NOMINATED " (!)" // For nominated global gesture groups/maps
-#define GESTURE_CURRENT " (*)"   // For Current global gesture group/map
-#define GESTURE_VOTED " (#)"     // For Winning group/map global gesture from a previous vote
-
 enum struct VoteManagerEntry {
     Function start_group;
     Function start_subgroup;
