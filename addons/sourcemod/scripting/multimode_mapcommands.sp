@@ -105,43 +105,36 @@ void LoadMapcycle()
 public void MultiMode_OnMapCycleReloaded()
 {
     LoadMapcycle();
-    
-    CreateTimer(0.5, Timer_ReexecuteCommands, _, TIMER_FLAG_NO_MAPCHANGE);
-}
 
-public Action Timer_ReexecuteCommands(Handle timer)
-{
     char currentMap[PLATFORM_MAX_PATH];
     GetCurrentMap(currentMap, sizeof(currentMap));
-    
+
     char currentGroup[64];
     char currentSubGroup[64];
     MultiMode_GetCurrentGameMode(currentGroup, sizeof(currentGroup), currentSubGroup, sizeof(currentSubGroup));
-    
+
     strcopy(g_sCurrentMap, sizeof(g_sCurrentMap), currentMap);
     strcopy(g_sCurrentGroup, sizeof(g_sCurrentGroup), currentGroup);
     strcopy(g_sCurrentSubGroup, sizeof(g_sCurrentSubGroup), currentSubGroup);
-    
+
     if (strlen(currentMap) > 0)
     {
         if (!g_bMapCommandsExecutedThisMap)
         {
-            MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Mapcycle reloaded, executing commands for current map \"%s\" (group: %s, subgroup: %s)", 
+            MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Mapcycle reloaded, executing commands for current map \"%s\" (group: %s, subgroup: %s)",
                        currentMap, strlen(currentGroup) > 0 ? currentGroup : "none", strlen(currentSubGroup) > 0 ? currentSubGroup : "none");
-            
+
             ExecuteMapCommand(g_sCurrentGroup, g_sCurrentSubGroup, g_sCurrentMap);
             g_bMapCommandsExecutedThisMap = true;
         }
-        else if (StrEqual(currentMap, g_sCurrentMap))
+        else
         {
-            MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Mapcycle reloaded after modification, re-executing commands for current map \"%s\" (group: %s, subgroup: %s)", 
+            MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Mapcycle reloaded, re-executing commands for current map \"%s\" (group: %s, subgroup: %s)",
                        currentMap, strlen(currentGroup) > 0 ? currentGroup : "none", strlen(currentSubGroup) > 0 ? currentSubGroup : "none");
-            
+
             ExecuteMapCommand(g_sCurrentGroup, g_sCurrentSubGroup, g_sCurrentMap);
         }
     }
-    
-    return Plugin_Stop;
 }
 
 KeyValues GetMapcycle()
@@ -204,23 +197,60 @@ void ExecuteMapCommand(const char[] gamemode, const char[] subgroup, const char[
             return;
     }
 
-    char command[512];
-    char config[PLATFORM_MAX_PATH];
+    KeyValues mapKv = null;
+    if (strlen(subgroup) > 0)
+        mapKv = MMC_GetSubGroupMapKv(g_kvMapcycle, gamemode, subgroup, map);
+    else
+        mapKv = MMC_GetMapKv(g_kvMapcycle, gamemode, map);
 
-    if (GetMapCycleKeyValue(g_kvMapcycle, gamemode, subgroup, map, MAPCYCLE_KEY_COMMAND, command, sizeof(command)))
+    if (mapKv != null)
     {
-        ServerCommand("%s", command);
-        MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Executed command for map %s (group: %s, subgroup: %s): %s", 
-                   map, gamemode, strlen(subgroup) > 0 ? subgroup : "none", command);
+        char command[512];
+        if (mapKv.GotoFirstSubKey(false))
+        {
+            do
+            {
+                char keyName[64];
+                mapKv.GetSectionName(keyName, sizeof(keyName));
+                if (StrEqual(keyName, MAPCYCLE_KEY_COMMAND))
+                {
+                    mapKv.GetString(NULL_STRING, command, sizeof(command), "");
+                    if (strlen(command) > 0)
+                    {
+                        ServerCommand("%s", command);
+                        MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Executed command for map %s (group: %s, subgroup: %s): %s",
+                                   map, gamemode, strlen(subgroup) > 0 ? subgroup : "none", command);
+                    }
+                }
+            } while (mapKv.GotoNextKey(false));
+            mapKv.GoBack();
+        }
+        mapKv.Rewind();
+
+        char config[PLATFORM_MAX_PATH];
+        mapKv.GetString(MAPCYCLE_KEY_CONFIG, config, sizeof(config), "");
+        delete mapKv;
+
+        if (strlen(config) > 0)
+        {
+            char configPath[PLATFORM_MAX_PATH];
+            Format(configPath, sizeof(configPath), "cfg/%s", config);
+            ServerCommand("exec \"%s\"", configPath);
+            MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Executed config for map %s (group: %s, subgroup: %s): %s",
+                       map, gamemode, strlen(subgroup) > 0 ? subgroup : "none", config);
+        }
     }
-
-    if (GetMapCycleKeyValue(g_kvMapcycle, gamemode, subgroup, map, MAPCYCLE_KEY_CONFIG, config, sizeof(config)))
+    else
     {
-        char configPath[PLATFORM_MAX_PATH];
-        Format(configPath, sizeof(configPath), "cfg/%s", config);
-        ServerCommand("exec \"%s\"", configPath);
-        MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Executed config for map %s (group: %s, subgroup: %s): %s", 
-                   map, gamemode, strlen(subgroup) > 0 ? subgroup : "none", config);
+        char config[PLATFORM_MAX_PATH];
+        if (GetMapCycleKeyValue(g_kvMapcycle, gamemode, subgroup, map, MAPCYCLE_KEY_CONFIG, config, sizeof(config)))
+        {
+            char configPath[PLATFORM_MAX_PATH];
+            Format(configPath, sizeof(configPath), "cfg/%s", config);
+            ServerCommand("exec \"%s\"", configPath);
+            MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Executed config for map %s (group: %s, subgroup: %s): %s",
+                       map, gamemode, strlen(subgroup) > 0 ? subgroup : "none", config);
+        }
     }
 }
 
