@@ -324,9 +324,7 @@ void ExecutePreCommand(const char[] gamemode, const char[] subgroup, const char[
             kv.GetString(MAPCYCLE_KEY_PRE_COMMAND, command, sizeof(command), "");
             delete kv;
             if (strlen(command) > 0)
-            {
                 commandFound = true;
-            }
         }
     }
 
@@ -338,30 +336,42 @@ void ExecutePreCommand(const char[] gamemode, const char[] subgroup, const char[
             kv.GetString(MAPCYCLE_KEY_PRE_COMMAND, command, sizeof(command), "");
             delete kv;
             if (strlen(command) > 0)
-            {
                 commandFound = true;
-            }
         }
+    }
+
+    if (!commandFound && strlen(subgroup) > 0)
+    {
+        g_kvMapcycle.Rewind();
+        if (g_kvMapcycle.JumpToKey(gamemode) && g_kvMapcycle.JumpToKey("subgroup") && g_kvMapcycle.JumpToKey(subgroup))
+        {
+            g_kvMapcycle.GetString(MAPCYCLE_KEY_PRE_COMMAND, command, sizeof(command), "");
+            if (strlen(command) > 0)
+                commandFound = true;
+            g_kvMapcycle.GoBack();
+            g_kvMapcycle.GoBack();
+            g_kvMapcycle.GoBack();
+        }
+        g_kvMapcycle.Rewind();
     }
 
     if (!commandFound)
     {
+        g_kvMapcycle.Rewind();
         if (g_kvMapcycle.JumpToKey(gamemode))
         {
             g_kvMapcycle.GetString(MAPCYCLE_KEY_PRE_COMMAND, command, sizeof(command), "");
-            g_kvMapcycle.Rewind();
             if (strlen(command) > 0)
-            {
                 commandFound = true;
-            }
+            g_kvMapcycle.GoBack();
         }
         g_kvMapcycle.Rewind();
     }
-    
+
     if (commandFound && strlen(command) > 0)
     {
         ServerCommand("%s", command);
-        MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Executed pre-command for map %s (group: %s, subgroup: %s): %s", 
+        MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Executed pre-command for map %s (group: %s, subgroup: %s): %s",
                    map, gamemode, strlen(subgroup) > 0 ? subgroup : "none", command);
     }
 }
@@ -386,12 +396,10 @@ void ExecuteVoteCommand(const char[] gamemode, const char[] subgroup, const char
             kv.GetString(MAPCYCLE_KEY_VOTE_COMMAND, command, sizeof(command), "");
             delete kv;
             if (strlen(command) > 0)
-            {
                 commandFound = true;
-            }
         }
     }
-    
+
     if (!commandFound)
     {
         KeyValues kv = MMC_GetMapKv(g_kvMapcycle, gamemode, map);
@@ -400,30 +408,42 @@ void ExecuteVoteCommand(const char[] gamemode, const char[] subgroup, const char
             kv.GetString(MAPCYCLE_KEY_VOTE_COMMAND, command, sizeof(command), "");
             delete kv;
             if (strlen(command) > 0)
-            {
                 commandFound = true;
-            }
         }
     }
-    
-    if (!commandFound)
+
+    if (!commandFound && strlen(subgroup) > 0)
     {
-        if (g_kvMapcycle.JumpToKey(gamemode))
+        g_kvMapcycle.Rewind();
+        if (g_kvMapcycle.JumpToKey(gamemode) && g_kvMapcycle.JumpToKey("subgroup") && g_kvMapcycle.JumpToKey(subgroup))
         {
             g_kvMapcycle.GetString(MAPCYCLE_KEY_VOTE_COMMAND, command, sizeof(command), "");
-            g_kvMapcycle.Rewind();
             if (strlen(command) > 0)
-            {
                 commandFound = true;
-            }
+            g_kvMapcycle.GoBack();
+            g_kvMapcycle.GoBack();
+            g_kvMapcycle.GoBack();
         }
         g_kvMapcycle.Rewind();
     }
-    
+
+    if (!commandFound)
+    {
+        g_kvMapcycle.Rewind();
+        if (g_kvMapcycle.JumpToKey(gamemode))
+        {
+            g_kvMapcycle.GetString(MAPCYCLE_KEY_VOTE_COMMAND, command, sizeof(command), "");
+            if (strlen(command) > 0)
+                commandFound = true;
+            g_kvMapcycle.GoBack();
+        }
+        g_kvMapcycle.Rewind();
+    }
+
     if (commandFound && strlen(command) > 0)
     {
         ServerCommand("%s", command);
-        MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Executed vote-command for map %s (group: %s, subgroup: %s): %s", 
+        MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Executed vote-command for map %s (group: %s, subgroup: %s): %s",
                    map, gamemode, strlen(subgroup) > 0 ? subgroup : "none", command);
     }
 }
