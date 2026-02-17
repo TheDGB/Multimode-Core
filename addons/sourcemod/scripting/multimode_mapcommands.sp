@@ -188,6 +188,53 @@ bool GetMapCycleKeyValue(KeyValues kv, const char[] gamemode, const char[] subgr
     return false;
 }
 
+void ExecuteSubgroupCommandsAndConfig(const char[] gamemode, const char[] subgroup, const char[] map)
+{
+    g_kvMapcycle.Rewind();
+    if (!g_kvMapcycle.JumpToKey(gamemode) || !g_kvMapcycle.JumpToKey("subgroup") || !g_kvMapcycle.JumpToKey(subgroup))
+    {
+        g_kvMapcycle.Rewind();
+        return;
+    }
+
+    char command[512];
+    if (g_kvMapcycle.GotoFirstSubKey(false))
+    {
+        do
+        {
+            char keyName[64];
+            g_kvMapcycle.GetSectionName(keyName, sizeof(keyName));
+            if (StrEqual(keyName, MAPCYCLE_KEY_COMMAND))
+            {
+                g_kvMapcycle.GetString(NULL_STRING, command, sizeof(command), "");
+                if (strlen(command) > 0)
+                {
+                    ServerCommand("%s", command);
+                    MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Executed subgroup command for map %s (group: %s, subgroup: %s): %s",
+                               map, gamemode, subgroup, command);
+                }
+            }
+        } while (g_kvMapcycle.GotoNextKey(false));
+        g_kvMapcycle.GoBack();
+    }
+
+    char config[PLATFORM_MAX_PATH];
+    g_kvMapcycle.GetString(MAPCYCLE_KEY_CONFIG, config, sizeof(config), "");
+    if (strlen(config) > 0)
+    {
+        char configPath[PLATFORM_MAX_PATH];
+        Format(configPath, sizeof(configPath), "cfg/%s", config);
+        ServerCommand("exec \"%s\"", configPath);
+        MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Executed subgroup config for map %s (group: %s, subgroup: %s): %s",
+                   map, gamemode, subgroup, config);
+    }
+
+    g_kvMapcycle.GoBack();
+    g_kvMapcycle.GoBack();
+    g_kvMapcycle.GoBack();
+    g_kvMapcycle.Rewind();
+}
+
 void ExecuteMapCommand(const char[] gamemode, const char[] subgroup, const char[] map)
 {
     if (g_kvMapcycle == null)
@@ -196,6 +243,9 @@ void ExecuteMapCommand(const char[] gamemode, const char[] subgroup, const char[
         if (g_kvMapcycle == null)
             return;
     }
+
+    if (strlen(subgroup) > 0)
+        ExecuteSubgroupCommandsAndConfig(gamemode, subgroup, map);
 
     KeyValues mapKv = null;
     if (strlen(subgroup) > 0)
