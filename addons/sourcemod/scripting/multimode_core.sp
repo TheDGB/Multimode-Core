@@ -43,6 +43,9 @@ ConVar g_Cvar_VoteDefaultInVoteLimit;
 ConVar g_Cvar_VoteManager;
 ConVar g_hCvarTimeLimit;
 ConVar g_Cvar_WeightScale;
+ConVar g_Cvar_Workshop;
+ConVar g_Cvar_WorkshopDynamicReload;
+ConVar g_Cvar_WorkshopNameSync;
 
 // Bool
 bool g_bChangeMapNextRound;
@@ -102,6 +105,7 @@ int g_iRunoffVotesThisMap = 0;
 int g_iGlobalMaxRunoffs = -1;
 int g_iVoteInitiator = -1;
 int g_iPendingVoteInitiator;
+int g_iLastMapCycleLoadTime = 0;
 
 // Handle Section
 Handle g_hCookieVoteType;
@@ -148,6 +152,10 @@ public void OnPluginStart()
     
     g_Cvar_Logs = CreateConVar("multimode_logs", "1", "Enables and disables Multimode Core logs, when enabled, a new file will be created in sourcemod/logs/MMC_YearMouthDay.txt and multimode core logs messages in server console.");
     g_Cvar_WeightScale = CreateConVar("multimode_weight_scale", "1.0", "Exponential scale for weight calculation (weight_final = ^scale * baseWeight)", FCVAR_PLUGIN, true, 0.1, true, 10.0);
+
+    g_Cvar_Workshop = CreateConVar("multimode_workshop", "1", "Enable or disable workshop map support (1 = Enabled, 0 = Disabled).", _, true, 0.0, true, 1.0);
+    g_Cvar_WorkshopDynamicReload = CreateConVar("multimode_workshop_dynamicreload", "1", "When enabled, workshop maps will have their settings rebuilt automatically when their internal name changes.", _, true, 0.0, true, 1.0);
+    g_Cvar_WorkshopNameSync = CreateConVar("multimode_workshop_namesync", "1", "Synchronize workshop numeric entries (workshop/########) with their real .ugc map name.", _, true, 0.0, true, 1.0);
 
     g_PlayedGamemodes = new ArrayList(ByteCountToCells(128));
     g_PlayedMaps = new StringMap();
@@ -285,40 +293,8 @@ public void OnConfigsExecuted()
         return;
     }
     
-    g_kvGameModes.Rewind();
+    g_iLastMapCycleLoadTime = GetTime();
     
-    if (g_kvGameModes.GotoFirstSubKey(false))
-    {
-        do
-        {
-            char gamemodeName[64];
-            g_kvGameModes.GetSectionName(gamemodeName, sizeof(gamemodeName));
-            
-            if (g_kvGameModes.JumpToKey("maps"))
-            {
-                if (g_kvGameModes.GotoFirstSubKey(false))
-                {
-                    do
-                    {
-                        char mapName[PLATFORM_MAX_PATH];
-                        g_kvGameModes.GetSectionName(mapName, sizeof(mapName));
-                        
-                        if (StrContains(mapName, "workshop/") == 0)
-                        {
-                            char displayName[128];
-                            g_kvGameModes.GetString(MAPCYCLE_KEY_DISPLAY, displayName, sizeof(displayName), "");
-                        }
-                    } while (g_kvGameModes.GotoNextKey(false));
-                    g_kvGameModes.GoBack();
-                }
-                g_kvGameModes.GoBack();
-            }
-        } while (g_kvGameModes.GotoNextKey(false));
-        g_kvGameModes.GoBack();
-    }
-    
-    g_kvGameModes.Rewind();
-
     if (g_OnMapCycleReloadedForward != null)
     {
         Call_StartForward(g_OnMapCycleReloadedForward);
@@ -328,13 +304,28 @@ public void OnConfigsExecuted()
 
 public void OnMapStart()
 {
-    char CurrentMap[64];
+    char CurrentMap[PLATFORM_MAX_PATH];
     GetCurrentMap(CurrentMap, sizeof(CurrentMap));
     bool groupFound = false;
     bool subgroupFound = false;
     char foundSubGroup[64] = "";
     
     MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] --------------- CURRENT MAP: %s ---------------", CurrentMap);
+
+    bool didWorkshopSync = MMC_SyncWorkshopMapName(CurrentMap);
+    if (didWorkshopSync && g_Cvar_WorkshopDynamicReload != null && g_Cvar_WorkshopDynamicReload.BoolValue)
+    {
+        int timeSinceLastLoad = GetTime() - g_iLastMapCycleLoadTime;
+        if (timeSinceLastLoad >= 2)
+        {
+            MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Workshop dynamic reload triggered after name sync.");
+            LoadGameModesConfig();
+        }
+        else
+        {
+            MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Workshop dynamic reload skipped.", timeSinceLastLoad);
+        }
+    }
 
     if (strlen(g_sNextGameMode) > 0)
     {
@@ -346,28 +337,6 @@ public void OnMapStart()
             list.GetArray(index, config);
         
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Using preselected gamemode: %s", config.name);
-            
-            if (strlen(config.config) > 0)
-            {
-                MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing group config: %s", config.config);
-                ServerCommand("exec %s", config.config);
-            }
-            
-            if (strlen(g_sNextSubGroup) > 0)
-            {
-                int subgroupIndex = MMC_FindSubGroupIndex(g_sNextGameMode, g_sNextSubGroup);
-                if (subgroupIndex != -1)
-                {
-                    SubGroupConfig subConfig;
-                    config.subGroups.GetArray(subgroupIndex, subConfig);
-                    
-                    if (strlen(subConfig.config) > 0)
-                    {
-                        MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing subgroup config: %s", subConfig.config);
-                        ServerCommand("exec %s", subConfig.config);
-                    }
-                }
-            }
             
             if (g_kvGameModes.JumpToKey(config.name) && g_kvGameModes.JumpToKey("maps"))
             {
@@ -423,18 +392,6 @@ public void OnMapStart()
                     
                     MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Group found with subgroup: %s (SubGroup: %s)", config.name, subConfig.name);
 
-                    if (strlen(config.config) > 0)
-                    {
-                        MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing group config: %s", config.config);
-                        ServerCommand("exec %s", config.config);
-                    }
-                    
-                    if (strlen(subConfig.config) > 0)
-                    {
-                        MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing subgroup config: %s", subConfig.config);
-                        ServerCommand("exec %s", subConfig.config);
-                    }
-
                     break;
                 }
             }
@@ -446,47 +403,6 @@ public void OnMapStart()
                 groupFound = true;
                 strcopy(g_sCurrentGameMode, sizeof(g_sCurrentGameMode), config.name);
                 MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Group found: %s", config.name);
-
-                if (strlen(config.config) > 0)
-                {
-                    MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing group config: %s", config.config);
-                    ServerCommand("exec %s", config.config);
-                }
-                
-                if (g_kvGameModes.JumpToKey(config.name) && g_kvGameModes.JumpToKey("maps"))
-                {
-                    if (g_kvGameModes.GotoFirstSubKey(false))
-                    {
-                        do
-                        {
-                            char mapKey[PLATFORM_MAX_PATH];
-                            g_kvGameModes.GetSectionName(mapKey, sizeof(mapKey));
-
-                            if (MMC_IsWildcardEntry(mapKey) && StrContains(CurrentMap, mapKey) == 0)
-                            {
-                                char wildcardConfig[256];
-                                g_kvGameModes.GetString(MAPCYCLE_KEY_CONFIG, wildcardConfig, sizeof(wildcardConfig), "");
-                                if (strlen(wildcardConfig) > 0)
-                                {
-                                    MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing wildcard config (%s): %s", mapKey, wildcardConfig);
-                                    ServerCommand("exec %s", wildcardConfig);
-                                }
-                                
-                                char wildcardCommand[256];
-                                g_kvGameModes.GetString(MAPCYCLE_KEY_COMMAND, wildcardCommand, sizeof(wildcardCommand), "");
-                                
-                                if (strlen(wildcardCommand) > 0)
-                                {
-                                    MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Executing wildcard command (%s): %s", mapKey, wildcardCommand);
-                                    ServerCommand("%s", wildcardCommand);
-                                }
-                            }
-                        } while (g_kvGameModes.GotoNextKey(false));
-                        g_kvGameModes.GoBack();
-                    }
-                    g_kvGameModes.GoBack();
-                }
-                g_kvGameModes.Rewind();
                 
                 break;
             }
@@ -831,6 +747,8 @@ public void LoadGameModesConfig()
     OnGamemodeConfigLoaded();
     
     g_kvGameModes.Rewind();
+
+    g_iLastMapCycleLoadTime = GetTime();
 
     if (g_OnMapCycleReloadedForward != null)
     {
@@ -2817,22 +2735,19 @@ public int NativeMMC_StopVote(Handle plugin, int numParams)
 
 public int NativeMMC_GetRandomMap(Handle plugin, int numParams)
 {
-    // Buffers from native call
     int groupLen = GetNativeCell(2);
     int subgroupLen = GetNativeCell(4);
     int mapLen = GetNativeCell(6);
 
-    if (groupLen <= 0 || subgroupLen <= 0 || mapLen <= 0) {
-        LogError("[MultiMode] Invalid buffer sizes in NativeMMC_GetRandomMap: groupLen=%d, subgroupLen=%d, mapLen=%d", 
-                 groupLen, subgroupLen, mapLen);
+    if (mapLen <= 0 || groupLen < 0 || subgroupLen < 0)
+    {
         return false;
     }
-    
-    char[] groupIn = new char[groupLen];
-    char[] subgroupIn = new char[subgroupLen];
-    
-    GetNativeString(1, groupIn, groupLen);
-    GetNativeString(3, subgroupIn, subgroupLen);
+
+    char groupIn[64];
+    char subgroupIn[64];
+    GetNativeString(1, groupIn, sizeof(groupIn));
+    GetNativeString(3, subgroupIn, sizeof(subgroupIn));
     ArrayList gameModes = GetGameModesList();
     if (gameModes.Length == 0) return false;
 
@@ -2927,14 +2842,21 @@ public int NativeMMC_GetRandomMap(Handle plugin, int numParams)
         delete mapToSubgroup;
     }
 
-    if (strlen(config.name) == 0 || strlen(finalMap) == 0) {
+    if (strlen(config.name) == 0 || strlen(finalMap) == 0)
+    {
         return false;
     }
-    
-    SetNativeString(1, config.name, groupLen);
-    SetNativeString(3, finalSubgroup, subgroupLen);
+
+    if (groupLen > 0)
+    {
+        SetNativeString(1, config.name, groupLen);
+    }
+    if (subgroupLen > 0)
+    {
+        SetNativeString(3, finalSubgroup, subgroupLen);
+    }
     SetNativeString(5, finalMap, mapLen);
-    
+
     return true;
 }
 
@@ -5316,6 +5238,231 @@ public Action Timer_ExecutePendingVote(Handle timer)
 // //    KV SECTION    //
 // //                  //
 // //////////////////////
+
+stock bool MMC_GetWorkshopIdFromFullName(const char[] fullName, char[] id, int idLen)
+{
+    if (StrContains(fullName, "workshop/") != 0)
+    {
+        return false;
+    }
+
+    int pos = StrContains(fullName, ".ugc");
+    if (pos == -1)
+    {
+        return false;
+    }
+
+    pos += 4;
+
+    int len = strlen(fullName);
+    int j = 0;
+    for (int i = pos; i < len && j < idLen - 1; i++)
+    {
+        if (!IsCharNumeric(fullName[i]))
+        {
+            break;
+        }
+        id[j++] = fullName[i];
+    }
+
+    id[j] = '\0';
+    return (j > 0);
+}
+
+stock bool MMC_IsWorkshopNumericMap(const char[] mapName, char[] id, int idLen)
+{
+    if (StrContains(mapName, "workshop/") != 0)
+    {
+        return false;
+    }
+
+    int len = strlen(mapName);
+    int start = -1;
+
+    for (int i = 0; i < len; i++)
+    {
+        if (mapName[i] == '/')
+        {
+            start = i + 1;
+            break;
+        }
+    }
+
+    if (start == -1 || start >= len)
+    {
+        return false;
+    }
+
+    int j = 0;
+    for (int i = start; i < len && j < idLen - 1; i++)
+    {
+        if (!IsCharNumeric(mapName[i]))
+        {
+            return false;
+        }
+
+        id[j++] = mapName[i];
+    }
+
+    id[j] = '\0';
+    return (j > 0);
+}
+
+bool MMC_SyncWorkshopMapName(const char[] currentMap)
+{
+    if (g_Cvar_Workshop == null || !g_Cvar_Workshop.BoolValue)
+    {
+        MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Workshop sync disabled (multimode_workshop = 0).");
+        return false;
+    }
+
+    if (g_Cvar_WorkshopNameSync == null || !g_Cvar_WorkshopNameSync.BoolValue)
+    {
+        MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Workshop name sync disabled (multimode_workshop_namesync = 0).");
+        return false;
+    }
+
+    MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Workshop sync: Checking current map \"%s\"...", currentMap);
+
+    char currentWorkshopId[32];
+    if (!MMC_GetWorkshopIdFromFullName(currentMap, currentWorkshopId, sizeof(currentWorkshopId)))
+    {
+        MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Workshop sync: Current map is not a workshop map (no .ugc ID found).");
+        return false;
+    }
+
+    MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Workshop sync: Extracted workshop ID: %s", currentWorkshopId);
+
+    char mapcycleFile[PLATFORM_MAX_PATH];
+    char configPath[PLATFORM_MAX_PATH];
+    g_Cvar_MapCycleFile.GetString(mapcycleFile, sizeof(mapcycleFile));
+    BuildPath(Path_SM, configPath, sizeof(configPath), "configs/%s", mapcycleFile);
+
+    KeyValues kvMapcycle = new KeyValues("Mapcycle");
+    if (!kvMapcycle.ImportFromFile(configPath))
+    {
+        MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Workshop sync: Failed to load mapcycle file: %s", configPath);
+        delete kvMapcycle;
+        return false;
+    }
+
+    bool didModify = false;
+    int renameCount = 0;
+
+    kvMapcycle.Rewind();
+    if (kvMapcycle.GotoFirstSubKey(false))
+    {
+        do
+        {
+            char gamemodeName[64];
+            kvMapcycle.GetSectionName(gamemodeName, sizeof(gamemodeName));
+
+            if (kvMapcycle.JumpToKey("maps"))
+            {
+                if (kvMapcycle.GotoFirstSubKey(false))
+                {
+                    do
+                    {
+                        char mapName[PLATFORM_MAX_PATH];
+                        kvMapcycle.GetSectionName(mapName, sizeof(mapName));
+
+                        char numericId[32];
+                        if (MMC_IsWorkshopNumericMap(mapName, numericId, sizeof(numericId)))
+                        {
+                            if (StrEqual(numericId, currentWorkshopId))
+                            {
+                                if (!StrEqual(mapName, currentMap))
+                                {
+                                    MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Workshop sync: Found numeric entry \"%s\" in gamemode \"%s\", renaming to \"%s\"", mapName, gamemodeName, currentMap);
+                                    kvMapcycle.SetSectionName(currentMap);
+                                    didModify = true;
+                                    renameCount++;
+                                }
+                                else
+                                {
+                                    MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Workshop sync: Map \"%s\" already has correct name in gamemode \"%s\".", currentMap, gamemodeName);
+                                }
+                            }
+                        }
+                    } while (kvMapcycle.GotoNextKey(false));
+                    kvMapcycle.GoBack();
+                }
+                kvMapcycle.GoBack();
+            }
+
+            if (kvMapcycle.JumpToKey("subgroup"))
+            {
+                if (kvMapcycle.GotoFirstSubKey(false))
+                {
+                    do
+                    {
+                        char subgroupName[64];
+                        kvMapcycle.GetSectionName(subgroupName, sizeof(subgroupName));
+
+                        if (kvMapcycle.JumpToKey("maps"))
+                        {
+                            if (kvMapcycle.GotoFirstSubKey(false))
+                            {
+                                do
+                                {
+                                    char mapName[PLATFORM_MAX_PATH];
+                                    kvMapcycle.GetSectionName(mapName, sizeof(mapName));
+
+                                    char numericId[32];
+                                    if (MMC_IsWorkshopNumericMap(mapName, numericId, sizeof(numericId)))
+                                    {
+                                        if (StrEqual(numericId, currentWorkshopId))
+                                        {
+                                            if (!StrEqual(mapName, currentMap))
+                                            {
+                                                MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Workshop sync: Found numeric entry \"%s\" in gamemode \"%s\" subgroup \"%s\", renaming to \"%s\"", mapName, gamemodeName, subgroupName, currentMap);
+                                                kvMapcycle.SetSectionName(currentMap);
+                                                didModify = true;
+                                                renameCount++;
+                                            }
+                                            else
+                                            {
+                                                MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Workshop sync: Map \"%s\" already has correct name in gamemode \"%s\" subgroup \"%s\".", currentMap, gamemodeName, subgroupName);
+                                            }
+                                        }
+                                    }
+                                } while (kvMapcycle.GotoNextKey(false));
+                                kvMapcycle.GoBack();
+                            }
+                            kvMapcycle.GoBack();
+                        }
+                    } while (kvMapcycle.GotoNextKey(false));
+                    kvMapcycle.GoBack();
+                }
+                kvMapcycle.GoBack();
+            }
+        } while (kvMapcycle.GotoNextKey(false));
+        kvMapcycle.GoBack();
+    }
+
+    kvMapcycle.Rewind();
+
+    if (didModify)
+    {
+        if (kvMapcycle.ExportToFile(configPath))
+        {
+            MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Workshop sync: Successfully modified %d map entry(ies) in mapcycle file \"%s\".", renameCount, configPath);
+        }
+        else
+        {
+            MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Workshop sync: ERROR - Failed to save modified mapcycle file \"%s\"!", configPath);
+            delete kvMapcycle;
+            return false;
+        }
+    }
+    else
+    {
+        MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Workshop sync: No numeric workshop entries found matching ID %s (map \"%s\").", currentWorkshopId, currentMap);
+    }
+
+    delete kvMapcycle;
+    return didModify;
+}
 
 KeyValues GetMapKv(const char[] gamemode, const char[] mapname)
 {

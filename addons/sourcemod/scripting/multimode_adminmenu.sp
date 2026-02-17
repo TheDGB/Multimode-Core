@@ -392,7 +392,12 @@ public int SeparatedGameModeMenuHandler(Menu menu, MenuAction action, int client
     {
         char gamemode[64];
         menu.GetItem(param2, gamemode, sizeof(gamemode));
-        strcopy(g_sClientPendingGameMode[client], sizeof(g_sClientPendingGameMode[]), gamemode);
+        
+        char group[64];
+        char subgroup[64];
+        SplitGamemodeString(gamemode, group, sizeof(group), subgroup, sizeof(subgroup));
+
+        strcopy(g_sClientPendingGameMode[client], sizeof(g_sClientPendingGameMode[]), group);
         ShowSeparatedTimingMenu(client);
     }
     else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack)
@@ -490,7 +495,11 @@ void ShowGameModeMenu(int client, bool forceMode)
             char display[128], groupDisplay[64];
             char prefix[8] = "";
 
-            if (StrEqual(gamemodeName, currentGroup))
+            char currentGroupOnly[64];
+            char tempSubgroup[64];
+            SplitGamemodeString(currentGroup, currentGroupOnly, sizeof(currentGroupOnly), tempSubgroup, sizeof(tempSubgroup));
+            
+            if (StrEqual(gamemodeName, currentGroupOnly))
             {
                 strcopy(prefix, sizeof(prefix), GESTURE_CURRENT);
             }
@@ -561,15 +570,30 @@ public int ForceGameModeMenuHandler(Menu menu, MenuAction action, int param1, in
     {
         char sGameMode[64];
         menu.GetItem(param2, sGameMode, sizeof(sGameMode));
-        strcopy(g_sClientPendingGameMode[param1], sizeof(g_sClientPendingGameMode[]), sGameMode);
-
-        if (HasSubGroups(sGameMode))
+        
+        char group[64];
+        char subgroup[64];
+        SplitGamemodeString(sGameMode, group, sizeof(group), subgroup, sizeof(subgroup));
+        
+        if (strlen(subgroup) > 0)
         {
-            ShowForceSubGroupMenu(param1, sGameMode);
+            strcopy(g_sClientPendingGameMode[param1], sizeof(g_sClientPendingGameMode[]), group);
+            strcopy(g_sClientPendingSubGroup[param1], sizeof(g_sClientPendingSubGroup[]), subgroup);
+            ShowMapMenu(param1, group, subgroup);
         }
         else
         {
-            ShowMapMenu(param1, sGameMode);
+            strcopy(g_sClientPendingGameMode[param1], sizeof(g_sClientPendingGameMode[]), group);
+            g_sClientPendingSubGroup[param1][0] = '\0';
+            
+            if (HasSubGroups(group))
+            {
+                ShowForceSubGroupMenu(param1, group);
+            }
+            else
+            {
+                ShowMapMenu(param1, group);
+            }
         }
     }
     else if (action == MenuAction_End)
@@ -583,13 +607,22 @@ void ShowMapMenu(int client, const char[] sGameMode, const char[] subgroup = "")
 {
     Menu menu = new Menu(ForceMapMenuHandler);
     
+    char group[64];
+    char actualSubgroup[64];
+    SplitGamemodeString(sGameMode, group, sizeof(group), actualSubgroup, sizeof(actualSubgroup));
+    
     if (strlen(subgroup) > 0)
     {
-        menu.SetTitle("%t", "SubGroup Map Selection Title", sGameMode, subgroup);
+        strcopy(actualSubgroup, sizeof(actualSubgroup), subgroup);
+    }
+    
+    if (strlen(actualSubgroup) > 0)
+    {
+        menu.SetTitle("%t", "SubGroup Map Selection Title", group, actualSubgroup);
     }
     else
     {
-        menu.SetTitle("%t", "Show Map Group Title", sGameMode);
+        menu.SetTitle("%t", "Show Map Group Title", group);
     }
     
     ArrayList maps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
@@ -604,11 +637,11 @@ void ShowMapMenu(int client, const char[] sGameMode, const char[] subgroup = "")
     }
 
     kv.Rewind();
-    if (kv.JumpToKey(sGameMode))
+    if (kv.JumpToKey(group))
     {
-        if (strlen(subgroup) > 0)
+        if (strlen(actualSubgroup) > 0)
         {
-            if (kv.JumpToKey("subgroup") && kv.JumpToKey(subgroup))
+            if (kv.JumpToKey("subgroup") && kv.JumpToKey(actualSubgroup))
             {
                 if (kv.JumpToKey("maps"))
                 {
@@ -670,23 +703,23 @@ void ShowMapMenu(int client, const char[] sGameMode, const char[] subgroup = "")
     {
         maps.GetString(i, map, sizeof(map));
         
-        GetMapDisplayNameEx(sGameMode, map, display, sizeof(display), subgroup);
+        GetMapDisplayNameEx(group, map, display, sizeof(display), actualSubgroup);
         
         char prefix[8] = "";
         if (StrEqual(map, currentMapName))
         {
             bool isCurrentMode = false;
             
-            if (strlen(subgroup) > 0)
+            if (strlen(actualSubgroup) > 0)
             {
-                if (StrEqual(sGameMode, currentGroup) && StrEqual(subgroup, currentSubgroup))
+                if (StrEqual(group, currentGroup) && StrEqual(actualSubgroup, currentSubgroup))
                 {
                     isCurrentMode = true;
                 }
             }
             else
             {
-                if (StrEqual(sGameMode, currentGroup) && strlen(currentSubgroup) == 0)
+                if (StrEqual(group, currentGroup) && strlen(currentSubgroup) == 0)
                 {
                     isCurrentMode = true;
                 }
@@ -698,7 +731,7 @@ void ShowMapMenu(int client, const char[] sGameMode, const char[] subgroup = "")
             }
         }
 
-        bool isMapNominated = MultiMode_IsMapNominated(sGameMode, subgroup, map);
+        bool isMapNominated = MultiMode_IsMapNominated(group, actualSubgroup, map);
         char voteIndicator[6];
         strcopy(voteIndicator, sizeof(voteIndicator), isMapNominated ? GESTURE_NOMINATED : "");
         
@@ -936,10 +969,19 @@ void ExecuteModeChange(const char[] gamemode = "", const char[] map, int timing,
 
 bool HasSubGroups(const char[] gamemode)
 {
+    char group[64];
+    char subgroup[64];
+    SplitGamemodeString(gamemode, group, sizeof(group), subgroup, sizeof(subgroup));
+    
+    if (strlen(subgroup) > 0)
+    {
+        return false;
+    }
+    
     ArrayList list = GetGameModesList();
     if (list != null && list.Length > 0)
     {
-        int index = MMC_FindGameModeIndex(gamemode);
+        int index = MMC_FindGameModeIndex(group);
         if (index != -1)
         {
             GameModeConfig config;
@@ -958,7 +1000,7 @@ bool HasSubGroups(const char[] gamemode)
             {
                 char gamemodeName[64];
                 kv.GetSectionName(gamemodeName, sizeof(gamemodeName));
-                if (StrEqual(gamemodeName, gamemode))
+                if (StrEqual(gamemodeName, group))
                 {
                     bool hasSubgroups = kv.JumpToKey("subgroup");
                     if (hasSubgroups)

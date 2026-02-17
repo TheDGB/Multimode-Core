@@ -30,6 +30,7 @@ char g_sCurrentSubGroup[64];
 
 // Bool Section
 bool g_bPreCommandExecuted = false;
+bool g_bMapCommandsExecutedThisMap = false;
 
 public void OnPluginStart()
 {
@@ -48,11 +49,13 @@ public void OnConfigsExecuted()
 public void OnMapStart()
 {
     g_bPreCommandExecuted = false;
+    g_bMapCommandsExecutedThisMap = false;
     
     GetCurrentMap(g_sCurrentMap, sizeof(g_sCurrentMap));
     MultiMode_GetCurrentGameMode(g_sCurrentGroup, sizeof(g_sCurrentGroup), g_sCurrentSubGroup, sizeof(g_sCurrentSubGroup));
 
     ExecuteMapCommand(g_sCurrentGroup, g_sCurrentSubGroup, g_sCurrentMap);
+    g_bMapCommandsExecutedThisMap = true;
 }
 
 public void Event_GameEnd(Event event, const char[] name, bool dontBroadcast)
@@ -102,6 +105,43 @@ void LoadMapcycle()
 public void MultiMode_OnMapCycleReloaded()
 {
     LoadMapcycle();
+    
+    CreateTimer(0.5, Timer_ReexecuteCommands, _, TIMER_FLAG_NO_MAPCHANGE);
+}
+
+public Action Timer_ReexecuteCommands(Handle timer)
+{
+    char currentMap[PLATFORM_MAX_PATH];
+    GetCurrentMap(currentMap, sizeof(currentMap));
+    
+    char currentGroup[64];
+    char currentSubGroup[64];
+    MultiMode_GetCurrentGameMode(currentGroup, sizeof(currentGroup), currentSubGroup, sizeof(currentSubGroup));
+    
+    strcopy(g_sCurrentMap, sizeof(g_sCurrentMap), currentMap);
+    strcopy(g_sCurrentGroup, sizeof(g_sCurrentGroup), currentGroup);
+    strcopy(g_sCurrentSubGroup, sizeof(g_sCurrentSubGroup), currentSubGroup);
+    
+    if (strlen(currentMap) > 0)
+    {
+        if (!g_bMapCommandsExecutedThisMap)
+        {
+            MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Mapcycle reloaded, executing commands for current map \"%s\" (group: %s, subgroup: %s)", 
+                       currentMap, strlen(currentGroup) > 0 ? currentGroup : "none", strlen(currentSubGroup) > 0 ? currentSubGroup : "none");
+            
+            ExecuteMapCommand(g_sCurrentGroup, g_sCurrentSubGroup, g_sCurrentMap);
+            g_bMapCommandsExecutedThisMap = true;
+        }
+        else if (StrEqual(currentMap, g_sCurrentMap))
+        {
+            MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Mapcycle reloaded after modification, re-executing commands for current map \"%s\" (group: %s, subgroup: %s)", 
+                       currentMap, strlen(currentGroup) > 0 ? currentGroup : "none", strlen(currentSubGroup) > 0 ? currentSubGroup : "none");
+            
+            ExecuteMapCommand(g_sCurrentGroup, g_sCurrentSubGroup, g_sCurrentMap);
+        }
+    }
+    
+    return Plugin_Stop;
 }
 
 KeyValues GetMapcycle()
