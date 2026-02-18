@@ -176,7 +176,7 @@ public void OnPluginStart()
     
     AutoExecConfig(true, "multimode_core");
     
-    LoadGameModesConfig(false);
+    LoadGameModesConfig();
 	g_VoteManagersBackup = new StringMap();
     
     ConVar nextmap = FindConVar("sm_nextmap");
@@ -294,6 +294,12 @@ public void OnConfigsExecuted()
     }
     
     g_iLastMapCycleLoadTime = GetTime();
+    
+    if (g_OnMapCycleReloadedForward != null)
+    {
+        Call_StartForward(g_OnMapCycleReloadedForward);
+        Call_Finish();
+    }
 }
 
 public void OnMapStart()
@@ -313,7 +319,7 @@ public void OnMapStart()
         if (timeSinceLastLoad >= 2)
         {
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Workshop dynamic reload triggered after name sync.");
-            LoadGameModesConfig(false);
+            LoadGameModesConfig();
         }
         else
         {
@@ -490,7 +496,7 @@ public void OnClientDisconnect(int client)
 	g_sClientPendingSubGroup[client][0] = '\0';
 }
 
-public void LoadGameModesConfig(bool notifyPlugins)
+public void LoadGameModesConfig()
 {
     delete g_kvGameModes;
     g_kvGameModes = new KeyValues("Mapcycle");
@@ -744,7 +750,7 @@ public void LoadGameModesConfig(bool notifyPlugins)
 
     g_iLastMapCycleLoadTime = GetTime();
 
-    if (notifyPlugins && g_OnMapCycleReloadedForward != null)
+    if (g_OnMapCycleReloadedForward != null)
     {
         Call_StartForward(g_OnMapCycleReloadedForward);
         Call_Finish();
@@ -5539,7 +5545,7 @@ public void OnGamemodeConfigLoaded()
 
 public Action Command_ReloadGamemodes(int client, int args)
 {
-    LoadGameModesConfig(true);
+    LoadGameModesConfig();
 	
     CReplyToCommand(client, "%t", "Reload Gamemodes Successful");
     return Plugin_Handled;
