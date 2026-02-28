@@ -225,9 +225,7 @@ void ExecuteGroupCommands(const char[] gamemode, const char[] map)
     g_kvMapcycle.GetString(MAPCYCLE_KEY_CONFIG, config, sizeof(config), "");
     if (strlen(config) > 0)
     {
-        char configPath[PLATFORM_MAX_PATH];
-        Format(configPath, sizeof(configPath), "cfg/%s", config);
-        ServerCommand("exec \"%s\"", configPath);
+        ServerCommand("exec \"%s\"", config);
         MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Executed group config for map %s (group: %s): %s",
                    map, gamemode, config);
     }
@@ -270,9 +268,7 @@ void ExecuteSubgroupCommands(const char[] gamemode, const char[] subgroup, const
     g_kvMapcycle.GetString(MAPCYCLE_KEY_CONFIG, config, sizeof(config), "");
     if (strlen(config) > 0)
     {
-        char configPath[PLATFORM_MAX_PATH];
-        Format(configPath, sizeof(configPath), "cfg/%s", config);
-        ServerCommand("exec \"%s\"", configPath);
+        ServerCommand("exec \"%s\"", config);
         MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Executed subgroup config for map %s (group: %s, subgroup: %s): %s",
                    map, gamemode, subgroup, config);
     }
@@ -333,9 +329,7 @@ void ExecuteMapCommand(const char[] gamemode, const char[] subgroup, const char[
 
         if (strlen(config) > 0)
         {
-            char configPath[PLATFORM_MAX_PATH];
-            Format(configPath, sizeof(configPath), "cfg/%s", config);
-            ServerCommand("exec \"%s\"", configPath);
+            ServerCommand("exec \"%s\"", config);
             MMC_WriteToLogFile(null, "[MultiMode MapCycle Commands] Executed config for map %s (group: %s, subgroup: %s): %s",
                        map, gamemode, strlen(subgroup) > 0 ? subgroup : "none", config);
         }
