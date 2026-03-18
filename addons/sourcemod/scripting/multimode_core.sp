@@ -3444,6 +3444,12 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing, cons
     strcopy(g_sNextSubGroup, sizeof(g_sNextSubGroup), subgroup);
 	
 	NativeMMC_OnGamemodeChanged(gamemode, subgroup, map, timing);
+
+    if (g_sNextGameMode[0] != '\0' && g_sNextMap[0] != '\0')
+    {
+        MMC_RunMapActions(g_sNextGameMode, g_sNextSubGroup, g_sNextMap, "onmap_setted_any", true);
+        MMC_RunSpecifiedMapActions(g_sNextGameMode, g_sNextSubGroup, g_sNextMap, true);
+    }
     
     if (g_kvGameModes.JumpToKey(gamemode))
     {
@@ -3458,6 +3464,10 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing, cons
             SetNextMap(g_sNextMap);
             CPrintToChatAll("{green}[Multimode] {default}%t", "Timing NextMap Notify", g_sNextMap);
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Next map set (admin): %s", g_sNextMap);
+            if (g_sNextGameMode[0] != '\0' && g_sNextMap[0] != '\0')
+            {
+                MMC_RunMapActions(g_sNextGameMode, g_sNextSubGroup, g_sNextMap, "onmap_setted_nextmap", true);
+            }
         }
         
         case TIMING_NEXTROUND:
@@ -3466,6 +3476,10 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing, cons
             g_bChangeMapNextRound = true;
             CPrintToChatAll("{green}[Multimode] {default}%t", "Timing NextRound Notify", g_sNextMap);
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Next round map set (admin): %s", g_sNextMap);
+            if (g_sNextGameMode[0] != '\0' && g_sNextMap[0] != '\0')
+            {
+                MMC_RunMapActions(g_sNextGameMode, g_sNextSubGroup, g_sNextMap, "onmap_setted_nextround", true);
+            }
         }
         
         case TIMING_INSTANT:
@@ -3501,6 +3515,10 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing, cons
 
             CPrintToChatAll("{green}[Multimode] {default}%t", "Timing Instant Notify", g_sNextMap);
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Map instantly set to (admin): %s", g_sNextMap);
+            if (g_sNextGameMode[0] != '\0' && g_sNextMap[0] != '\0')
+            {
+                MMC_RunMapActions(g_sNextGameMode, g_sNextSubGroup, g_sNextMap, "onmap_setted_instant", true);
+            }
         }
     }
 }
@@ -4808,6 +4826,7 @@ public void ExecuteVoteResult()
     if (strlen(g_sVoteMap) > 0 && strlen(g_sVoteGameMode) > 0)
     {
         MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onmap_setted_any", g_bCurrentVoteAdmin);
+        MMC_RunSpecifiedMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, g_bCurrentVoteAdmin);
     }
 
     switch(g_eVoteTiming)
@@ -5009,7 +5028,7 @@ public void ExecuteSubGroupVoteResult()
             if (strlen(g_sVoteMap) > 0 && strlen(g_sVoteGameMode) > 0)
             {
                 MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onmap_setted_nextmap", g_bCurrentVoteAdmin);
-                MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onsubgroup_setted_specified", g_bCurrentVoteAdmin);
+                MMC_RunSpecifiedMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, g_bCurrentVoteAdmin);
             }
         }
         
@@ -5024,7 +5043,7 @@ public void ExecuteSubGroupVoteResult()
             if (strlen(g_sVoteMap) > 0 && strlen(g_sVoteGameMode) > 0)
             {
                 MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onmap_setted_nextround", g_bCurrentVoteAdmin);
-                MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onsubgroup_setted_specified", g_bCurrentVoteAdmin);
+                MMC_RunSpecifiedMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, g_bCurrentVoteAdmin);
             }
         }
         
@@ -5067,7 +5086,7 @@ public void ExecuteSubGroupVoteResult()
             if (strlen(g_sVoteMap) > 0 && strlen(g_sVoteGameMode) > 0)
             {
                 MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onmap_setted_instant", g_bCurrentVoteAdmin);
-                MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onsubgroup_setted_specified", g_bCurrentVoteAdmin);
+                MMC_RunSpecifiedMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, g_bCurrentVoteAdmin);
             }
         }
     }
@@ -5704,6 +5723,42 @@ void MMC_RunMapActions(const char[] gamemode, const char[] subgroup, const char[
 
     MMC_ExecuteActionsFromKv(kv, hookName, isAdminVote);
     delete kv;
+}
+
+void MMC_RunSpecifiedMapActions(const char[] gamemode, const char[] subgroup, const char[] map, bool isAdminVote)
+{
+    if (gamemode[0] == '\0' || map[0] == '\0' || g_kvGameModes == null)
+    {
+        return;
+    }
+
+    if (subgroup[0] != '\0')
+    {
+        if (!g_kvGameModes.JumpToKey(gamemode) ||
+            !g_kvGameModes.JumpToKey("subgroup") ||
+            !g_kvGameModes.JumpToKey(subgroup) ||
+            !g_kvGameModes.JumpToKey("maps") ||
+            !g_kvGameModes.JumpToKey(map))
+        {
+            g_kvGameModes.Rewind();
+            return;
+        }
+
+        MMC_ExecuteActionsFromKv(g_kvGameModes, "onmap_setted_specified", isAdminVote);
+        g_kvGameModes.Rewind();
+        return;
+    }
+
+    if (!g_kvGameModes.JumpToKey(gamemode) ||
+        !g_kvGameModes.JumpToKey("maps") ||
+        !g_kvGameModes.JumpToKey(map))
+    {
+        g_kvGameModes.Rewind();
+        return;
+    }
+
+    MMC_ExecuteActionsFromKv(g_kvGameModes, "onmap_setted_specified", isAdminVote);
+    g_kvGameModes.Rewind();
 }
 
 void MMC_RunSubGroupActions(const char[] gamemode, const char[] subgroup, const char[] hookName, bool isAdminVote)
