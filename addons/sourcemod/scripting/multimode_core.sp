@@ -3447,6 +3447,7 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing, cons
 
     if (g_sNextGameMode[0] != '\0' && g_sNextMap[0] != '\0')
     {
+        MMC_RunGroupActions(g_sNextGameMode, "ongroup_setted", true);
         MMC_RunMapActions(g_sNextGameMode, g_sNextSubGroup, g_sNextMap, "onmap_setted_any", true);
         MMC_RunSpecifiedMapActions(g_sNextGameMode, g_sNextSubGroup, g_sNextMap, true);
     }
@@ -4817,7 +4818,7 @@ public void ExecuteVoteResult()
 
     if (strlen(g_sVoteGameMode) > 0)
     {
-        MMC_RunGroupActions(g_sVoteGameMode, "ongroup_setted_any", g_bCurrentVoteAdmin);
+        MMC_RunGroupActions(g_sVoteGameMode, "ongroup_setted", g_bCurrentVoteAdmin);
     }
     if (strlen(g_sVoteSubGroup) > 0 && strlen(g_sVoteGameMode) > 0)
     {
@@ -4977,7 +4978,7 @@ public void ExecuteSubGroupVoteResult()
 
     if (strlen(g_sVoteGameMode) > 0)
     {
-        MMC_RunGroupActions(g_sVoteGameMode, "ongroup_setted_any", g_bCurrentVoteAdmin);
+        MMC_RunGroupActions(g_sVoteGameMode, "ongroup_setted", g_bCurrentVoteAdmin);
     }
     if (strlen(g_sVoteSubGroup) > 0 && strlen(g_sVoteGameMode) > 0)
     {
