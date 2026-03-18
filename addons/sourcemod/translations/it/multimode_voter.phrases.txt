@@ -27,7 +27,7 @@
 
     "Current MMC Version"
     {
-        "it"    "{green}[Multimode] {default}Versione attuale di Multimode Core: {olive}%s"
+        "it"    "Versione attuale di Multimode Core: {olive}%s"
     }
 
     "Error Changing Map"
@@ -52,7 +52,7 @@
 
     "End Vote Waiting For Next Round"
     {
-        "it"    "[Multimode Core] In attesa dell'inizio del prossimo turno per dare inizio a una nuova votazione."
+        "it"    "In attesa dell'inizio del prossimo turno per dare inizio a una nuova votazione."
     }
 
     "Force Gamemode"
@@ -217,12 +217,12 @@
 
     "Reload Gamemodes Successful"
     {
-        "it"    "{green}[MultiMode] {default}Configurazione modalità di gioco ricaricata con successo!"
+        "it"    "Configurazione modalità di gioco ricaricata con successo!"
     }
 
     "Round Map Changing"
     {
-        "it"    "{green}[MultiMode] {default}Round riuscito, cambio mappa in: {olive}%s"
+        "it"    "Round riuscito, cambio mappa in: {olive}%s"
     }
 
     "Run Off Cooldown Hud"
@@ -232,7 +232,7 @@
 
     "Run Off Voting Cooldown"
     {
-        "it"    "{green}[Votazione] {default}Nessuna opzione ha raggiunto i voti minimi per vincere, un ballottaggio si terrà tra %d secondi..."
+        "it"    "Nessuna opzione ha raggiunto i voti minimi per vincere, un ballottaggio si terrà tra %d secondi..."
     }
 
     "Runoff Vote Failed (Limit)"
@@ -297,7 +297,7 @@
 
     "Timing Instant Notify"
     {
-        "it"    "{green}[MultiMode] {default}Mappa cambiata istantaneamente in: {olive}%s"
+        "it"    "Mappa cambiata istantaneamente in: {olive}%s"
     }
 
     "Timing NextMap"
@@ -307,7 +307,7 @@
 
     "Timing NextMap Notify"
     {
-        "it"    "{green}[MultiMode] {default}La prossima mappa sarà: {olive}%s"
+        "it"    "La prossima mappa sarà: {olive}%s"
     }
 
     "Timing NextRound"
@@ -317,7 +317,7 @@
 
     "Timing NextRound Notify"
     {
-        "it"    "{green}[MultiMode] {default}La mappa cambierà al prossimo round in: {olive}%s"
+        "it"    "La mappa cambierà al prossimo round in: {olive}%s"
     }
 
     "Timing Title"

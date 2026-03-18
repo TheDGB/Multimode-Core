@@ -22,12 +22,12 @@
 
     "Cooldown Begin"
     {
-        "en"    "{green}[Voting] {default}Another vote will begin in %d seconds."
+        "en"    "Another vote will begin in %d seconds."
     }
 
     "Current MMC Version"
     {
-        "en"    "{green}[Multimode] {default}Current Multimode Core Version: {olive}%s"
+        "en"    "Current Multimode Core Version: {olive}%s"
     }
 
     "Error Changing Map"
@@ -52,7 +52,7 @@
 
     "End Vote Waiting For Next Round"
     {
-        "en"    "[Multimode Core] Waiting for the next round to start a new vote."
+        "en"    "Waiting for the next round to start a new vote."
     }
 
     "Force Gamemode"
@@ -217,12 +217,12 @@
 
     "Reload Gamemodes Successful"
     {
-        "en"    "{green}[MultiMode] {default}Gamemodes configuration reloaded successfully!"
+        "en"    "Gamemodes configuration reloaded successfully!"
     }
 
     "Round Map Changing"
     {
-        "en"    "{green}[MultiMode] {default}Round successful, changing map to: {olive}%s"
+        "en"    "Round successful, changing map to: {olive}%s"
     }
 
     "Run Off Cooldown Hud"
@@ -232,7 +232,7 @@
 
     "Run Off Voting Cooldown"
     {
-        "en"    "{green}[Voting] {default}No option reached the minimum votes to win, Run Off will be taken in %d seconds.."
+        "en"    "No option reached the minimum votes to win, Run Off will be taken in %d seconds.."
     }
 
     "Runoff Vote Failed (Limit)"
@@ -297,7 +297,7 @@
 
     "Timing Instant Notify"
     {
-        "en"    "{green}[MultiMode] {default}Map instantly changed to: {olive}%s"
+        "en"    "Map instantly changed to: {olive}%s"
     }
 
     "Timing NextMap"
@@ -307,7 +307,7 @@
 
     "Timing NextMap Notify"
     {
-        "en"    "{green}[MultiMode] {default}Next map will be: {olive}%s"
+        "en"    "Next map will be: {olive}%s"
     }
 
     "Timing NextRound"
@@ -317,7 +317,7 @@
 
     "Timing NextRound Notify"
     {
-        "en"    "{green}[MultiMode] {default}Map will change next round to: {olive}%s"
+        "en"    "Map will change next round to: {olive}%s"
     }
 
     "Timing Title"

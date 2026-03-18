@@ -1445,6 +1445,8 @@ void HandleWinner(const char[] winner, VoteType voteType)
                     g_sVoteSubGroup[0] = '\0';
                     StartCooldown(VOTE_TYPE_MAP, winner, "", g_iVoteInitiator);
                 }
+
+                MMC_RunGroupActions(g_sVoteGameMode, "ongroup_setted_vote", g_bCurrentVoteAdmin);
             }
             case VOTE_TYPE_SUBGROUP:
             {
@@ -1512,11 +1514,15 @@ void HandleWinner(const char[] winner, VoteType voteType)
                         g_sVoteSubGroup[0] = '\0';
                     }
                 }
+
+                MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onmap_setted_any", g_bCurrentVoteAdmin);
                 ExecuteVoteResult();
             }
             case VOTE_TYPE_SUBGROUP_MAP:
             {
                 strcopy(g_sVoteMap, sizeof(g_sVoteMap), winner);
+                MMC_RunSubGroupActions(g_sVoteGameMode, g_sVoteSubGroup, "onsubgroup_vote_setted", g_bCurrentVoteAdmin);
+                MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onmap_setted_any", g_bCurrentVoteAdmin);
                 ExecuteSubGroupVoteResult();
             }
         }
@@ -3450,7 +3456,7 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing, cons
         case TIMING_NEXTMAP:
         {
             SetNextMap(g_sNextMap);
-            CPrintToChatAll("%t", "Timing NextMap Notify", g_sNextMap);
+            CPrintToChatAll("{green}[Multimode] {default}%t", "Timing NextMap Notify", g_sNextMap);
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Next map set (admin): %s", g_sNextMap);
         }
         
@@ -3458,7 +3464,7 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing, cons
         {
             SetNextMap(g_sNextMap);
             g_bChangeMapNextRound = true;
-            CPrintToChatAll("%t", "Timing NextRound Notify", g_sNextMap);
+            CPrintToChatAll("{green}[Multimode] {default}%t", "Timing NextRound Notify", g_sNextMap);
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Next round map set (admin): %s", g_sNextMap);
         }
         
@@ -3493,7 +3499,7 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing, cons
                 }
             }
 
-            CPrintToChatAll("%t", "Timing Instant Notify", g_sNextMap);
+            CPrintToChatAll("{green}[Multimode] {default}%t", "Timing Instant Notify", g_sNextMap);
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Map instantly set to (admin): %s", g_sNextMap);
         }
     }
@@ -4790,8 +4796,20 @@ public void ExecuteVoteResult()
 	
     g_bVoteActive = false;
     g_bVoteCompleted = true;
-    
-    
+
+    if (strlen(g_sVoteGameMode) > 0)
+    {
+        MMC_RunGroupActions(g_sVoteGameMode, "ongroup_setted_any", g_bCurrentVoteAdmin);
+    }
+    if (strlen(g_sVoteSubGroup) > 0 && strlen(g_sVoteGameMode) > 0)
+    {
+        MMC_RunSubGroupActions(g_sVoteGameMode, g_sVoteSubGroup, "onsubgroup_setted_any", g_bCurrentVoteAdmin);
+    }
+    if (strlen(g_sVoteMap) > 0 && strlen(g_sVoteGameMode) > 0)
+    {
+        MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onmap_setted_any", g_bCurrentVoteAdmin);
+    }
+
     switch(g_eVoteTiming)
     {		
         case TIMING_NEXTMAP:
@@ -4801,6 +4819,10 @@ public void ExecuteVoteResult()
             SetNextMap(g_sNextMap);
             CPrintToChatAll("%t", "Timing NextMap Notify", g_sNextMap);
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Next map set (vote): %s", g_sNextMap);
+            if (strlen(g_sVoteMap) > 0 && strlen(g_sVoteGameMode) > 0)
+            {
+                MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onmap_setted_nextmap", g_bCurrentVoteAdmin);
+            }
         }
         
         case TIMING_NEXTROUND:
@@ -4811,6 +4833,10 @@ public void ExecuteVoteResult()
             SetNextMap(g_sNextMap);
             CPrintToChatAll("%t", "Timing NextRound Notify", g_sNextMap);
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Next round map set (vote): %s", g_sNextMap);
+            if (strlen(g_sVoteMap) > 0 && strlen(g_sVoteGameMode) > 0)
+            {
+                MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onmap_setted_nextround", g_bCurrentVoteAdmin);
+            }
         }
         
         case TIMING_INSTANT:
@@ -4849,6 +4875,10 @@ public void ExecuteVoteResult()
 
             CPrintToChatAll("%t", "Timing Instant Notify", g_sNextMap);
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Map instantly set to (vote): %s", g_sNextMap);
+            if (strlen(g_sVoteMap) > 0 && strlen(g_sVoteGameMode) > 0)
+            {
+                MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onmap_setted_instant", g_bCurrentVoteAdmin);
+            }
         }
     }
     
@@ -4925,6 +4955,15 @@ public void ExecuteSubGroupVoteResult()
     
     int gamemodeIndex = MMC_FindGameModeIndex(g_sVoteGameMode);
     int subgroupIndex = MMC_FindSubGroupIndex(g_sVoteGameMode, g_sVoteSubGroup);
+
+    if (strlen(g_sVoteGameMode) > 0)
+    {
+        MMC_RunGroupActions(g_sVoteGameMode, "ongroup_setted_any", g_bCurrentVoteAdmin);
+    }
+    if (strlen(g_sVoteSubGroup) > 0 && strlen(g_sVoteGameMode) > 0)
+    {
+        MMC_RunSubGroupActions(g_sVoteGameMode, g_sVoteSubGroup, "onsubgroup_setted_any", g_bCurrentVoteAdmin);
+    }
     
     if (gamemodeIndex != -1 && subgroupIndex != -1)
     {
@@ -4967,6 +5006,11 @@ public void ExecuteSubGroupVoteResult()
             SetNextMap(g_sNextMap);
             CPrintToChatAll("%t", "Timing NextMap Notify", g_sNextMap);
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Next map set (subgroup vote): %s (Group: %s, SubGroup: %s)", g_sNextMap, g_sVoteGameMode, g_sVoteSubGroup);
+            if (strlen(g_sVoteMap) > 0 && strlen(g_sVoteGameMode) > 0)
+            {
+                MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onmap_setted_nextmap", g_bCurrentVoteAdmin);
+                MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onsubgroup_setted_specified", g_bCurrentVoteAdmin);
+            }
         }
         
         case TIMING_NEXTROUND:
@@ -4977,6 +5021,11 @@ public void ExecuteSubGroupVoteResult()
             SetNextMap(g_sNextMap);
             CPrintToChatAll("%t", "Timing NextRound Notify", g_sNextMap);
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Next round map set (subgroup vote): %s (Group: %s, SubGroup: %s)", g_sNextMap, g_sVoteGameMode, g_sVoteSubGroup);
+            if (strlen(g_sVoteMap) > 0 && strlen(g_sVoteGameMode) > 0)
+            {
+                MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onmap_setted_nextround", g_bCurrentVoteAdmin);
+                MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onsubgroup_setted_specified", g_bCurrentVoteAdmin);
+            }
         }
         
         case TIMING_INSTANT:
@@ -5015,6 +5064,11 @@ public void ExecuteSubGroupVoteResult()
 
             CPrintToChatAll("%t", "Timing Instant Notify", g_sNextMap);
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Map instantly set to (subgroup vote): %s (Group: %s, SubGroup: %s)", g_sNextMap, g_sVoteGameMode, g_sVoteSubGroup);
+            if (strlen(g_sVoteMap) > 0 && strlen(g_sVoteGameMode) > 0)
+            {
+                MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onmap_setted_instant", g_bCurrentVoteAdmin);
+                MMC_RunMapActions(g_sVoteGameMode, g_sVoteSubGroup, g_sVoteMap, "onsubgroup_setted_specified", g_bCurrentVoteAdmin);
+            }
         }
     }
     
@@ -5472,6 +5526,220 @@ KeyValues GetMapKv(const char[] gamemode, const char[] mapname)
 KeyValues GetSubGroupMapKv(const char[] gamemode, const char[] subgroup, const char[] mapname)
 {
     return MMC_GetSubGroupMapKv(g_kvGameModes, gamemode, subgroup, mapname);
+}
+
+static void MMC_ActionWarningChatAll(const char[] message)
+{
+    if (message[0] == '\0')
+    {
+        return;
+    }
+
+    CPrintToChatAll("{green}[Multimode] {default}%s", message);
+}
+
+static void MMC_ActionWarningCenterAll(const char[] message)
+{
+    if (message[0] == '\0')
+    {
+        return;
+    }
+
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (IsClientInGame(i) && !IsFakeClient(i))
+        {
+            PrintCenterText(i, "[Multimode] %s", message);
+        }
+    }
+}
+
+static void MMC_ActionWarningHintAll(const char[] message)
+{
+    if (message[0] == '\0')
+    {
+        return;
+    }
+
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (IsClientInGame(i) && !IsFakeClient(i))
+        {
+            PrintHintText(i, "[Multimode] %s", message);
+        }
+    }
+}
+
+static void MMC_ExecuteActionsFromKv(KeyValues kvContext, const char[] hookName, bool isAdminVote)
+{
+    if (kvContext == null || hookName[0] == '\0')
+    {
+        return;
+    }
+
+    if (!isAdminVote && StrContains(hookName, "_admin", false) != -1)
+    {
+        return;
+    }
+
+    if (!kvContext.JumpToKey(MAPCYCLE_KEY_ACTIONS))
+    {
+        return;
+    }
+
+    if (!kvContext.JumpToKey(hookName))
+    {
+        kvContext.GoBack();
+        kvContext.GoBack();
+        return;
+    }
+
+    if (kvContext.GotoFirstSubKey(false))
+    {
+        do
+        {
+            char keyName[64];
+            kvContext.GetSectionName(keyName, sizeof(keyName));
+
+            if (StrEqual(keyName, MAPCYCLE_ACTION_WARNING_CHAT, false))
+            {
+                char text[256];
+                kvContext.GetString(NULL_STRING, text, sizeof(text), "");
+                MMC_ActionWarningChatAll(text);
+            }
+            else if (StrEqual(keyName, MAPCYCLE_ACTION_WARNING_CENTER, false))
+            {
+                char text[256];
+                kvContext.GetString(NULL_STRING, text, sizeof(text), "");
+                MMC_ActionWarningCenterAll(text);
+            }
+            else if (StrEqual(keyName, MAPCYCLE_ACTION_WARNING_HINT, false))
+            {
+                char text[256];
+                kvContext.GetString(NULL_STRING, text, sizeof(text), "");
+                MMC_ActionWarningHintAll(text);
+            }
+            else if (StrEqual(keyName, MAPCYCLE_ACTION_WARNING_CUSTOM, false))
+            {
+                char chat[256];
+                char center[256];
+                char hint[256];
+
+                kvContext.GetString("chat", chat, sizeof(chat), "");
+                kvContext.GetString("center", center, sizeof(center), "");
+                kvContext.GetString("hint", hint, sizeof(hint), "");
+
+                if (chat[0] != '\0')
+                {
+                    CPrintToChatAll("%s", chat);
+                }
+                if (center[0] != '\0')
+                {
+                    for (int i = 1; i <= MaxClients; i++)
+                    {
+                        if (IsClientInGame(i) && !IsFakeClient(i))
+                        {
+                            PrintCenterText(i, "%s", center);
+                        }
+                    }
+                }
+                if (hint[0] != '\0')
+                {
+                    for (int i = 1; i <= MaxClients; i++)
+                    {
+                        if (IsClientInGame(i) && !IsFakeClient(i))
+                        {
+                            PrintHintText(i, "%s", hint);
+                        }
+                    }
+                }
+            }
+            else if (StrEqual(keyName, MAPCYCLE_ACTION_CHANGE_VOTEMANAGER, false))
+            {
+                char managerId[64];
+                kvContext.GetString(NULL_STRING, managerId, sizeof(managerId), "");
+
+                if (managerId[0] != '\0')
+                {
+                    ConVar cvarVoteManager = g_Cvar_VoteManager;
+                    if (cvarVoteManager != null)
+                    {
+                        cvarVoteManager.SetString(managerId);
+                        MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Actions: Vote manager changed to '%s' via actions hook '%s'.", managerId, hookName);
+                    }
+                }
+            }
+        }
+        while (kvContext.GotoNextKey(false));
+
+        kvContext.GoBack();
+    }
+
+    kvContext.GoBack();
+    kvContext.GoBack();
+}
+
+void MMC_RunMapActions(const char[] gamemode, const char[] subgroup, const char[] map, const char[] hookName, bool isAdminVote)
+{
+    if (gamemode[0] == '\0' || map[0] == '\0')
+    {
+        return;
+    }
+
+    KeyValues kv = null;
+
+    if (subgroup[0] != '\0')
+    {
+        kv = GetSubGroupMapKv(gamemode, subgroup, map);
+    }
+    else
+    {
+        kv = GetMapKv(gamemode, map);
+    }
+
+    if (kv == null)
+    {
+        return;
+    }
+
+    MMC_ExecuteActionsFromKv(kv, hookName, isAdminVote);
+    delete kv;
+}
+
+void MMC_RunSubGroupActions(const char[] gamemode, const char[] subgroup, const char[] hookName, bool isAdminVote)
+{
+    if (gamemode[0] == '\0' || subgroup[0] == '\0')
+    {
+        return;
+    }
+
+    if (!g_kvGameModes.JumpToKey(gamemode) || !g_kvGameModes.JumpToKey("subgroup") || !g_kvGameModes.JumpToKey(subgroup))
+    {
+        g_kvGameModes.Rewind();
+        return;
+    }
+
+    MMC_ExecuteActionsFromKv(g_kvGameModes, hookName, isAdminVote);
+
+    g_kvGameModes.Rewind();
+}
+
+void MMC_RunGroupActions(const char[] gamemode, const char[] hookName, bool isAdminVote)
+{
+    if (gamemode[0] == '\0')
+    {
+        return;
+    }
+
+    if (!g_kvGameModes.JumpToKey(gamemode))
+    {
+        g_kvGameModes.Rewind();
+        return;
+    }
+
+    MMC_ExecuteActionsFromKv(g_kvGameModes, hookName, isAdminVote);
+
+    g_kvGameModes.Rewind();
 }
 
 stock void GetMapDisplayNameEx(const char[] gamemode, const char[] map, char[] display, int displayLen, const char[] subgroup = "")

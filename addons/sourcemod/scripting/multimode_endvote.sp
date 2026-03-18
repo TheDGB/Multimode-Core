@@ -329,7 +329,7 @@ void PerformEndVote()
     if (g_Cvar_EndVoteOnRoundEnd.BoolValue)
     {
         g_bEndVotePending = true;
-        CPrintToChatAll("%t", "End Vote Waiting For Next Round");
+        CPrintToChatAll("{green}[Multimode Core] {default}%t", "End Vote Waiting For Next Round");
         return;
     }
     

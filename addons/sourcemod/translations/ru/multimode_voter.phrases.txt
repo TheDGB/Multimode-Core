@@ -27,7 +27,7 @@
 
     "Current MMC Version"
     {
-        "ru"    "{green}[Multimode] {default}Текущая версия Multimode Core: {olive}%s"
+        "ru"    "Текущая версия Multimode Core: {olive}%s"
     }
 
     "Error Changing Map"
@@ -52,7 +52,7 @@
 
     "End Vote Waiting For Next Round"
     {
-        "ru"    "[Multimode Core] В ожидании начала следующего раунда, чтобы начать новое голосование."
+        "ru"    "В ожидании начала следующего раунда, чтобы начать новое голосование."
     }
 
     "Force Gamemode"
@@ -217,12 +217,12 @@
 
     "Reload Gamemodes Successful"
     {
-        "ru"    "{green}[MultiMode] {default}Конфигурация игровых режимов успешно перезагружена!"
+        "ru"    "Конфигурация игровых режимов успешно перезагружена!"
     }
 
     "Round Map Changing"
     {
-        "ru"    "{green}[MultiMode] {default}Раунд успешен, меняем карту на: {olive}%s"
+        "ru"    "Раунд успешен, меняем карту на: {olive}%s"
     }
 
     "Run Off Cooldown Hud"
@@ -297,7 +297,7 @@
 
     "Timing Instant Notify"
     {
-        "ru"    "{green}[MultiMode] {default}Карта мгновенно сменена на: {olive}%s"
+        "ru"    "Карта мгновенно сменена на: {olive}%s"
     }
 
     "Timing NextMap"
@@ -307,7 +307,7 @@
 
     "Timing NextMap Notify"
     {
-        "ru"    "{green}[MultiMode] {default}Следующая карта будет: {olive}%s"
+        "ru"    "Следующая карта будет: {olive}%s"
     }
 
     "Timing NextRound"
@@ -317,7 +317,7 @@
 
     "Timing NextRound Notify"
     {
-        "ru"    "{green}[MultiMode] {default}Карта сменится в следующем раунде на: {olive}%s"
+        "ru"    "Карта сменится в следующем раунде на: {olive}%s"
     }
 
     "Timing Title"

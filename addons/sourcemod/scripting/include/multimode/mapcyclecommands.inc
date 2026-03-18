@@ -24,3 +24,12 @@
 #define MAPCYCLE_KEY_SUBGROUPS_INVOTE  "subgroups_invote"
 #define MAPCYCLE_KEY_WEIGHT            "weight"
 
+// Map Cycle Actions Keys
+#define MAPCYCLE_KEY_ACTIONS                   "actions"
+#define MAPCYCLE_ACTION_WARNING_CHAT           "warning_chat"
+#define MAPCYCLE_ACTION_WARNING_CENTER         "warning_center"
+#define MAPCYCLE_ACTION_WARNING_HINT           "warning_hint"
+#define MAPCYCLE_ACTION_WARNING_CUSTOM         "warning_custom"
+#define MAPCYCLE_ACTION_CHANGE_VOTEMANAGER     "change_votemanager"
+
+

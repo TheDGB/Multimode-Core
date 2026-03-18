@@ -22,12 +22,12 @@
 
     "Cooldown Begin"
     {
-        "pt"        "{green}[Votação] {default}Outra votação começará em %d segundos."
+        "pt"        "Outra votação começará em %d segundos."
     }
 
     "Current MMC Version"
     {
-        "pt"        "{green}[Multimode] {default}Versão atual do Multimode Core: {olive}%s"
+        "pt"        "Versão atual do Multimode Core: {olive}%s"
     }
 
     "Error Changing Map"
@@ -52,7 +52,7 @@
 
     "End Vote Waiting For Next Round"
     {
-        "pt"    "[Multimode Core] Esperando o inicio da próxima rodada para começar uma nova votação."
+        "pt"    "Esperando o inicio da próxima rodada para começar uma nova votação."
     }
 
     "Force Gamemode"
@@ -217,12 +217,12 @@
 
     "Reload Gamemodes Successful"
     {
-        "pt"    "{green}[MultiMode] {default}Configuração de gamemodes recarregada com sucesso!"
+        "pt"    "Configuração de gamemodes recarregada com sucesso!"
     }
 
     "Round Map Changing"
     {
-        "pt"    "{green}[MultiMode] {default}Rodada sucedida, mudando o mapa para: {olive}%s"
+        "pt"    "Rodada sucedida, mudando o mapa para: {olive}%s"
     }
 
     "Run Off Cooldown Hud"
@@ -232,7 +232,7 @@
 
     "Run Off Voting Cooldown"
     {
-        "pt"    "{green}[Votação] {default}Nenhuma opção atingiu o mínimo de votos para vencer, uma votação de Run Off será realizado em %d segundos..."
+        "pt"    "Nenhuma opção atingiu o mínimo de votos para vencer, uma votação de Run Off será realizado em %d segundos..."
     }
 
     "Runoff Vote Failed (Limit)"
@@ -297,7 +297,7 @@
 
     "Timing Instant Notify"
     {
-        "pt"    "{green}[MultiMode] {default}Mapa alterado instantaneamente para: {olive}%s"
+        "pt"    "Mapa alterado instantaneamente para: {olive}%s"
     }
 
     "Timing NextMap"
@@ -307,7 +307,7 @@
 
     "Timing NextMap Notify"
     {
-        "pt"    "{green}[MultiMode] {default}Próximo mapa será: {olive}%s"
+        "pt"    "Próximo mapa será: {olive}%s"
     }
 
     "Timing NextRound"
@@ -317,7 +317,7 @@
 
     "Timing NextRound Notify"
     {
-        "pt"    "{green}[MultiMode] {default}Mapa mudará na próxima rodada para: {olive}%s"
+        "pt"    "Mapa mudará na próxima rodada para: {olive}%s"
     }
 
     "Timing Title"

@@ -214,10 +214,9 @@ stock void MMC_ProcessDisplayTemplates(KeyValues kv, const char[] gamemode, cons
 {
     if (StrContains(customDisplay, "{") == -1)
     {
-        return; // No templates to process
+        return;
     }
     
-    // Get map display name for {MAP}
     char mapDisplay[PLATFORM_MAX_PATH];
     char baseMap[PLATFORM_MAX_PATH];
     strcopy(baseMap, sizeof(baseMap), map);
@@ -232,7 +231,6 @@ stock void MMC_ProcessDisplayTemplates(KeyValues kv, const char[] gamemode, cons
     
     ReplaceString(customDisplay, displayLen, "{MAP}", mapDisplay, false);
     
-    // Read values with priority: map > subgroup > gamemode
     int mintime = -1;
     int maxtime = -1;
     int maxplayers = 0;
@@ -240,7 +238,6 @@ stock void MMC_ProcessDisplayTemplates(KeyValues kv, const char[] gamemode, cons
     char nominate_flags[32];
     nominate_flags[0] = '\0';
     
-    // Try to get from map level first
     KeyValues mapKv = null;
     if (subgroup[0] != '\0')
     {
@@ -274,7 +271,6 @@ stock void MMC_ProcessDisplayTemplates(KeyValues kv, const char[] gamemode, cons
         delete mapKv;
     }
     
-    // If not found at map level, try subgroup level
     if (subgroup[0] != '\0')
     {
         if (kv.JumpToKey(gamemode) && kv.JumpToKey("subgroup") && kv.JumpToKey(subgroup))
@@ -310,7 +306,6 @@ stock void MMC_ProcessDisplayTemplates(KeyValues kv, const char[] gamemode, cons
         kv.Rewind();
     }
     
-    // If still not found, try gamemode level
     if (gamemode[0] != '\0')
     {
         if (kv.JumpToKey(gamemode))
@@ -344,7 +339,6 @@ stock void MMC_ProcessDisplayTemplates(KeyValues kv, const char[] gamemode, cons
         kv.Rewind();
     }
     
-    // Replace templates
     char buffer[32];
     
     if (mintime >= 0)

@@ -27,7 +27,7 @@
 
     "Current MMC Version"
     {
-        "zho"   "{green}[多模式] {default}目前多模式核心版本: {olive}%s"
+        "zho"   "目前多模式核心版本: {olive}%s"
     }
 
     "Error Changing Map"
@@ -52,7 +52,7 @@
 
     "End Vote Waiting For Next Round"
     {
-        "zho"   "[Multimode Core] 等待下一輪開始，以啟動新一輪投票。"
+        "zho"   "等待下一輪開始，以啟動新一輪投票。"
     }
 
     "Force Gamemode"

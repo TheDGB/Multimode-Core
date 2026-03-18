@@ -22,12 +22,12 @@
 
     "Cooldown Begin"
     {
-        "da"    "{green}[Afstemning] {default}En ny afstemning begynder om %d sekunder."
+        "da"    "En ny afstemning begynder om %d sekunder."
     }
 
     "Current MMC Version"
     {
-        "da"    "{green}[Multimode] {default}Nuværende Multimode Core Version: {olive}%s"
+        "da"    "Nuværende Multimode Core Version: {olive}%s"
     }
 
     "Error Changing Map"
@@ -52,7 +52,7 @@
 
     "End Vote Waiting For Next Round"
     {
-        "da"    "[Multimode Core] Venter på næste runde for at starte den nye afstemning."
+        "da"    "Venter på næste runde for at starte den nye afstemning."
     }
 
     "Force Gamemode"
@@ -217,12 +217,12 @@
 
     "Reload Gamemodes Successful"
     {
-        "da"    "{green}[MultiMode] {default}Spiltilstandskonfiguration genindlæst succesfuldt!"
+        "da"    "Spiltilstandskonfiguration genindlæst succesfuldt!"
     }
 
     "Round Map Changing"
     {
-        "da"    "{green}[MultiMode] {default}Runde succesfuld, skifter kort til: {olive}%s"
+        "da"    "Runde succesfuld, skifter kort til: {olive}%s"
     }
 
     "Run Off Cooldown Hud"
@@ -297,7 +297,7 @@
 
     "Timing Instant Notify"
     {
-        "da"    "{green}[MultiMode] {default}Kortet skiftede øjeblikkeligt til: {olive}%s"
+        "da"    "Kortet skiftede øjeblikkeligt til: {olive}%s"
     }
 
     "Timing NextMap"
@@ -307,7 +307,7 @@
 
     "Timing NextMap Notify"
     {
-        "da"    "{green}[MultiMode] {default}Næste kort vil være: {olive}%s"
+        "da"    "Næste kort vil være: {olive}%s"
     }
 
     "Timing NextRound"
@@ -317,7 +317,7 @@
 
     "Timing NextRound Notify"
     {
-        "da"    "{green}[MultiMode] {default}Kortet skifter næste runde til: {olive}%s"
+        "da"    "Kortet skifter næste runde til: {olive}%s"
     }
 
     "Timing Title"
