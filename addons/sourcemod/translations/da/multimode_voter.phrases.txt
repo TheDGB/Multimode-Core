@@ -290,6 +290,11 @@
         "da"    "Vælg en undergruppe for %s:"
     }
 
+    "Separated Vote Start Group"
+    {
+        "da"    "Start separat afstemning for denne gruppe."
+    }
+
     "Timing Instant"
     {
         "da"    "Øjeblikkelig"

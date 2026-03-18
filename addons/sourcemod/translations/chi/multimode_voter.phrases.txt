@@ -290,6 +290,11 @@
         "chi"   "为 %s 选择一个子组:"
     }
 
+    "Separated Vote Start Group"
+    {
+        "chi"   "为该组开始单独投票。"
+    }
+
     "Timing Instant"
     {
         "chi"   "立即"

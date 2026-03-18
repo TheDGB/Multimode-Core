@@ -27,7 +27,7 @@
 
     "Current MMC Version"
     {
-        "es"    "Versi?n actual de Multimode Core: {olive}%s"
+        "es"    "{green}[Multimode] {default}Versià¸£à¸ÿn actual de Multimode Core: {olive}%s"
     }
 
     "Error Changing Map"
@@ -52,7 +52,7 @@
 
     "End Vote Waiting For Next Round"
     {
-        "es"    "Esperando el inicio de la pr?xima ronda para comenzar una nueva votaci?n."
+        "es"    "[Multimode Core] Esperando el inicio de la prà¸£à¸ÿxima ronda para comenzar una nueva votacià¸£à¸ÿn."
     }
 
     "Force Gamemode"
@@ -217,12 +217,12 @@
 
     "Reload Gamemodes Successful"
     {
-        "es"    "La configuracià¸£à¸ÿn de los modos de juego se ha recargado con à¸£à¸ÿxito!"
+        "es"    "{green}[MultiMode] {default}à¸¢à¸ÿLa configuracià¸£à¸ÿn de los modos de juego se ha recargado con à¸£à¸ÿxito!"
     }
 
     "Round Map Changing"
     {
-        "es"    "Ronda exitosa, cambiando mapa a: {olive}%s"
+        "es"    "{green}[MultiMode] {default}Ronda exitosa, cambiando mapa a: {olive}%s"
     }
 
     "Run Off Cooldown Hud"
@@ -232,7 +232,7 @@
 
     "Run Off Voting Cooldown"
     {
-        "es"    "Ninguna opcià¸£à¸ÿn alcanzà¸£à¸ÿ los votos mà¸£à¸ÿnimos para ganar, una votacià¸£à¸ÿn de desempate se realizarà¸£à¸ÿ en %d segundos..."
+        "es"    "{green}[Votacià¸£à¸ÿn] {default}Ninguna opcià¸£à¸ÿn alcanzà¸£à¸ÿ los votos mà¸£à¸ÿnimos para ganar, una votacià¸£à¸ÿn de desempate se realizarà¸£à¸ÿ en %d segundos..."
     }
 
     "Runoff Vote Failed (Limit)"
@@ -290,6 +290,11 @@
         "es"    "Elige un subgrupo para %s:"
     }
 
+    "Separated Vote Start Group"
+    {
+        "es"    "Iniciar votaci?n separada de este grupo."
+    }
+
     "Timing Instant"
     {
         "es"    "Instantà¸£à¸ÿneo"
@@ -297,7 +302,7 @@
 
     "Timing Instant Notify"
     {
-        "es"    "El mapa cambià¸£à¸ÿ instantà¸£à¸ÿneamente a: {olive}%s"
+        "es"    "{green}[MultiMode] {default}El mapa cambià¸£à¸ÿ instantà¸£à¸ÿneamente a: {olive}%s"
     }
 
     "Timing NextMap"
@@ -307,7 +312,7 @@
 
     "Timing NextMap Notify"
     {
-        "es"    "El prà¸£à¸ÿximo mapa serà¸£à¸ÿ: {olive}%s"
+        "es"    "{green}[MultiMode] {default}El prà¸£à¸ÿximo mapa serà¸£à¸ÿ: {olive}%s"
     }
 
     "Timing NextRound"
@@ -317,7 +322,7 @@
 
     "Timing NextRound Notify"
     {
-        "es"    "El mapa cambiarà¸£à¸ÿ la prà¸£à¸ÿxima ronda a: {olive}%s"
+        "es"    "{green}[MultiMode] {default}El mapa cambiarà¸£à¸ÿ la prà¸£à¸ÿxima ronda a: {olive}%s"
     }
 
     "Timing Title"
