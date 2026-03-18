@@ -398,11 +398,125 @@ public int SeparatedGameModeMenuHandler(Menu menu, MenuAction action, int client
         SplitGamemodeString(gamemode, group, sizeof(group), subgroup, sizeof(subgroup));
 
         strcopy(g_sClientPendingGameMode[client], sizeof(g_sClientPendingGameMode[]), group);
-        ShowSeparatedTimingMenu(client);
+        g_sClientPendingSubGroup[client][0] = '\0';
+
+        if (HasSubGroups(group))
+        {
+            ShowSeparatedSubGroupMenu(client, group);
+        }
+        else
+        {
+            ShowSeparatedTimingMenu(client);
+        }
     }
     else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack)
     {
         ShowVoteTypeSelectionMenu(client);
+    }
+    else if (action == MenuAction_End)
+    {
+        delete menu;
+    }
+    return 0;
+}
+
+void ShowSeparatedSubGroupMenu(int client, const char[] gamemode)
+{
+    Menu menu = new Menu(SeparatedSubGroupMenuHandler);
+    menu.SetTitle("%t", "SubGroup Vote Title", gamemode);
+
+    char buffer[128];
+    FormatEx(buffer, sizeof(buffer), "%t", "Separated Vote Start Group");
+    menu.AddItem("__start_group__", buffer);
+    menu.AddItem("", "", ITEMDRAW_SPACER);
+
+    char currentGroup[64], currentSubgroup[64];
+    MultiMode_GetCurrentGameMode(currentGroup, sizeof(currentGroup), currentSubgroup, sizeof(currentSubgroup));
+
+    KeyValues kv = GetMapcycle();
+    if (kv == null)
+    {
+        CPrintToChat(client, "%t", "No Available SubGroups");
+        delete menu;
+        StartSeparatedVote(client);
+        return;
+    }
+
+    kv.Rewind();
+    if (kv.JumpToKey(gamemode) && kv.JumpToKey("subgroup"))
+    {
+        if (kv.GotoFirstSubKey(false))
+        {
+            do
+            {
+                char subgroupName[64];
+                kv.GetSectionName(subgroupName, sizeof(subgroupName));
+
+                if (StrEqual(subgroupName, "subgroups_invote", false) || StrEqual(subgroupName, "maps_invote", false))
+                {
+                    continue;
+                }
+
+                int enabled = kv.GetNum("enabled", 1);
+                if (enabled == 0) continue;
+
+                char display[128], subgroupDisplay[64];
+                char prefix[8] = "";
+
+                if (StrEqual(gamemode, currentGroup) && StrEqual(subgroupName, currentSubgroup))
+                {
+                    strcopy(prefix, sizeof(prefix), GESTURE_CURRENT);
+                }
+
+                kv.GetString(MAPCYCLE_KEY_DISPLAY, subgroupDisplay, sizeof(subgroupDisplay), subgroupName);
+
+                bool isNominated = MultiMode_IsGroupNominated(gamemode, subgroupName);
+                char voteIndicator[6];
+                strcopy(voteIndicator, sizeof(voteIndicator), isNominated ? GESTURE_NOMINATED : "");
+
+                Format(display, sizeof(display), "%s%s%s", subgroupDisplay, voteIndicator, prefix);
+                menu.AddItem(subgroupName, display);
+            } while (kv.GotoNextKey(false));
+            kv.GoBack();
+        }
+        kv.GoBack();
+        kv.GoBack();
+    }
+    kv.Rewind();
+
+    if (menu.ItemCount <= 2)
+    {
+        CPrintToChat(client, "%t", "No Available SubGroups");
+        delete menu;
+        StartSeparatedVote(client);
+        return;
+    }
+
+    menu.ExitBackButton = true;
+    menu.Display(client, MENU_TIME_FOREVER);
+}
+
+public int SeparatedSubGroupMenuHandler(Menu menu, MenuAction action, int client, int param2)
+{
+    if (action == MenuAction_Select)
+    {
+        char item[64];
+        menu.GetItem(param2, item, sizeof(item));
+
+        if (StrEqual(item, "__start_group__"))
+        {
+            g_sClientPendingSubGroup[client][0] = '\0';
+            ShowSeparatedTimingMenu(client);
+        }
+        else
+        {
+            strcopy(g_sClientPendingSubGroup[client], sizeof(g_sClientPendingSubGroup[]), item);
+            ShowSeparatedTimingMenu(client);
+        }
+    }
+    else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack)
+    {
+        StartSeparatedVote(client);
     }
     else if (action == MenuAction_End)
     {
@@ -449,11 +563,28 @@ public int SeparatedTimingMenuHandler(Menu menu, MenuAction action, int client, 
         Format(id, sizeof(id), "separated_%d", GetTime());
         
         int emptyClients[MAXPLAYERS + 1];
-        StartAdminVote(id, g_sClientPendingGameMode[client], VOTE_TYPE_MAPS_ONLY, timing, emptyClients, 0, true);
+        char mapcycleSection[128];
+        if (strlen(g_sClientPendingSubGroup[client]) > 0)
+        {
+            Format(mapcycleSection, sizeof(mapcycleSection), "%s/%s", g_sClientPendingGameMode[client], g_sClientPendingSubGroup[client]);
+        }
+        else
+        {
+            strcopy(mapcycleSection, sizeof(mapcycleSection), g_sClientPendingGameMode[client]);
+        }
+
+        StartAdminVote(id, mapcycleSection, VOTE_TYPE_MAPS_ONLY, timing, emptyClients, 0, true);
     }
     else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack)
     {
-        StartSeparatedVote(client);
+        if (HasSubGroups(g_sClientPendingGameMode[client]))
+        {
+            ShowSeparatedSubGroupMenu(client, g_sClientPendingGameMode[client]);
+        }
+        else
+        {
+            StartSeparatedVote(client);
+        }
     }
     else if (action == MenuAction_End)
     {
@@ -756,7 +887,14 @@ public int ForceMapMenuHandler(Menu menu, MenuAction action, int client, int par
     }
     else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack)
     {
-        ShowGameModeMenu(client, true);
+        if (strlen(g_sClientPendingGameMode[client]) > 0 && HasSubGroups(g_sClientPendingGameMode[client]) && strlen(g_sClientPendingSubGroup[client]) > 0)
+        {
+            ShowForceSubGroupMenu(client, g_sClientPendingGameMode[client]);
+        }
+        else
+        {
+            ShowGameModeMenu(client, true);
+        }
     }
     else if (action == MenuAction_End)
     {
@@ -897,6 +1035,17 @@ public int ForceTimingMenuHandler(Menu menu, MenuAction action, int client, int 
             timing,
             g_sClientPendingSubGroup[client]
         );
+    }
+    else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack)
+    {
+        if (strlen(g_sClientPendingSubGroup[client]) > 0)
+        {
+            ShowMapMenu(client, g_sClientPendingGameMode[client], g_sClientPendingSubGroup[client]);
+        }
+        else
+        {
+            ShowMapMenu(client, g_sClientPendingGameMode[client]);
+        }
     }
     else if (action == MenuAction_End)
     {

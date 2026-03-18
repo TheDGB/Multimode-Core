@@ -290,6 +290,11 @@
         "de"    "Wähle eine Untergruppe für %s:"
     }
 
+    "Separated Vote Start Group"
+    {
+        "de"    "Separate Abstimmung für diese Gruppe starten."
+    }
+
     "Timing Instant"
     {
         "de"    "Sofort"

@@ -257,7 +257,7 @@ public void MultiMode_OnVoteStartEx(int initiator, int voteType, bool isRunoff)
         case 0: strcopy(voteTypeStr, sizeof(voteTypeStr), "GROUP");
         case 1: strcopy(voteTypeStr, sizeof(voteTypeStr), "SUBGROUP");
         case 2: strcopy(voteTypeStr, sizeof(voteTypeStr), "MAP");
-        case 3: strcopy(voteTypeStr, sizeof(voteTypeStr), "SUBGROUP_MAP");
+        case 4: strcopy(voteTypeStr, sizeof(voteTypeStr), "SUBGROUP_MAP");
         default: strcopy(voteTypeStr, sizeof(voteTypeStr), "UNKNOWN");
     }
     

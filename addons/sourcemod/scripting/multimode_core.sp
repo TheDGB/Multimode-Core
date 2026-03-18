@@ -2255,9 +2255,33 @@ public int NativeMMC_StartVoteAdvanced(Handle plugin, int numParams)
         case VOTE_TYPE_MAPS_ONLY:
         {
             config.voteType = VOTE_TYPE_MAP;
-            if (strlen(mapcycle) > 0 && StrContains(mapcycle, ".") == -1 && StrContains(mapcycle, "/") == -1 && StrContains(mapcycle, "\\") == -1)
+            
+            if (strlen(mapcycle) > 0 && StrContains(mapcycle, ".") == -1 && StrContains(mapcycle, "\\") == -1)
             {
-                strcopy(config.contextInfo, sizeof(config.contextInfo), mapcycle);
+                if (StrContains(mapcycle, "/") != -1)
+                {
+                    config.voteType = VOTE_TYPE_SUBGROUP_MAP;
+                    strcopy(config.contextInfo, sizeof(config.contextInfo), mapcycle);
+                }
+                else
+                {
+                    bool hasSubgroups = false;
+                    if (g_kvGameModes != null)
+                    {
+                        g_kvGameModes.Rewind();
+                        if (g_kvGameModes.JumpToKey(mapcycle) && g_kvGameModes.JumpToKey("subgroup"))
+                        {
+                            hasSubgroups = true;
+                        }
+                        g_kvGameModes.Rewind();
+                    }
+                    
+                    if (hasSubgroups)
+                    {
+                        config.voteType = VOTE_TYPE_SUBGROUP;
+                    }
+                    strcopy(config.contextInfo, sizeof(config.contextInfo), mapcycle);
+                }
             }
             else
             {
