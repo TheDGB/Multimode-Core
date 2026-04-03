@@ -290,11 +290,6 @@
         "en"    "Choose a sub-group for %s:"
     }
 
-    "Separated Vote Start Group"
-    {
-        "en"    "Start separate vote for this group."
-    }
-
     "Timing Instant"
     {
         "en"    "Instant"

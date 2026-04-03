@@ -2,37 +2,37 @@
 {
     "Admin Cancel No Vote"
     {
-        "es"    "{red}[Admin] {default}No hay ninguna votacià¸£à¸ÿn en curso para {red}cancelar."
+        "es"    "{red}[Admin] {default}No hay ninguna votaciÃ³n en curso para {red}cancelar."
     }
 
     "Admin Cancel Vote"
     {
-        "es"    "{red}[Admin] {default}%N {red}cancelà¸£à¸ÿ {default}la votacià¸£à¸ÿn actual."
+        "es"    "{red}[Admin] {default}%N {red}cancelÃ³ {default}la votaciÃ³n actual."
     }
 
     "Cancel Current Vote"
     {
-        "es"    "Cancelar Votacià¸£à¸ÿn Actual"
+        "es"    "Cancelar VotaciÃ³n Actual"
     }
 
     "Cooldown Begin Hud"
     {
-        "es"    "Se realizarà¸£à¸ÿ otra votacià¸£à¸ÿn en %d segundos..."
+        "es"    "Se realizarÃ¡ otra votaciÃ³n en %d segundos..."
     }
 
     "Cooldown Begin"
     {
-        "es"    "{green}[Votacià¸£à¸ÿn] {default}En %d segundos comenzarà¸£à¸ÿ otra votacià¸£à¸ÿn."
+        "es"    "{green}[VotaciÃ³n] {default}En %d segundos comenzarÃ¡ otra votaciÃ³n."
     }
 
     "Current MMC Version"
     {
-        "es"    "{green}[Multimode] {default}Versià¸£à¸ÿn actual de Multimode Core: {olive}%s"
+        "es"    "{green}[Multimode] {default}VersiÃ³n actual de Multimode Core: {olive}%s"
     }
 
     "Error Changing Map"
     {
-        "es"    "{red}ERROR: {default}à¸¢à¸ÿEl cambio de mapa fallà¸£à¸ÿ!"
+        "es"    "{red}ERROR: {default}Â¡El cambio de mapa fallÃ³!"
     }
 
     "Extend Current Map"
@@ -52,7 +52,7 @@
 
     "End Vote Waiting For Next Round"
     {
-        "es"    "[Multimode Core] Esperando el inicio de la prà¸£à¸ÿxima ronda para comenzar una nueva votacià¸£à¸ÿn."
+        "es"    "[Multimode Core] Esperando el inicio de la prÃ³xima ronda para comenzar una nueva votaciÃ³n."
     }
 
     "Force Gamemode"
@@ -62,7 +62,7 @@
 
     "Gamemode Vote Already"
     {
-        "es"    "{red}La votacià¸£à¸ÿn ya està¸£à¸ÿ activa o el plugin està¸£à¸ÿ desactivado."
+        "es"    "{red}La votaciÃ³n ya estÃ¡ activa o el plugin estÃ¡ desactivado."
     }
 
     "No Available SubGroups"
@@ -77,22 +77,22 @@
 
     "No Valid Maps In SubGroup"
     {
-        "es"    "No se encontraron mapas và¸£à¸ÿlidos en este subgrupo."
+        "es"    "No se encontraron mapas vÃ¡lidos en este subgrupo."
     }
 
     "No Votes Recorded"
     {
-        "es"    "{red}à¸¢à¸ÿLa votacià¸£à¸ÿn fallà¸£à¸ÿ! No se registraron votos."
+        "es"    "{red}Â¡La votaciÃ³n fallÃ³! No se registraron votos."
     }
 
     "Nominate Disabled"
     {
-        "es"    "{green}[Nominate] {default}à¸¢à¸ÿEl sistema de nominaciones està¸£à¸ÿ desactivado actualmente!"
+        "es"    "{green}[Nominate] {default}Â¡El sistema de nominaciones estÃ¡ desactivado actualmente!"
     }
 
     "Nominate Gamemode Group Menu Title"
     {
-        "es"    "Nominar Modo de Juego:\n \nRecuerda que està¸£à¸ÿs aquà¸£à¸ÿ para nominar un modo de juego y un mapa para que aparezcan en la prà¸£à¸ÿxima votacià¸£à¸ÿn, \nTen en cuenta que solo tienes 1 oportunidad de nominar un modo de juego y un mapa por cada mapa.\n \n"
+        "es"    "Nominar Modo de Juego:\n \nRecuerda que estÃ¡s aquÃ­ para nominar un modo de juego y un mapa para que aparezcan en la prÃ³xima votaciÃ³n, \nTen en cuenta que solo tienes 1 oportunidad de nominar un modo de juego y un mapa por cada mapa.\n \n"
     }
 
     "Nominate Gamemode Group Menu Title Non Once"
@@ -102,7 +102,7 @@
 
     "Nominate Gamemode Not Found"
     {
-        "es"    "{red}à¸¢à¸ÿModo de juego no encontrado!"
+        "es"    "{red}Â¡Modo de juego no encontrado!"
     }
 
     "Nominate Map Title"
@@ -112,7 +112,7 @@
 
     "Nominate Once Per Map"
     {
-        "es"    "{red}[Nominate] {default}Solo puedes {red}nominar una vez {default}por mapa. Espera hasta el prà¸£à¸ÿximo mapa."
+        "es"    "{red}[Nominate] {default}Solo puedes {red}nominar una vez {default}por mapa. Espera hasta el prÃ³ximo mapa."
     }
 
     "Map Already Nominated"
@@ -147,12 +147,12 @@
 
     "None Show Map Group"
     {
-        "es"    "{red}à¸¢à¸ÿModo de juego no encontrado!"
+        "es"    "{red}Â¡Modo de juego no encontrado!"
     }
 
     "Non Maps Items"
     {
-        "es"    "{red}à¸¢à¸ÿNo hay mapas disponibles para este modo!"
+        "es"    "{red}Â¡No hay mapas disponibles para este modo!"
     }
 
     "Normal Vote Gamemode Group Title"
@@ -162,62 +162,62 @@
 
     "RTV Already Voted"
     {
-        "es"    "{green}[Rock The Vote] {default}à¸¢à¸ÿYa has votado para cambiar de mapa!"
+        "es"    "{green}[Rock The Vote] {default}Â¡Ya has votado para cambiar de mapa!"
     }
 
     "RTV Available"
     {
-        "es"    "{green}[Rock The Vote] {default}à¸¢à¸ÿEl sistema RTV ya està¸£à¸ÿ disponible! Escribe !rtv para votar."
+        "es"    "{green}[Rock The Vote] {default}Â¡El sistema RTV ya estÃ¡ disponible! Escribe !rtv para votar."
     }
 
     "RTV Available Again"
     {
-        "es"    "{green}[Rock The Vote] {default}à¸¢à¸ÿEl sistema RTV està¸£à¸ÿ disponible de nuevo! Escribe !rtv para votar otra vez."
+        "es"    "{green}[Rock The Vote] {default}Â¡El sistema RTV estÃ¡ disponible de nuevo! Escribe !rtv para votar otra vez."
     }
 
     "RTV Available In"
     {
-        "es"    "{green}[Rock The Vote] {default}à¸¢à¸ÿRTV estarà¸£à¸ÿ disponible en {green}%d {default}segundos!"
+        "es"    "{green}[Rock The Vote] {default}Â¡RTV estarÃ¡ disponible en {green}%d {default}segundos!"
     }
 
     "RTV Minimun Players"
     {
-        "es"    "{green}[Rock The Vote] {default}à¸¢à¸ÿSe requiere un mà¸£à¸ÿnimo de %d jugadores!"
+        "es"    "{green}[Rock The Vote] {default}Â¡Se requiere un mÃ­nimo de %d jugadores!"
     }
 
     "RTV Next Available"
     {
-        "es"    "{green}[Rock The Vote] {default}à¸¢à¸ÿEl prà¸£à¸ÿximo RTV estarà¸£à¸ÿ disponible en {green}%d segundos!"
+        "es"    "{green}[Rock The Vote] {default}Â¡El prÃ³ximo RTV estarÃ¡ disponible en {green}%d segundos!"
     }
 
     "RTV System Disabled"
     {
-        "es"    "{green}[Rock The Vote] {default}à¸¢à¸ÿEl sistema de votacià¸£à¸ÿn està¸£à¸ÿ desactivado actualmente!"
+        "es"    "{green}[Rock The Vote] {default}Â¡El sistema de votaciÃ³n estÃ¡ desactivado actualmente!"
     }
 
     "RTV Wait"
     {
-        "es"    "{green}[Rock The Vote] {default}à¸¢à¸ÿPor favor, espera %d segundos para usar RTV!"
+        "es"    "{green}[Rock The Vote] {default}Â¡Por favor, espera %d segundos para usar RTV!"
     }
 
     "RTV Wait Again"
     {
-        "es"    "{green}[Rock The Vote] {default}à¸¢à¸ÿPor favor, espera %d segundos para votar de nuevo!"
+        "es"    "{green}[Rock The Vote] {default}Â¡Por favor, espera %d segundos para votar de nuevo!"
     }
 	
     "RTV Player Left Start"
     {
-        "es"        "{green}[Rock The Vote] {default}Un jugador salià¸£à¸ÿ del servidor. Iniciando votacià¸£à¸ÿn RTV..."
+        "es"        "{green}[Rock The Vote] {default}Un jugador saliÃ³ del servidor. Iniciando votaciÃ³n RTV..."
     }
 
     "RTV Threshold Reached"
     {
-        "es"    "{green}[Rock The Vote] {default}à¸¢à¸ÿSe ha alcanzado el umbral de RTV! Comenzando la votacià¸£à¸ÿn {green}({1}/{2} votos)"
+        "es"    "{green}[Rock The Vote] {default}Â¡Se ha alcanzado el umbral de RTV! Comenzando la votaciÃ³n {green}({1}/{2} votos)"
     }
 
     "Reload Gamemodes Successful"
     {
-        "es"    "{green}[MultiMode] {default}à¸¢à¸ÿLa configuracià¸£à¸ÿn de los modos de juego se ha recargado con à¸£à¸ÿxito!"
+        "es"    "{green}[MultiMode] {default}Â¡La configuraciÃ³n de los modos de juego se ha recargado con Ã©xito!"
     }
 
     "Round Map Changing"
@@ -227,22 +227,22 @@
 
     "Run Off Cooldown Hud"
     {
-        "es"    "Una votacià¸£à¸ÿn de desempate se realizarà¸£à¸ÿ en %d segundos..."
+        "es"    "Una votaciÃ³n de desempate se realizarÃ¡ en %d segundos..."
     }
 
     "Run Off Voting Cooldown"
     {
-        "es"    "{green}[Votacià¸£à¸ÿn] {default}Ninguna opcià¸£à¸ÿn alcanzà¸£à¸ÿ los votos mà¸£à¸ÿnimos para ganar, una votacià¸£à¸ÿn de desempate se realizarà¸£à¸ÿ en %d segundos..."
+        "es"    "{green}[VotaciÃ³n] {default}Ninguna opciÃ³n alcanzÃ³ los votos mÃ­nimos para ganar, una votaciÃ³n de desempate se realizarÃ¡ en %d segundos..."
     }
 
     "Runoff Vote Failed (Limit)"
     {
-        "es"    "Se alcanzà¸£à¸ÿ el là¸£à¸ÿmite de votaciones de desempate. La votacià¸£à¸ÿn ha sido cancelada."
+        "es"    "Se alcanzÃ³ el lÃ­mite de votaciones de desempate. La votaciÃ³n ha sido cancelada."
     }
 
     "Show Gamemode Admin Title"
     {
-        "es"    "Elige un Modo de Juego para la Votacià¸£à¸ÿn:"
+        "es"    "Elige un Modo de Juego para la VotaciÃ³n:"
     }
 
     "Show Gamemode Group Title"
@@ -262,7 +262,7 @@
 
     "Start Vote"
     {
-        "es"    "Iniciar Votacià¸£à¸ÿn"
+        "es"    "Iniciar VotaciÃ³n"
     }
 
     "SubGroup Force Title"
@@ -290,19 +290,14 @@
         "es"    "Elige un subgrupo para %s:"
     }
 
-    "Separated Vote Start Group"
-    {
-        "es"    "Iniciar votaci?n separada de este grupo."
-    }
-
     "Timing Instant"
     {
-        "es"    "Instantà¸£à¸ÿneo"
+        "es"    "InstantÃ¡neo"
     }
 
     "Timing Instant Notify"
     {
-        "es"    "{green}[MultiMode] {default}El mapa cambià¸£à¸ÿ instantà¸£à¸ÿneamente a: {olive}%s"
+        "es"    "{green}[MultiMode] {default}El mapa cambiÃ³ instantÃ¡neamente a: {olive}%s"
     }
 
     "Timing NextMap"
@@ -312,7 +307,7 @@
 
     "Timing NextMap Notify"
     {
-        "es"    "{green}[MultiMode] {default}El prà¸£à¸ÿximo mapa serà¸£à¸ÿ: {olive}%s"
+        "es"    "{green}[MultiMode] {default}El prÃ³ximo mapa serÃ¡: {olive}%s"
     }
 
     "Timing NextRound"
@@ -322,12 +317,12 @@
 
     "Timing NextRound Notify"
     {
-        "es"    "{green}[MultiMode] {default}El mapa cambiarà¸£à¸ÿ la prà¸£à¸ÿxima ronda a: {olive}%s"
+        "es"    "{green}[MultiMode] {default}El mapa cambiarÃ¡ la prÃ³xima ronda a: {olive}%s"
     }
 
     "Timing Title"
     {
-        "es"    "à¸¢à¸ÿCuà¸£à¸ÿndo aplicar la votacià¸£à¸ÿn?"
+        "es"    "Â¿CuÃ¡ndo aplicar la votaciÃ³n?"
     }
 
     "Unnominate All Removed"
@@ -347,7 +342,7 @@
 
     "Unnominate Menu Title"
     {
-        "es"    "Menà¸£à¸ÿ de Desnominacià¸£à¸ÿn"
+        "es"    "MenÃº de DesnominaciÃ³n"
     }
 
     "Unnominate None"
@@ -358,42 +353,42 @@
     "Unnominate Single Removed"
     {
         "#format"   "{1:s},{2:s}"
-        "es"    "{red}[Nominate] {default}Tu nominacià¸£à¸ÿn para {darkred}'{1}' en '{2}' {default}ha sido eliminada."
+        "es"    "{red}[Nominate] {default}Tu nominaciÃ³n para {darkred}'{1}' en '{2}' {default}ha sido eliminada."
     }
 
     "Unnominate System Is Disabled"
     {
-        "es"    "{red}[Nominate] {default}à¸¢à¸ÿEl sistema de desnominacià¸£à¸ÿn està¸£à¸ÿ desactivado actualmente!"
+        "es"    "{red}[Nominate] {default}Â¡El sistema de desnominaciÃ³n estÃ¡ desactivado actualmente!"
     }
 
     "Vote Already Active"
     {
-        "es"    "{red}Votacià¸£à¸ÿn ya en progreso..."
+        "es"    "{red}VotaciÃ³n ya en progreso..."
     }
 
     "Vote Type Admin"
     {
-        "es"    "Iniciar votacià¸£à¸ÿn como Administrador"
+        "es"    "Iniciar votaciÃ³n como Administrador"
     }
 
     "Vote Type Menu Title"
     {
-        "es"    "Elige el tipo de votacià¸£à¸ÿn:"
+        "es"    "Elige el tipo de votaciÃ³n:"
     }
 
     "Vote Type Selection Title"
     {
-        "es"    "Elige el tipo de votacià¸£à¸ÿn:"
+        "es"    "Elige el tipo de votaciÃ³n:"
     }
 
     "Vote Type Normal"
     {
-        "es"    "Iniciar votacià¸£à¸ÿn"
+        "es"    "Iniciar votaciÃ³n"
     }
 
     "Vote Type Separated"
     {
-        "es"    "Iniciar votacià¸£à¸ÿn separada"
+        "es"    "Iniciar votaciÃ³n separada"
     }
 
 
