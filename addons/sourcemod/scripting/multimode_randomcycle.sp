@@ -37,6 +37,8 @@ UserMsg g_VGuiMenuId = INVALID_MESSAGE_ID;
 
 public void OnPluginStart() 
 {
+    LoadTranslations("multimode_extra.phrases");
+	
     // Convars
     g_Cvar_RandomCycleType = CreateConVar("multimode_randomcycle_type", "1", "Random Cycle Type: 1-Selects at the beginning of the map, 2-Selects when there is no next map at the end of the map.", _, true, 1.0, true, 2.0);
     g_Cvar_RandomCycleGroupExclude = CreateConVar("multimode_randomcycle_groupexclude", "0", "Number of recently played gamemodes to exclude from random cycle (0= Disabled)");
