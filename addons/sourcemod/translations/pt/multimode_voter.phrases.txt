@@ -289,6 +289,11 @@
     {
         "pt" "Escolha um sub-grupo para %s:"
     }
+	
+    "Separated Vote Start Group"
+    {
+        "pt"    "Iniciar votação separada desse grupo."
+    }
 
     "Timing Instant"
     {

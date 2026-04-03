@@ -290,6 +290,11 @@
         "zho"   "為 %s 選擇一個子群組:"
     }
 
+    "Separated Vote Start Group"
+    {
+        "zho"   "為此群組開始單獨投票。"
+    }
+
     "Timing Instant"
     {
         "zho"   "立即"
