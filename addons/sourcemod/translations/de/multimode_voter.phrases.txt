@@ -284,6 +284,11 @@
     {
         "de"    "Untergruppe nicht gefunden"
     }
+	
+    "Separated Vote Start Group"
+    {
+        "de"    "Separate Abstimmung für diese Gruppe starten."
+    }
 
     "SubGroup Vote Title"
     {
