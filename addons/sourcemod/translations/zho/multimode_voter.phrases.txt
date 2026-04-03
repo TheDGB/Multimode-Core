@@ -27,7 +27,7 @@
 
     "Current MMC Version"
     {
-        "zho"   "目前多模式核心版本: {olive}%s"
+        "zho"   "{green}[多模式] {default}目前多模式核心版本: {olive}%s"
     }
 
     "Error Changing Map"
@@ -52,7 +52,7 @@
 
     "End Vote Waiting For Next Round"
     {
-        "zho"   "等待下一輪開始，以啟動新一輪投票。"
+        "zho"   "[Multimode Core] 等待下一輪開始，以啟動新一輪投票。"
     }
 
     "Force Gamemode"
@@ -288,11 +288,6 @@
     "SubGroup Vote Title"
     {
         "zho"   "為 %s 選擇一個子群組:"
-    }
-
-    "Separated Vote Start Group"
-    {
-        "zho"   "為此群組開始單獨投票。"
     }
 
     "Timing Instant"

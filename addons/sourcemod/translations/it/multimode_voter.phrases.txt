@@ -27,7 +27,7 @@
 
     "Current MMC Version"
     {
-        "it"    "Versione attuale di Multimode Core: {olive}%s"
+        "it"    "{green}[Multimode] {default}Versione attuale di Multimode Core: {olive}%s"
     }
 
     "Error Changing Map"
@@ -52,7 +52,7 @@
 
     "End Vote Waiting For Next Round"
     {
-        "it"    "In attesa dell'inizio del prossimo turno per dare inizio a una nuova votazione."
+        "it"    "[Multimode Core] In attesa dell'inizio del prossimo turno per dare inizio a una nuova votazione."
     }
 
     "Force Gamemode"
@@ -217,12 +217,12 @@
 
     "Reload Gamemodes Successful"
     {
-        "it"    "Configurazione modalità di gioco ricaricata con successo!"
+        "it"    "{green}[MultiMode] {default}Configurazione modalità di gioco ricaricata con successo!"
     }
 
     "Round Map Changing"
     {
-        "it"    "Round riuscito, cambio mappa in: {olive}%s"
+        "it"    "{green}[MultiMode] {default}Round riuscito, cambio mappa in: {olive}%s"
     }
 
     "Run Off Cooldown Hud"
@@ -232,7 +232,7 @@
 
     "Run Off Voting Cooldown"
     {
-        "it"    "Nessuna opzione ha raggiunto i voti minimi per vincere, un ballottaggio si terrà tra %d secondi..."
+        "it"    "{green}[Votazione] {default}Nessuna opzione ha raggiunto i voti minimi per vincere, un ballottaggio si terrà tra %d secondi..."
     }
 
     "Runoff Vote Failed (Limit)"
@@ -290,11 +290,6 @@
         "it"    "Scegli un sottogruppo per %s:"
     }
 
-    "Separated Vote Start Group"
-    {
-        "it"    "Avvia una votazione separata per questo gruppo."
-    }
-
     "Timing Instant"
     {
         "it"    "Istantaneo"
@@ -302,7 +297,7 @@
 
     "Timing Instant Notify"
     {
-        "it"    "Mappa cambiata istantaneamente in: {olive}%s"
+        "it"    "{green}[MultiMode] {default}Mappa cambiata istantaneamente in: {olive}%s"
     }
 
     "Timing NextMap"
@@ -312,7 +307,7 @@
 
     "Timing NextMap Notify"
     {
-        "it"    "La prossima mappa sarà: {olive}%s"
+        "it"    "{green}[MultiMode] {default}La prossima mappa sarà: {olive}%s"
     }
 
     "Timing NextRound"
@@ -322,7 +317,7 @@
 
     "Timing NextRound Notify"
     {
-        "it"    "La mappa cambierà al prossimo round in: {olive}%s"
+        "it"    "{green}[MultiMode] {default}La mappa cambierà al prossimo round in: {olive}%s"
     }
 
     "Timing Title"

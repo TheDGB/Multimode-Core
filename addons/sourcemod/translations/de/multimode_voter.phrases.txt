@@ -27,7 +27,7 @@
 
     "Current MMC Version"
     {
-        "de"    "Aktuelle Multimode Core Version: {olive}%s"
+        "de"    "{green}[Multimode] {default}Aktuelle Multimode Core Version: {olive}%s"
     }
 
     "Error Changing Map"
@@ -52,7 +52,7 @@
 
     "End Vote Waiting For Next Round"
     {
-        "de"    "Warten auf den Beginn der nächsten Runde, um eine neue Abstimmung zu starten."
+        "de"    "[Multimode Core] Warten auf den Beginn der nächsten Runde, um eine neue Abstimmung zu starten."
     }
 
     "Force Gamemode"
@@ -217,12 +217,12 @@
 
     "Reload Gamemodes Successful"
     {
-        "de"    "Spielmodus-Konfiguration erfolgreich neu geladen!"
+        "de"    "{green}[MultiMode] {default}Spielmodus-Konfiguration erfolgreich neu geladen!"
     }
 
     "Round Map Changing"
     {
-        "de"    "Runde erfolgreich, Karte wird gewechselt zu: {olive}%s"
+        "de"    "{green}[MultiMode] {default}Runde erfolgreich, Karte wird gewechselt zu: {olive}%s"
     }
 
     "Run Off Cooldown Hud"
@@ -290,11 +290,6 @@
         "de"    "Wähle eine Untergruppe für %s:"
     }
 
-    "Separated Vote Start Group"
-    {
-        "de"    "Separate Abstimmung für diese Gruppe starten."
-    }
-
     "Timing Instant"
     {
         "de"    "Sofort"
@@ -302,7 +297,7 @@
 
     "Timing Instant Notify"
     {
-        "de"    "Karte sofort zu {olive}%s gewechselt"
+        "de"    "{green}[MultiMode] {default}Karte sofort zu {olive}%s gewechselt"
     }
 
     "Timing NextMap"
@@ -312,7 +307,7 @@
 
     "Timing NextMap Notify"
     {
-        "de"    "Nächste Karte wird sein: {olive}%s"
+        "de"    "{green}[MultiMode] {default}Nächste Karte wird sein: {olive}%s"
     }
 
     "Timing NextRound"
@@ -322,7 +317,7 @@
 
     "Timing NextRound Notify"
     {
-        "de"    "Karte wird nächste Runde zu {olive}%s wechseln"
+        "de"    "{green}[MultiMode] {default}Karte wird nächste Runde zu {olive}%s wechseln"
     }
 
     "Timing Title"

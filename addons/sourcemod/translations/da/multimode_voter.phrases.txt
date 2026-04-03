@@ -22,12 +22,12 @@
 
     "Cooldown Begin"
     {
-        "da"    "En ny afstemning begynder om %d sekunder."
+        "da"    "{green}[Afstemning] {default}En ny afstemning begynder om %d sekunder."
     }
 
     "Current MMC Version"
     {
-        "da"    "Nuværende Multimode Core Version: {olive}%s"
+        "da"    "{green}[Multimode] {default}Nuværende Multimode Core Version: {olive}%s"
     }
 
     "Error Changing Map"
@@ -52,7 +52,7 @@
 
     "End Vote Waiting For Next Round"
     {
-        "da"    "Venter på næste runde for at starte den nye afstemning."
+        "da"    "[Multimode Core] Venter på næste runde for at starte den nye afstemning."
     }
 
     "Force Gamemode"
@@ -217,12 +217,12 @@
 
     "Reload Gamemodes Successful"
     {
-        "da"    "Spiltilstandskonfiguration genindlæst succesfuldt!"
+        "da"    "{green}[MultiMode] {default}Spiltilstandskonfiguration genindlæst succesfuldt!"
     }
 
     "Round Map Changing"
     {
-        "da"    "Runde succesfuld, skifter kort til: {olive}%s"
+        "da"    "{green}[MultiMode] {default}Runde succesfuld, skifter kort til: {olive}%s"
     }
 
     "Run Off Cooldown Hud"
@@ -290,11 +290,6 @@
         "da"    "Vælg en undergruppe for %s:"
     }
 
-    "Separated Vote Start Group"
-    {
-        "da"    "Start separat afstemning for denne gruppe."
-    }
-
     "Timing Instant"
     {
         "da"    "Øjeblikkelig"
@@ -302,7 +297,7 @@
 
     "Timing Instant Notify"
     {
-        "da"    "Kortet skiftede øjeblikkeligt til: {olive}%s"
+        "da"    "{green}[MultiMode] {default}Kortet skiftede øjeblikkeligt til: {olive}%s"
     }
 
     "Timing NextMap"
@@ -312,7 +307,7 @@
 
     "Timing NextMap Notify"
     {
-        "da"    "Næste kort vil være: {olive}%s"
+        "da"    "{green}[MultiMode] {default}Næste kort vil være: {olive}%s"
     }
 
     "Timing NextRound"
@@ -322,7 +317,7 @@
 
     "Timing NextRound Notify"
     {
-        "da"    "Kortet skifter næste runde til: {olive}%s"
+        "da"    "{green}[MultiMode] {default}Kortet skifter næste runde til: {olive}%s"
     }
 
     "Timing Title"
