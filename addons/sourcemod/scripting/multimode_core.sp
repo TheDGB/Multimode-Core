@@ -3487,7 +3487,7 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing, cons
         case TIMING_NEXTMAP:
         {
             SetNextMap(g_sNextMap);
-            CPrintToChatAll("{green}[Multimode] {default}%t", "Timing NextMap Notify", g_sNextMap);
+            CPrintToChatAll("%t", "Timing NextMap Notify", g_sNextMap);
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Next map set (admin): %s", g_sNextMap);
             if (g_sNextGameMode[0] != '\0' && g_sNextMap[0] != '\0')
             {
@@ -3499,7 +3499,7 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing, cons
         {
             SetNextMap(g_sNextMap);
             g_bChangeMapNextRound = true;
-            CPrintToChatAll("{green}[Multimode] {default}%t", "Timing NextRound Notify", g_sNextMap);
+            CPrintToChatAll("%t", "Timing NextRound Notify", g_sNextMap);
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Next round map set (admin): %s", g_sNextMap);
             if (g_sNextGameMode[0] != '\0' && g_sNextMap[0] != '\0')
             {
@@ -3538,7 +3538,7 @@ void ExecuteModeChange(const char[] gamemode, const char[] map, int timing, cons
                 }
             }
 
-            CPrintToChatAll("{green}[Multimode] {default}%t", "Timing Instant Notify", g_sNextMap);
+            CPrintToChatAll("%t", "Timing Instant Notify", g_sNextMap);
             MMC_WriteToLogFile(g_Cvar_Logs, "[MultiMode Core] Map instantly set to (admin): %s", g_sNextMap);
             if (g_sNextGameMode[0] != '\0' && g_sNextMap[0] != '\0')
             {
