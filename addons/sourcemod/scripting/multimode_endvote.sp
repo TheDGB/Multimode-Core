@@ -360,7 +360,7 @@ void PerformEndVote()
     char mapcycle[256];
     strcopy(mapcycle, sizeof(mapcycle), "");
     
-    int emptyClients[66] = {0};
+    int emptyClients[102];
     
     char startSound[256] = "";
     char endSound[256] = "";
@@ -460,7 +460,7 @@ public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
         char mapcycle[256];
         strcopy(mapcycle, sizeof(mapcycle), "");
         
-        int emptyClients[66] = {0};
+        int emptyClients[102];
         
         char startSound[256] = "";
         char endSound[256] = "";
