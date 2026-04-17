@@ -56,8 +56,8 @@ typedef VoteCancelCallback = function void ();
  * @param timestep            Amount of time to extend the time limit when "Extend Map" is selected.
  * @param fragstep            Amount of frag limit to extend when "Extend Map" is selected.
  * @param roundstep           Amount of round limit to extend when "Extend Map" is selected.
- * @param groupexclude        Determines if a previously played group can appear in the vote. (-1 = Use default config)
- * @param mapexclude          Determines if a previously played map can appear in the vote. (-1 = Use default config)
+ * @param groupexclude        Determines if a previously played group can appear in the vote. (-1 uses core ConVar multimode_vote_default_mapexclude. 0 = Off.)
+ * @param mapexclude          Determines if a previously played map can appear in the vote. (-1 uses core ConVar multimode_vote_default_groupexclude. 0 = Off.)
  * @param handlenominations   Specifies how nominations should be handled. (1 - Handle player's nominations, 0 - Do not handle player's nominations)
  * @param threshold           Percentage required for a vote to win.
  * @param maxRunoffs          Maximum number of runoff votes allowed. (0 = No limit)

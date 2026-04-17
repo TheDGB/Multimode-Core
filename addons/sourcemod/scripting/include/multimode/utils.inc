@@ -69,6 +69,37 @@ stock KeyValues MMC_GetMapCycle()
     return kv;
 }
 
+stock bool MMC_KeyIsSubgroupOfBase(const char[] key, const char[] baseGroup)
+{
+    int bl = strlen(baseGroup);
+    if (bl == 0 || strlen(key) < bl + 2)
+        return false;
+    if (key[bl] != '/')
+        return false;
+    char buf[128];
+    strcopy(buf, sizeof(buf), key);
+    buf[bl] = '\0';
+    return StrEqual(buf, baseGroup);
+}
+
+stock int MMC_ResolveVoteGroupExclude(int raw)
+{
+    if (raw != -1)
+        return (raw < 0) ? 0 : raw;
+    ConVar cv = FindConVar("multimode_vote_default_groupexclude");
+    int v = (cv != null) ? cv.IntValue : 0;
+    return (v < 0) ? 0 : v;
+}
+
+stock int MMC_ResolveVoteMapExclude(int raw)
+{
+    if (raw != -1)
+        return (raw < 0) ? 0 : raw;
+    ConVar cv = FindConVar("multimode_vote_default_mapexclude");
+    int v = (cv != null) ? cv.IntValue : 0;
+    return (v < 0) ? 0 : v;
+}
+
 stock bool MMC_IsWildcardEntry(const char[] mapname)
 {
     int len = strlen(mapname);
