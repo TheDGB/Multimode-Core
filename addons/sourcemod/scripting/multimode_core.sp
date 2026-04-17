@@ -126,6 +126,8 @@ public void OnPluginStart()
     // Reg Console Commands
 	
 	RegConsoleCmd("multimode_version", Command_MultimodeVersion, "Displays the current Multimode Core version");
+    RegConsoleCmd("multimode_maphistory", Command_MapHistory, "Lists past maps per gamemode/subgroup (internal history).");
+    RegConsoleCmd("sm_maphistory", Command_MapHistory, "Lists past maps per gamemode/subgroup (internal history).");
     
     // Reg Admin Commands
     RegAdminCmd("multimode_reload", Command_ReloadGamemodes, ADMFLAG_CONFIG, "Reloads gamemodes configuration");
@@ -147,6 +149,9 @@ public void OnPluginStart()
     
 	g_Cvar_VoteGroupInVoteLimit = CreateConVar("multimode_vote_group_invotelimit", "6", "Standard group limit in normal voting.");
 	g_Cvar_VoteDefaultInVoteLimit = CreateConVar("multimode_vote_default_invotelimit", "6", "Default limit of items (maps/subgroups) if not defined in the config.");
+    
+    CreateConVar("multimode_vote_default_groupexclude", "0", "When Multimode_StartVote passes groupexclude=-1, use this value (0=off, N=exclude base group if it appears in the last N global history slots).", _, true, 0.0);
+    CreateConVar("multimode_vote_default_mapexclude", "2", "When Multimode_StartVote passes mapexclude=-1, use this value (0=off, N=exclude map if it appears in the last N slots of the relevant played-maps list).", _, true, 0.0);
     
     g_Cvar_Method = CreateConVar("multimode_method", "1", "Voting method: 1=Groups then maps, 2=Only groups (random map), 3=Only maps (all groups)", _, true, 1.0, true, 3.0);
     
@@ -1982,6 +1987,119 @@ void RegisterNomination(int client, const char[] gamemode, const char[] subgroup
     }
 }
 
+static bool VoteHistory_IsGroupRecentlyPlayed(const char[] baseGroup, int groupExclude)
+{
+    if (g_PlayedGamemodes == null || baseGroup[0] == '\0' || groupExclude <= 0)
+        return false;
+
+    int len = g_PlayedGamemodes.Length;
+    int excludeStart = len - groupExclude;
+    if (excludeStart < 0)
+        excludeStart = 0;
+
+    for (int i = excludeStart; i < len; i++)
+    {
+        char entry[128];
+        g_PlayedGamemodes.GetString(i, entry, sizeof(entry));
+        char eb[64];
+        SplitGamemodeString(entry, eb, sizeof(eb), "", 0);
+        if (StrEqual(eb, baseGroup, false))
+            return true;
+    }
+    return false;
+}
+
+static bool VoteHistory_IsMapRecentlyPlayed(const char[] gamemode, const char[] subgroup, const char[] map, int mapExclude)
+{
+    if (g_PlayedMaps == null || gamemode[0] == '\0' || map[0] == '\0' || mapExclude <= 0)
+        return false;
+
+    if (subgroup[0] != '\0')
+    {
+        char key[128];
+        Format(key, sizeof(key), "%s/%s", gamemode, subgroup);
+        ArrayList playedMaps;
+        if (!g_PlayedMaps.GetValue(key, playedMaps) || playedMaps == null)
+            return false;
+        int index = playedMaps.FindString(map);
+        if (index == -1)
+            return false;
+        int totalMaps = playedMaps.Length;
+        int excludeStart = totalMaps - mapExclude;
+        return (index >= excludeStart && index < totalMaps);
+    }
+
+    ArrayList playedMaps;
+    if (g_PlayedMaps.GetValue(gamemode, playedMaps) && playedMaps != null)
+    {
+        int index = playedMaps.FindString(map);
+        if (index != -1)
+        {
+            int totalMaps = playedMaps.Length;
+            int excludeStart = totalMaps - mapExclude;
+            if (index >= excludeStart && index < totalMaps)
+                return true;
+        }
+    }
+
+    StringMapSnapshot snap = g_PlayedMaps.Snapshot();
+    char fullKey[128];
+    for (int i = 0; i < snap.Length; i++)
+    {
+        snap.GetKey(i, fullKey, sizeof(fullKey));
+        if (!MMC_KeyIsSubgroupOfBase(fullKey, gamemode))
+            continue;
+        if (!g_PlayedMaps.GetValue(fullKey, playedMaps) || playedMaps == null)
+            continue;
+        int index = playedMaps.FindString(map);
+        if (index == -1)
+            continue;
+        int totalMaps = playedMaps.Length;
+        int excludeStart = totalMaps - mapExclude;
+        if (index >= excludeStart && index < totalMaps)
+        {
+            delete snap;
+            return true;
+        }
+    }
+    delete snap;
+    return false;
+}
+
+static bool VoteHistory_MapEverPlayed(const char[] gamemode, const char[] subgroup, const char[] map)
+{
+    if (g_PlayedMaps == null || gamemode[0] == '\0' || map[0] == '\0')
+        return false;
+
+    if (subgroup[0] != '\0')
+    {
+        char key[128];
+        Format(key, sizeof(key), "%s/%s", gamemode, subgroup);
+        ArrayList playedMaps;
+        return g_PlayedMaps.GetValue(key, playedMaps) && playedMaps != null && playedMaps.FindString(map) != -1;
+    }
+
+    ArrayList playedMaps;
+    if (g_PlayedMaps.GetValue(gamemode, playedMaps) && playedMaps != null && playedMaps.FindString(map) != -1)
+        return true;
+
+    StringMapSnapshot snap = g_PlayedMaps.Snapshot();
+    char fullKey[128];
+    for (int i = 0; i < snap.Length; i++)
+    {
+        snap.GetKey(i, fullKey, sizeof(fullKey));
+        if (!MMC_KeyIsSubgroupOfBase(fullKey, gamemode))
+            continue;
+        if (g_PlayedMaps.GetValue(fullKey, playedMaps) && playedMaps != null && playedMaps.FindString(map) != -1)
+        {
+            delete snap;
+            return true;
+        }
+    }
+    delete snap;
+    return false;
+}
+
 // //////////////////////////
 // //                      //
 // //       Natives        //
@@ -2479,18 +2597,19 @@ public int NativeMMC_IsGamemodeRecentlyPlayed(Handle plugin, int numParams)
     int groupExclude = GetNativeCell(2);
     if (groupExclude <= 0)
     {
-        return (g_PlayedGamemodes.FindString(gamemode) != -1);
+        for (int i = 0; i < g_PlayedGamemodes.Length; i++)
+        {
+            char entry[128];
+            g_PlayedGamemodes.GetString(i, entry, sizeof(entry));
+            char eb[64];
+            SplitGamemodeString(entry, eb, sizeof(eb), "", 0);
+            if (StrEqual(eb, gamemode, false))
+                return true;
+        }
+        return false;
     }
-    else
-    {
-        int index = g_PlayedGamemodes.FindString(gamemode);
-        if (index == -1)
-            return false;
-        
-        int totalGroups = g_PlayedGamemodes.Length;
-        int excludeStart = totalGroups - groupExclude;
-        return (index >= excludeStart && index < totalGroups);
-    }
+    
+    return VoteHistory_IsGroupRecentlyPlayed(gamemode, groupExclude);
 }
 
 public int NativeMMC_IsMapRecentlyPlayed(Handle plugin, int numParams)
@@ -2506,35 +2625,13 @@ public int NativeMMC_IsMapRecentlyPlayed(Handle plugin, int numParams)
     if (g_PlayedMaps == null || strlen(gamemode) == 0 || strlen(map) == 0)
         return false;
     
-    char key[128];
-    if (strlen(subgroup) > 0)
-    {
-        Format(key, sizeof(key), "%s/%s", gamemode, subgroup);
-    }
-    else
-    {
-        strcopy(key, sizeof(key), gamemode);
-    }
-    
-    ArrayList playedMaps;
-    if (!g_PlayedMaps.GetValue(key, playedMaps) || playedMaps == null)
-        return false;
-    
     int mapExclude = GetNativeCell(4);
     if (mapExclude <= 0)
     {
-        return (playedMaps.FindString(map) != -1);
+        return VoteHistory_MapEverPlayed(gamemode, subgroup, map);
     }
-    else
-    {
-        int index = playedMaps.FindString(map);
-        if (index == -1)
-            return false;
-
-        int totalMaps = playedMaps.Length;
-        int excludeStart = totalMaps - mapExclude;
-        return (index >= excludeStart && index < totalMaps);
-    }
+    
+    return VoteHistory_IsMapRecentlyPlayed(gamemode, subgroup, map, mapExclude);
 }
 
 public int NativeMMC_IsSubGroupRecentlyPlayed(Handle plugin, int numParams)
@@ -3447,6 +3544,63 @@ public Action Command_ListVoteManagers(int client, int args)
     return Plugin_Handled;
 }
 
+public Action Command_MapHistory(int client, int args)
+{
+    if (g_PlayedMaps == null)
+    {
+        ReplyToCommand(client, "[MMC] Map history is not available.");
+        return Plugin_Handled;
+    }
+    
+    StringMapSnapshot snap = g_PlayedMaps.Snapshot();
+    if (snap.Length == 0)
+    {
+        delete snap;
+        ReplyToCommand(client, "[MMC] Map history is empty.");
+        return Plugin_Handled;
+    }
+    
+    ReplyToCommand(client, "[MMC] Map history (oldest -> newest per group/subgroup):");
+    
+    for (int i = 0; i < snap.Length; i++)
+    {
+        char ctx[128];
+        snap.GetKey(i, ctx, sizeof(ctx));
+        
+        ArrayList maps;
+        if (!g_PlayedMaps.GetValue(ctx, maps) || maps == null)
+            continue;
+        
+        char group[64], subgroup[64];
+        SplitGamemodeString(ctx, group, sizeof(group), subgroup, sizeof(subgroup));
+        
+        char mapChain[768];
+        mapChain[0] = '\0';
+        for (int m = 0; m < maps.Length; m++)
+        {
+            char mn[PLATFORM_MAX_PATH];
+            maps.GetString(m, mn, sizeof(mn));
+            int sepLen = (m > 0) ? 4 : 0;
+            if (strlen(mapChain) + sepLen + strlen(mn) + 5 >= sizeof(mapChain))
+            {
+                StrCat(mapChain, sizeof(mapChain), " ...");
+                break;
+            }
+            if (m > 0)
+                StrCat(mapChain, sizeof(mapChain), " -> ");
+            StrCat(mapChain, sizeof(mapChain), mn);
+        }
+        
+        ReplyToCommand(client, "  Group: %s | Subgroup: %s | Maps: %s",
+            group,
+            subgroup[0] != '\0' ? subgroup : "-",
+            mapChain);
+    }
+    
+    delete snap;
+    return Plugin_Handled;
+}
+
 void ExecuteModeChange(const char[] gamemode, const char[] map, int timing, const char[] subgroup = "")
 {
     CancelCurrentVote();
@@ -3759,11 +3913,7 @@ ArrayList PrepareVoteItems_Group(AdvancedVoteConfig config, ArrayList runoffItem
         return voteItems;
     }
     
-    int groupExclude = config.groupexclude;
-    if (groupExclude == -1)
-    {
-        groupExclude = 0;
-    }
+    int groupExclude = MMC_ResolveVoteGroupExclude(config.groupexclude);
     
     ArrayList voteSourceList = new ArrayList(ByteCountToCells(64));
     ArrayList nominatedItems = new ArrayList(ByteCountToCells(128));
@@ -3776,7 +3926,9 @@ ArrayList PrepareVoteItems_Group(AdvancedVoteConfig config, ArrayList runoffItem
             char nominatedGM[128];
             g_NominatedGamemodes.GetString(i, nominatedGM, sizeof(nominatedGM));
             
-            if (groupExclude > 0 && g_PlayedGamemodes != null && g_PlayedGamemodes.FindString(nominatedGM) != -1)
+            char nomBase[64];
+            SplitGamemodeString(nominatedGM, nomBase, sizeof(nomBase), "", 0);
+            if (VoteHistory_IsGroupRecentlyPlayed(nomBase, groupExclude))
                 continue;
             
             char groupName[64];
@@ -3804,7 +3956,7 @@ ArrayList PrepareVoteItems_Group(AdvancedVoteConfig config, ArrayList runoffItem
         if (!available)
             continue;
         
-        if (groupExclude > 0 && g_PlayedGamemodes != null && g_PlayedGamemodes.FindString(gmConfig.name) != -1)
+        if (VoteHistory_IsGroupRecentlyPlayed(gmConfig.name, groupExclude))
             continue;
         
         if (!config.handlenominations || (g_NominatedGamemodes != null && g_NominatedGamemodes.FindString(gmConfig.name) == -1))
@@ -4046,6 +4198,8 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
         return voteItems;
     }
     
+    int mapExclude = MMC_ResolveVoteMapExclude(config.mapexclude);
+    
     if (strlen(gamemode) == 0)
     {
         ArrayList finalVoteList = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
@@ -4085,6 +4239,8 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
                     
                     if (!uniqueMaps.ContainsKey(map) && MMC_IsCurrentlyAvailableByTime(g_kvGameModes, groupName, subgroup, map))
                     {
+                        if (VoteHistory_IsMapRecentlyPlayed(groupName, subgroup, map, mapExclude))
+                            continue;
                         listNominations.PushString(map);
                         uniqueMaps.SetValue(map, true);
                     }
@@ -4109,6 +4265,8 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
                 
                 if (!uniqueMaps.ContainsKey(map) && MMC_IsCurrentlyAvailableByTime(g_kvGameModes, gmConfig.name, "", map))
                 {
+                    if (VoteHistory_IsMapRecentlyPlayed(gmConfig.name, "", map, mapExclude))
+                        continue;
                     listRandoms.PushString(map);
                     uniqueMaps.SetValue(map, true);
                 }
@@ -4133,6 +4291,8 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
                     
                     if (!uniqueMaps.ContainsKey(map) && MMC_IsCurrentlyAvailableByTime(g_kvGameModes, gmConfig.name, subConfig.name, map))
                     {
+                        if (VoteHistory_IsMapRecentlyPlayed(gmConfig.name, subConfig.name, map, mapExclude))
+                            continue;
                         listRandoms.PushString(map);
                         uniqueMaps.SetValue(map, true);
                     }
@@ -4229,12 +4389,6 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
         return null;
     }
     
-    int mapExclude = config.mapexclude;
-    if (mapExclude == -1)
-    {
-        mapExclude = (config.mapexclude >= 0) ? config.mapexclude : 0;
-    }
-    
     ArrayList voteMaps = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
     ArrayList mapsNominated;
     
@@ -4259,14 +4413,8 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
             char map[PLATFORM_MAX_PATH];
             nominateList.GetString(i, map, sizeof(map));
             
-            if (mapExclude > 0)
-            {
-                ArrayList playedMaps;
-                if (g_PlayedMaps.GetValue(key, playedMaps) && playedMaps.FindString(map) != -1)
-                {
-                    continue;
-                }
-            }
+            if (VoteHistory_IsMapRecentlyPlayed(gamemode, "", map, mapExclude))
+                continue;
             
             if (IsMapValid(map) && voteMaps.FindString(map) == -1)
             {
@@ -4292,12 +4440,8 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
             gmConfig.maps.GetString(i, map, sizeof(map));
             if (IsMapValid(map) && voteMaps.FindString(map) == -1 && (mapsNominated == null || mapsNominated.FindString(map) == -1))
             {
-                if (mapExclude > 0)
-                {
-                    ArrayList playedMaps;
-                    if (g_PlayedMaps.GetValue(key, playedMaps) && playedMaps.FindString(map) != -1)
-                        continue;
-                }
+                if (VoteHistory_IsMapRecentlyPlayed(gamemode, "", map, mapExclude))
+                    continue;
                 availableMaps.PushString(map);
             }
         }
@@ -4369,6 +4513,8 @@ ArrayList PrepareVoteItems_SubGroupMap(AdvancedVoteConfig config, const char[] g
         return voteItems;
     }
     
+    int mapExclude = MMC_ResolveVoteMapExclude(config.mapexclude);
+    
     int gamemodeIndex = MMC_FindGameModeIndex(gamemode);
     if (gamemodeIndex == -1)
     {
@@ -4422,6 +4568,8 @@ ArrayList PrepareVoteItems_SubGroupMap(AdvancedVoteConfig config, const char[] g
             
             if (IsMapValid(map) && MMC_IsCurrentlyAvailableByTime(g_kvGameModes, gamemode, subgroup, map) && voteMaps.FindString(map) == -1)
             {
+                if (VoteHistory_IsMapRecentlyPlayed(gamemode, subgroup, map, mapExclude))
+                    continue;
                 voteMaps.PushString(map);
             }
         }
@@ -4440,6 +4588,8 @@ ArrayList PrepareVoteItems_SubGroupMap(AdvancedVoteConfig config, const char[] g
             
             if (IsMapValid(map) && MMC_IsCurrentlyAvailableByTime(g_kvGameModes, gamemode, subgroup, map) && voteMaps.FindString(map) == -1 && (mapsNominated == null || mapsNominated.FindString(map) == -1))
             {
+                if (VoteHistory_IsMapRecentlyPlayed(gamemode, subgroup, map, mapExclude))
+                    continue;
                 availableMaps.PushString(map);
             }
         }
