@@ -1377,13 +1377,17 @@ void HandleWinner(const char[] winner, VoteType voteType)
         {
             case VOTE_TYPE_GROUP:
             {
-                strcopy(g_sVoteGameMode, sizeof(g_sVoteGameMode), winner);
+                char baseGroup[64];
+                char extraSub[64];
+                SplitGamemodeString(winner, baseGroup, sizeof(baseGroup), extraSub, sizeof(extraSub));
+                
+                strcopy(g_sVoteGameMode, sizeof(g_sVoteGameMode), baseGroup);
                 
                 bool isGroupsOnlyVote = (g_CurrentVoteConfig.type == VOTE_TYPE_GROUPS_ONLY);
                 
                 if (isGroupsOnlyVote || GetVoteMethod() == 2)
                 {
-                    int index = MMC_FindGameModeIndex(winner);
+                    int index = MMC_FindGameModeIndex(baseGroup);
                     if (index != -1)
                     {
                         GameModeConfig config;
@@ -1440,15 +1444,15 @@ void HandleWinner(const char[] winner, VoteType voteType)
                         delete allMaps;
                     }
                 }
-                else if (HasSubGroups(winner))
+                else if (HasSubGroups(baseGroup))
                 {
                     g_bVoteActive = false;
-                    StartCooldown(VOTE_TYPE_SUBGROUP, winner, "", g_iVoteInitiator);
+                    StartCooldown(VOTE_TYPE_SUBGROUP, baseGroup, "", g_iVoteInitiator);
                 }
                 else
                 {
                     g_sVoteSubGroup[0] = '\0';
-                    StartCooldown(VOTE_TYPE_MAP, winner, "", g_iVoteInitiator);
+                    StartCooldown(VOTE_TYPE_MAP, baseGroup, "", g_iVoteInitiator);
                 }
             }
             case VOTE_TYPE_SUBGROUP:
