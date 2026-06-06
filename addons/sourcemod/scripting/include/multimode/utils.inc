@@ -738,6 +738,25 @@ stock bool MMC_GamemodeAvailableAdminVote(const char[] gamemode)
     return true;
 }
 
+stock bool MMC_IsMapAdminOnly(const char[] gamemode, const char[] map, const char[] subgroup = "")
+{
+    if (g_kvGameModes == null)
+        return false;
+
+    KeyValues mapKv;
+    if (strlen(subgroup) > 0)
+        mapKv = MMC_GetSubGroupMapKv(g_kvGameModes, gamemode, subgroup, map);
+    else
+        mapKv = MMC_GetMapKv(g_kvGameModes, gamemode, map);
+    
+    if (mapKv == null)
+        return false;
+    
+    int adminonly = mapKv.GetNum("adminonly", 0);
+    delete mapKv;
+    return (adminonly == 1);
+}
+
 stock void MMC_WriteToLogFile(ConVar logsCvar, const char[] format, any ...)
 {
     if (logsCvar != null && !logsCvar.BoolValue)

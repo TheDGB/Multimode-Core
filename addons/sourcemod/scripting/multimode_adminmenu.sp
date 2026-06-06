@@ -865,8 +865,15 @@ void ShowMapMenu(int client, const char[] sGameMode, const char[] subgroup = "")
         bool isMapNominated = MultiMode_IsMapNominated(group, actualSubgroup, map);
         char voteIndicator[6];
         strcopy(voteIndicator, sizeof(voteIndicator), isMapNominated ? GESTURE_NOMINATED : "");
-        
-        Format(display, sizeof(display), "%s%s%s", display, voteIndicator, prefix);
+
+        if (MMC_IsMapAdminOnly(group, map, actualSubgroup))
+        {
+            Format(display, sizeof(display), "[ADMIN] %s%s%s", display, voteIndicator, prefix);
+        }
+        else
+        {
+            Format(display, sizeof(display), "%s%s%s", display, voteIndicator, prefix);
+        }
         
         menu.AddItem(map, display);
     }

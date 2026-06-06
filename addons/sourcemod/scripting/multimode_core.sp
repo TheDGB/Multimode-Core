@@ -1399,6 +1399,8 @@ void HandleWinner(const char[] winner, VoteType voteType)
                         {
                             char map[PLATFORM_MAX_PATH];
                             config.maps.GetString(i, map, sizeof(map));
+                            if (!g_bCurrentVoteAdmin && MMC_IsMapAdminOnly(config.name, map))
+                                continue;
                             allMaps.PushString(map);
                         }
 
@@ -1411,6 +1413,8 @@ void HandleWinner(const char[] winner, VoteType voteType)
                                 char map[PLATFORM_MAX_PATH];
                                 subConfig.maps.GetString(j, map, sizeof(map));
                                 if (allMaps.FindString(map) == -1) {
+                                    if (!g_bCurrentVoteAdmin && MMC_IsMapAdminOnly(config.name, map, subConfig.name))
+                                        continue;
                                      allMaps.PushString(map);
                                 }
                             }
@@ -2932,6 +2936,8 @@ public int NativeMMC_GetRandomMap(Handle plugin, int numParams)
         {
             char mapName[PLATFORM_MAX_PATH];
             config.maps.GetString(i, mapName, sizeof(mapName));
+            if (MMC_IsMapAdminOnly(config.name, mapName))
+                continue;
             mapPool.PushString(mapName);
             mapToSubgroup.SetString(mapName, "");
         }
@@ -2947,6 +2953,8 @@ public int NativeMMC_GetRandomMap(Handle plugin, int numParams)
                 subCfg.maps.GetString(j, mapName, sizeof(mapName));
                 if (mapPool.FindString(mapName) == -1) // Avoid duplicates
                 {
+                    if (MMC_IsMapAdminOnly(config.name, mapName, subCfg.name))
+                        continue;
                     mapPool.PushString(mapName);
                     mapToSubgroup.SetString(mapName, subCfg.name);
                 }
@@ -4216,6 +4224,9 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
                         strcopy(subgroup, sizeof(subgroup), parts[1]);
                     }
                     
+                    if (!config.adminvote && MMC_IsMapAdminOnly(groupName, map, subgroup))
+                        continue;
+
                     if (!uniqueMaps.ContainsKey(map) && MMC_IsCurrentlyAvailableByTime(g_kvGameModes, groupName, subgroup, map))
                     {
                         if (VoteHistory_IsMapRecentlyPlayed(groupName, subgroup, map, mapExclude))
@@ -4244,6 +4255,8 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
                 
                 if (!uniqueMaps.ContainsKey(map) && MMC_IsCurrentlyAvailableByTime(g_kvGameModes, gmConfig.name, "", map))
                 {
+                    if (!config.adminvote && MMC_IsMapAdminOnly(gmConfig.name, map))
+                        continue;
                     if (VoteHistory_IsMapRecentlyPlayed(gmConfig.name, "", map, mapExclude))
                         continue;
                     listRandoms.PushString(map);
@@ -4270,6 +4283,8 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
                     
                     if (!uniqueMaps.ContainsKey(map) && MMC_IsCurrentlyAvailableByTime(g_kvGameModes, gmConfig.name, subConfig.name, map))
                     {
+                        if (!config.adminvote && MMC_IsMapAdminOnly(gmConfig.name, map, subConfig.name))
+                            continue;
                         if (VoteHistory_IsMapRecentlyPlayed(gmConfig.name, subConfig.name, map, mapExclude))
                             continue;
                         listRandoms.PushString(map);
@@ -4392,6 +4407,9 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
             char map[PLATFORM_MAX_PATH];
             nominateList.GetString(i, map, sizeof(map));
             
+            if (!config.adminvote && MMC_IsMapAdminOnly(gamemode, map))
+                continue;
+
             if (VoteHistory_IsMapRecentlyPlayed(gamemode, "", map, mapExclude))
                 continue;
             
@@ -4419,6 +4437,8 @@ ArrayList PrepareVoteItems_Map(AdvancedVoteConfig config, const char[] gamemode,
             gmConfig.maps.GetString(i, map, sizeof(map));
             if (IsMapValid(map) && voteMaps.FindString(map) == -1 && (mapsNominated == null || mapsNominated.FindString(map) == -1))
             {
+                if (!config.adminvote && MMC_IsMapAdminOnly(gamemode, map))
+                    continue;
                 if (VoteHistory_IsMapRecentlyPlayed(gamemode, "", map, mapExclude))
                     continue;
                 availableMaps.PushString(map);
@@ -4547,6 +4567,8 @@ ArrayList PrepareVoteItems_SubGroupMap(AdvancedVoteConfig config, const char[] g
             
             if (IsMapValid(map) && MMC_IsCurrentlyAvailableByTime(g_kvGameModes, gamemode, subgroup, map) && voteMaps.FindString(map) == -1)
             {
+                if (!config.adminvote && MMC_IsMapAdminOnly(gamemode, map, subgroup))
+                    continue;
                 if (VoteHistory_IsMapRecentlyPlayed(gamemode, subgroup, map, mapExclude))
                     continue;
                 voteMaps.PushString(map);
@@ -4567,6 +4589,8 @@ ArrayList PrepareVoteItems_SubGroupMap(AdvancedVoteConfig config, const char[] g
             
             if (IsMapValid(map) && MMC_IsCurrentlyAvailableByTime(g_kvGameModes, gamemode, subgroup, map) && voteMaps.FindString(map) == -1 && (mapsNominated == null || mapsNominated.FindString(map) == -1))
             {
+                if (!config.adminvote && MMC_IsMapAdminOnly(gamemode, map, subgroup))
+                    continue;
                 if (VoteHistory_IsMapRecentlyPlayed(gamemode, subgroup, map, mapExclude))
                     continue;
                 availableMaps.PushString(map);

@@ -530,7 +530,7 @@ void ShowNominateMapMenu(int client, const char[] gamemode, const char[] subgrou
         
         bool isNominated = MultiMode_IsMapNominated(gamemode, subgroup, map);
         bool isRecentlyPlayed = (mapExclude > 0 && MultiMode_IsMapRecentlyPlayed(gamemode, map, subgroup, mapExclude));
-        bool canNominate = MMC_CanClientNominate(client, gamemode, subgroup, map);
+        bool canNominate = MMC_CanClientNominate(client, gamemode, subgroup, map) && !MMC_IsMapAdminOnly(gamemode, map, subgroup);
         char displayName[256];
         MultiMode_GetMapDisplayName(gamemode, map, subgroup, displayName, sizeof(displayName));
 
