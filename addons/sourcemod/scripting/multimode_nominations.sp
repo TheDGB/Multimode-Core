@@ -328,11 +328,33 @@ void ShowNominateGamemodeMenu(int client)
         
         bool isRecentlyPlayed = (groupExclude > 0 && MultiMode_IsGamemodeRecentlyPlayed(gamemode, groupExclude));
         bool canNominate = MMC_CanClientNominate(client, gamemode);
+        
+        int players = GetRealClientCount();
+        bool exceedsPlayerLimit = false;
+        char playerLimitGesture[32];
+        int gIndex = MMC_FindGameModeIndex(gamemode);
+        if (gIndex != -1) {
+            GameModeConfig gmCfg;
+            GetGameModesList().GetArray(gIndex, gmCfg);
+            if (gmCfg.minplayers > 0 && players < gmCfg.minplayers) {
+                exceedsPlayerLimit = true;
+                Format(playerLimitGesture, sizeof(playerLimitGesture), GESTURE_EXCLUDED_PLAYERLIMIT_MINIMUM, gmCfg.minplayers);
+            } else if (gmCfg.maxplayers > 0 && players > gmCfg.maxplayers) {
+                exceedsPlayerLimit = true;
+                Format(playerLimitGesture, sizeof(playerLimitGesture), GESTURE_EXCLUDED_PLAYERLIMIT_MAX, gmCfg.maxplayers);
+            }
+        }
+        
         char display[128];
         
         if (!canNominate)
         {
             Format(display, sizeof(display), "%s%s", gamemode, GESTURE_EXCLUDED);
+            menu.AddItem(gamemode, display, ITEMDRAW_DISABLED);
+        }
+        else if (exceedsPlayerLimit)
+        {
+            Format(display, sizeof(display), "%s%s", gamemode, playerLimitGesture);
             menu.AddItem(gamemode, display, ITEMDRAW_DISABLED);
         }
         else if (g_Cvar_Nominate_NominateSelectedGroupExclude.BoolValue && isNominated)
@@ -424,11 +446,36 @@ void ShowNominateSubGroupMenu(int client, const char[] gamemode)
         bool isNominated = MultiMode_IsGroupNominated(gamemode, subgroup);
         bool isRecentlyPlayed = (subgroupExclude > 0 && MultiMode_IsSubGroupRecentlyPlayed(gamemode, subgroup, subgroupExclude));
         bool canNominate = MMC_CanClientNominate(client, gamemode, subgroup);
+        
+        int players = GetRealClientCount();
+        bool exceedsPlayerLimit = false;
+        char playerLimitGesture[32];
+        int gIdx = MMC_FindGameModeIndex(gamemode);
+        int sIdx = MMC_FindSubGroupIndex(gamemode, subgroup);
+        if (gIdx != -1 && sIdx != -1) {
+            GameModeConfig gmCfg;
+            GetGameModesList().GetArray(gIdx, gmCfg);
+            SubGroupConfig subCfg;
+            gmCfg.subGroups.GetArray(sIdx, subCfg);
+            if (subCfg.minplayers > 0 && players < subCfg.minplayers) {
+                exceedsPlayerLimit = true;
+                Format(playerLimitGesture, sizeof(playerLimitGesture), GESTURE_EXCLUDED_PLAYERLIMIT_MINIMUM, subCfg.minplayers);
+            } else if (subCfg.maxplayers > 0 && players > subCfg.maxplayers) {
+                exceedsPlayerLimit = true;
+                Format(playerLimitGesture, sizeof(playerLimitGesture), GESTURE_EXCLUDED_PLAYERLIMIT_MAX, subCfg.maxplayers);
+            }
+        }
+        
         char display[128];
 
         if (!canNominate)
         {
             Format(display, sizeof(display), "%s%s", subgroup, GESTURE_EXCLUDED);
+            menu.AddItem(subgroup, display, ITEMDRAW_DISABLED);
+        }
+        else if (exceedsPlayerLimit)
+        {
+            Format(display, sizeof(display), "%s%s", subgroup, playerLimitGesture);
             menu.AddItem(subgroup, display, ITEMDRAW_DISABLED);
         }
         else if (g_Cvar_Nominate_NominateSelectedGroupExclude.BoolValue && isNominated)
@@ -531,12 +578,66 @@ void ShowNominateMapMenu(int client, const char[] gamemode, const char[] subgrou
         bool isNominated = MultiMode_IsMapNominated(gamemode, subgroup, map);
         bool isRecentlyPlayed = (mapExclude > 0 && MultiMode_IsMapRecentlyPlayed(gamemode, map, subgroup, mapExclude));
         bool canNominate = MMC_CanClientNominate(client, gamemode, subgroup, map) && !MMC_IsMapAdminOnly(gamemode, map, subgroup);
+        
+        int players = GetRealClientCount();
+        bool exceedsPlayerLimit = false;
+        char playerLimitGesture[32];
+        int minP = 0, maxP = 0;
+        
+        KeyValues mapKv = null;
+        if (strlen(subgroup) > 0)
+            mapKv = MMC_GetSubGroupMapKv(g_kvGameModes, gamemode, subgroup, map);
+        else
+            mapKv = MMC_GetMapKv(g_kvGameModes, gamemode, map);
+        
+        if (mapKv != null) {
+            minP = mapKv.GetNum(MAPCYCLE_KEY_MINPLAYERS, 0);
+            maxP = mapKv.GetNum(MAPCYCLE_KEY_MAXPLAYERS, 0);
+            delete mapKv;
+        }
+        
+        if (minP == 0 && maxP == 0 && strlen(subgroup) > 0) {
+            int sgIdx = MMC_FindSubGroupIndex(gamemode, subgroup);
+            int gIdx = MMC_FindGameModeIndex(gamemode);
+            if (gIdx != -1 && sgIdx != -1) {
+                GameModeConfig gmCfg;
+                GetGameModesList().GetArray(gIdx, gmCfg);
+                SubGroupConfig subCfg;
+                gmCfg.subGroups.GetArray(sgIdx, subCfg);
+                minP = subCfg.minplayers;
+                maxP = subCfg.maxplayers;
+            }
+        }
+        
+        if (minP == 0 && maxP == 0) {
+            int gIdx = MMC_FindGameModeIndex(gamemode);
+            if (gIdx != -1) {
+                GameModeConfig gmCfg;
+                GetGameModesList().GetArray(gIdx, gmCfg);
+                if (minP == 0) minP = gmCfg.minplayers;
+                if (maxP == 0) maxP = gmCfg.maxplayers;
+            }
+        }
+        
+        if (minP > 0 && players < minP) {
+            exceedsPlayerLimit = true;
+            Format(playerLimitGesture, sizeof(playerLimitGesture), GESTURE_EXCLUDED_PLAYERLIMIT_MINIMUM, minP);
+        } else if (maxP > 0 && players > maxP) {
+            exceedsPlayerLimit = true;
+            Format(playerLimitGesture, sizeof(playerLimitGesture), GESTURE_EXCLUDED_PLAYERLIMIT_MAX, maxP);
+        }
+        
         char displayName[256];
         MultiMode_GetMapDisplayName(gamemode, map, subgroup, displayName, sizeof(displayName));
 
         if (!canNominate)
         {
             Format(displayName, sizeof(displayName), "%s%s", displayName, GESTURE_EXCLUDED);
+            menu.AddItem(map, displayName, ITEMDRAW_DISABLED);
+        }
+        else if (exceedsPlayerLimit)
+        {
+            Format(displayName, sizeof(displayName), "%s%s", displayName, playerLimitGesture);
             menu.AddItem(map, displayName, ITEMDRAW_DISABLED);
         }
         else if (g_Cvar_Nominate_NominateSelectedMapExclude.BoolValue && isNominated)

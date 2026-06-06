@@ -18,6 +18,8 @@
 #define GESTURE_VOTED " (#)"     // For Winning group/map global gesture from a previous vote
 #define GESTURE_SELECTEDNOMINATED " (Nominated)" // For selected nomination global gesture.
 #define GESTURE_EXCLUDED " (Excluded)" // For global exclusion gesture.
+#define GESTURE_EXCLUDED_PLAYERLIMIT_MINIMUM " (Minimum %d Players)" // For global player limit minimum exclusion gesture.
+#define GESTURE_EXCLUDED_PLAYERLIMIT_MAX " (Max %d Players)" // For global player limit maximum exclusion gesture.
 
 /**
  * Fills buffer with the current map cycle filename (from multimode_mapcycle convar).
