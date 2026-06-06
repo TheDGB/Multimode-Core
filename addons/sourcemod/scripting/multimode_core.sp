@@ -276,6 +276,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("MultiMode_IsSubGroupRecentlyPlayed", NativeMMC_IsSubGroupRecentlyPlayed);
 	CreateNative("MultiMode_GetCurrentVoteId", NativeMMC_GetCurrentVoteId);
 	CreateNative("MultiMode_SetNextMap", NativeMMC_SetNextMap);
+	CreateNative("MultiMode_GetGamemodeLimits", NativeMMC_GetGamemodeLimits);
+	CreateNative("MultiMode_GetSubGroupLimits", NativeMMC_GetSubGroupLimits);
     
     RegPluginLibrary("multimode_core");
     return APLRes_Success;
@@ -2772,6 +2774,51 @@ public int NativeMMC_SetNextMap(Handle plugin, int numParams)
     }
     
     ExecuteModeChange(sGroup, sMap, iTiming - 1, sSubGroup);
+    return true;
+}
+
+public int NativeMMC_GetGamemodeLimits(Handle plugin, int numParams)
+{
+    char gamemode[64];
+    GetNativeString(1, gamemode, sizeof(gamemode));
+    
+    int index = MMC_FindGameModeIndex(gamemode);
+    if (index == -1)
+        return false;
+    
+    GameModeConfig config;
+    GetGameModesList().GetArray(index, config);
+    
+    SetNativeCellRef(2, config.minplayers);
+    SetNativeCellRef(3, config.maxplayers);
+    SetNativeCellRef(4, config.mintime);
+    SetNativeCellRef(5, config.maxtime);
+    return true;
+}
+
+public int NativeMMC_GetSubGroupLimits(Handle plugin, int numParams)
+{
+    char gamemode[64], subgroup[64];
+    GetNativeString(1, gamemode, sizeof(gamemode));
+    GetNativeString(2, subgroup, sizeof(subgroup));
+    
+    int gIndex = MMC_FindGameModeIndex(gamemode);
+    if (gIndex == -1)
+        return false;
+    
+    int sIndex = MMC_FindSubGroupIndex(gamemode, subgroup);
+    if (sIndex == -1)
+        return false;
+    
+    GameModeConfig config;
+    GetGameModesList().GetArray(gIndex, config);
+    SubGroupConfig subConfig;
+    config.subGroups.GetArray(sIndex, subConfig);
+    
+    SetNativeCellRef(3, subConfig.minplayers);
+    SetNativeCellRef(4, subConfig.maxplayers);
+    SetNativeCellRef(5, subConfig.mintime);
+    SetNativeCellRef(6, subConfig.maxtime);
     return true;
 }
 

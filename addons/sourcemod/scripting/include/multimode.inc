@@ -364,6 +364,31 @@ native bool MultiMode_IsMapRecentlyPlayed(const char[] gamemode, const char[] ma
 native bool MultiMode_IsSubGroupRecentlyPlayed(const char[] gamemode, const char[] subgroup, int excludeCount = 0);
 
 /**
+ * Gets the player/time limits for a gamemode.
+ *
+ * @param gamemode      Gamemode name.
+ * @param minPlayers     Reference to store the minimum players (0 = no limit).
+ * @param maxPlayers     Reference to store the maximum players (0 = no limit).
+ * @param minTime        Reference to store the minimum time in HHMM format (-1 = no limit).
+ * @param maxTime        Reference to store the maximum time in HHMM format (-1 = no limit).
+ * @return              True if the gamemode was found, false otherwise.
+ */
+native bool MultiMode_GetGamemodeLimits(const char[] gamemode, int &minPlayers, int &maxPlayers, int &minTime, int &maxTime);
+
+/**
+ * Gets the player/time limits for a subgroup.
+ *
+ * @param gamemode      Gamemode name.
+ * @param subgroup      Subgroup name.
+ * @param minPlayers     Reference to store the minimum players (0 = no limit).
+ * @param maxPlayers     Reference to store the maximum players (0 = no limit).
+ * @param minTime        Reference to store the minimum time in HHMM format (-1 = no limit).
+ * @param maxTime        Reference to store the maximum time in HHMM format (-1 = no limit).
+ * @return              True if the subgroup was found, false otherwise.
+ */
+native bool MultiMode_GetSubGroupLimits(const char[] gamemode, const char[] subgroup, int &minPlayers, int &maxPlayers, int &minTime, int &maxTime);
+
+/**
  * Called when a vote starts.
  * 
  * @param initiator     Client who started the vote (0 for automatic system).
